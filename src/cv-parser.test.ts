@@ -810,4 +810,111 @@ GPA: 3.7/4.0, Dean's List
     expect(result.experience.length).toBeGreaterThanOrEqual(1);
     expect(result.education.length).toBeGreaterThanOrEqual(1);
   });
+
+  it("should parse concatenated resume blob without explicit headers", () => {
+    // This tests the case where job entries are concatenated without clear section headers
+    const blobText = `Senior Developer
+2022 - Present
+TechCorp Remote
+
+Built scalable microservices architecture Led migration to cloud infrastructure Senior Developer 2017 - 2022 DataSystems Remote Implemented authentication systems Led codebase modernization improving performance by 30% Senior Developer 2015 - 2017 IndustrialTech Remote Built monitoring dashboards for manufacturing sensors Frontend Developer 2012 - 2015 Freelance Remote Delivered responsive web applications`;
+
+    const result = parseResume(blobText);
+
+    // Should detect this as an experience section and extract at least 3-4 entries
+    expect(result.experience.length).toBeGreaterThanOrEqual(3);
+
+    // Check for key job entries
+    const hasTechCorp = result.experience.some(
+      (e) =>
+        e.company?.toLowerCase().includes("techcorp") ||
+        e.dateRange?.start === "2022",
+    );
+    const hasDataSystems = result.experience.some(
+      (e) => e.dateRange?.start === "2017" && e.dateRange?.end === "2022",
+    );
+    const hasIndustrialTech = result.experience.some(
+      (e) => e.dateRange?.start === "2015" && e.dateRange?.end === "2017",
+    );
+    const hasFrontend = result.experience.some(
+      (e) =>
+        e.title?.toLowerCase().includes("frontend") ||
+        e.description?.toLowerCase().includes("frontend"),
+    );
+
+    expect(hasTechCorp).toBe(true);
+    expect(hasDataSystems).toBe(true);
+    expect(hasIndustrialTech).toBe(true);
+    expect(hasFrontend).toBe(true);
+  });
+
+  it("should parse well-formatted resume with tabs between fields", () => {
+    // This tests the case where job entries use tabs to separate fields
+    const resumeText = `John Doe
+john@example.com | linkedin.com/in/johndoe | github.com/johndoe
+
+WORK EXPERIENCE
+
+Senior Developer 	2022 – Present
+TechCorp 	Remote
+Built scalable microservices architecture
+Led migration to cloud infrastructure
+
+Senior Developer	2017 – 2022
+DataSystems 	Remote
+Implemented authentication systems
+Led codebase modernization improving performance
+
+Senior Developer	2015 – 2017
+IndustrialTech	Remote
+Built monitoring dashboards for sensors
+Developed facility monitoring systems
+
+Frontend Developer	2012 – 2015
+Freelance	Remote
+Delivered responsive web applications`;
+
+    const result = parseResume(resumeText);
+
+    // Should extract all 4 experience entries
+    expect(result.experience.length).toBeGreaterThanOrEqual(4);
+
+    // Check each job entry is properly extracted
+    const techCorp = result.experience.find(
+      (e) =>
+        e.company?.toLowerCase().includes("techcorp") ||
+        (e.dateRange?.start === "2022" && e.dateRange?.end === "Present"),
+    );
+    expect(techCorp).toBeDefined();
+    expect(techCorp?.title?.toLowerCase()).toContain("developer");
+    expect(techCorp?.location?.toLowerCase()).toBe("remote");
+
+    const dataSystems = result.experience.find(
+      (e) =>
+        e.company?.toLowerCase().includes("datasystems") ||
+        (e.dateRange?.start === "2017" && e.dateRange?.end === "2022"),
+    );
+    expect(dataSystems).toBeDefined();
+    expect(dataSystems?.title?.toLowerCase()).toContain("developer");
+    expect(dataSystems?.location?.toLowerCase()).toBe("remote");
+
+    const industrialTech = result.experience.find(
+      (e) =>
+        e.company?.toLowerCase().includes("industrialtech") ||
+        (e.dateRange?.start === "2015" && e.dateRange?.end === "2017"),
+    );
+    expect(industrialTech).toBeDefined();
+    expect(industrialTech?.title?.toLowerCase()).toContain("developer");
+    expect(industrialTech?.location?.toLowerCase()).toBe("remote");
+
+    const freelance = result.experience.find(
+      (e) =>
+        e.company?.toLowerCase().includes("freelance") ||
+        (e.dateRange?.start === "2012" && e.dateRange?.end === "2015") ||
+        e.title?.toLowerCase().includes("frontend"),
+    );
+    expect(freelance).toBeDefined();
+    expect(freelance?.title?.toLowerCase()).toContain("frontend");
+    expect(freelance?.location?.toLowerCase()).toBe("remote");
+  });
 });

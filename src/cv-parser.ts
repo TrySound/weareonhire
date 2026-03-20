@@ -131,6 +131,59 @@ function detectSections(normalizedText: string): Section[] {
     return null;
   };
 
+  // Check if a line looks like the start of an experience entry
+  // Pattern: Date range followed by job title, or job title followed by date
+  const looksLikeExperienceEntry = (line: string): boolean => {
+    const trimmed = line.trim();
+    if (trimmed.length === 0 || trimmed.length > 80) return false;
+
+    // Has a date pattern
+    const hasDate =
+      DATE_RANGE_RE.test(trimmed) || /\b(19|20)\d{2}\b/.test(trimmed);
+    DATE_RANGE_RE.lastIndex = 0;
+
+    if (!hasDate) return false;
+
+    // Check if it also has job title-like content (not just a date)
+    // Remove date patterns and check if there's meaningful text left
+    const withoutDate = trimmed
+      .replace(DATE_RANGE_RE, "")
+      .replace(/\b(19|20)\d{2}\b/g, "")
+      .trim();
+    DATE_RANGE_RE.lastIndex = 0;
+
+    // If there's substantial text left (like "Software Engineer"), it's likely an experience entry
+    return withoutDate.length > 5 && /^[A-Za-z]/.test(withoutDate);
+  };
+
+  // Check if a line is a likely job title (short, starts with capital, no dates)
+  const looksLikeJobTitle = (line: string): boolean => {
+    const trimmed = line.trim();
+    if (trimmed.length === 0 || trimmed.length > 50) return false;
+    // Should not have dates
+    if (DATE_RANGE_RE.test(trimmed) || /\b(19|20)\d{2}\b/.test(trimmed)) {
+      DATE_RANGE_RE.lastIndex = 0;
+      return false;
+    }
+    DATE_RANGE_RE.lastIndex = 0;
+    // Should start with a capital letter and contain job-related words
+    return (
+      /^[A-Z][a-z]/.test(trimmed) &&
+      /\b(Engineer|Developer|Manager|Designer|Director|Analyst|Consultant|Lead|Architect|Specialist|Head|VP|President|Officer|Coordinator|Assistant|Administrator|Supervisor|Technician|Representative|Associate|Partner|Founder|Freelance)\b/i.test(
+        trimmed,
+      )
+    );
+  };
+
+  // Check if a line has a date pattern
+  const hasDatePattern = (line: string): boolean => {
+    const trimmed = line.trim();
+    const hasDate =
+      DATE_RANGE_RE.test(trimmed) || /\b(19|20)\d{2}\b/.test(trimmed);
+    DATE_RANGE_RE.lastIndex = 0;
+    return hasDate;
+  };
+
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
     const detectedType = isSectionHeader(line);
@@ -164,6 +217,48 @@ function detectSections(normalizedText: string): Section[] {
   if (currentSection) {
     currentSection.content = contentLines.join("\n").trim();
     sections.push(currentSection);
+  }
+
+  // Post-processing: detect implicit experience sections
+  // If contact section contains date patterns that look like job entries,
+  // convert it to an experience section
+  for (const section of sections) {
+    if (section.type === "contact" || section.type === "unknown") {
+      const sectionLines = section.content.split("\n");
+      let experienceEntryCount = 0;
+
+      for (const line of sectionLines) {
+        if (looksLikeExperienceEntry(line)) {
+          experienceEntryCount++;
+        }
+
+        // Also count job title + date patterns within long lines
+        // This handles cases where job entries are concatenated: "... Software Engineer 2017 - 2022 ..."
+        if (line.length > 100) {
+          // Find all occurrences of job title followed by date in this line
+          let match;
+          const jobTitleWithDateRegex =
+            /\b(Software\s+Engineer|Frontend\s+Developer|Backend\s+Developer|Full\s*Stack\s+Developer|Engineer|Developer|Manager|Designer|Director|Analyst|Consultant|Lead|Architect|Specialist|Head|VP|President|Officer|Coordinator|Assistant|Administrator|Supervisor|Technician|Representative|Associate|Partner|Founder|Freelance)\b\s*(?:\d{4}\s*[-–—to]+\s*(?:\d{4}|Present|Current|Now)|(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\.?\s+\d{4}\s*[-–—to]+)/gi;
+          while ((match = jobTitleWithDateRegex.exec(line)) !== null) {
+            experienceEntryCount++;
+          }
+        }
+      }
+
+      // Also check for the pattern: job title line followed by date line
+      for (let i = 0; i < sectionLines.length - 1; i++) {
+        const currentLine = sectionLines[i];
+        const nextLine = sectionLines[i + 1];
+        if (looksLikeJobTitle(currentLine) && hasDatePattern(nextLine)) {
+          experienceEntryCount++;
+        }
+      }
+
+      // If we found 2+ lines that look like experience entries, convert to experience
+      if (experienceEntryCount >= 2) {
+        section.type = "experience";
+      }
+    }
   }
 
   return sections;
@@ -491,7 +586,65 @@ function extractExperience(sectionContent: string): Experience[] {
  * Empty lines: explicit block separator
  */
 function splitIntoBlocks(text: string): string[] {
-  const lines = text.split("\n");
+  // Preprocess: split long lines that contain multiple job entry patterns
+  // Pattern: job title words followed by date range
+  const jobTitleWithDatePattern =
+    /\b(Software\s+Engineer|Frontend\s+Developer|Backend\s+Developer|Full\s*Stack\s+Developer|Engineer|Developer|Manager|Designer|Director|Analyst|Consultant|Lead|Architect|Specialist|Head|VP|President|Officer|Coordinator|Assistant|Administrator|Supervisor|Technician|Representative|Associate|Partner|Founder|Freelance)\b\s+(?:\d{4}\s*[-–—to]+\s*(?:\d{4}|Present|Current|Now)|(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\.?\s+\d{4}\s*[-–—to]+)/gi;
+
+  // Split long lines at job entry boundaries
+  const preprocessedLines: string[] = [];
+  for (const line of text.split("\n")) {
+    const trimmed = line.trim();
+    if (trimmed.length > 200) {
+      // Reset regex and test
+      jobTitleWithDatePattern.lastIndex = 0;
+      if (jobTitleWithDatePattern.test(trimmed)) {
+        // This line contains multiple job entries - split it
+        jobTitleWithDatePattern.lastIndex = 0;
+        let match;
+        const matches: { index: number; text: string }[] = [];
+
+        // Collect all matches
+        while ((match = jobTitleWithDatePattern.exec(trimmed)) !== null) {
+          matches.push({ index: match.index, text: match[0] });
+        }
+
+        if (matches.length > 1) {
+          // Split the line at each match boundary
+          // First segment: from start to first match (description of previous entry)
+          const firstMatch = matches[0];
+          if (firstMatch.index > 0) {
+            const descSegment = trimmed.slice(0, firstMatch.index).trim();
+            if (descSegment.length > 0) {
+              preprocessedLines.push(descSegment);
+            }
+          }
+
+          // Remaining segments: each job entry (title + date through to next match)
+          for (let i = 0; i < matches.length; i++) {
+            const currentMatch = matches[i];
+            const nextMatch = matches[i + 1];
+
+            // Text from current match start to next match (or end)
+            const endIndex = nextMatch ? nextMatch.index : trimmed.length;
+            const segment = trimmed.slice(currentMatch.index, endIndex).trim();
+
+            if (segment.length > 0) {
+              preprocessedLines.push(segment);
+            }
+          }
+        } else {
+          preprocessedLines.push(trimmed);
+        }
+      } else {
+        preprocessedLines.push(trimmed);
+      }
+    } else {
+      preprocessedLines.push(trimmed);
+    }
+  }
+
+  const lines = preprocessedLines;
   const blocks: string[] = [];
   let current: string[] = [];
 
@@ -517,13 +670,37 @@ function splitIntoBlocks(text: string): string[] {
     DATE_RANGE_RE.lastIndex = 0;
 
     // Only split on date if it looks like experience pattern
-    // (followed by description/bullet points)
+    // (followed by description/bullet points OR another job entry)
     if (isDateLine && current.length > 0) {
-      // Look ahead: if next line is a bullet or long line, it's experience
-      // Otherwise it's education - date at end, don't split
-      const nextLine = lines.slice(i + 1).find((l) => l.trim());
-      if (nextLine && isDescriptionLine(nextLine.trim())) {
+      // If we already have a date line in the current block, this new date line
+      // likely indicates a new job entry - split here
+      const currentBlockHasDate = current.some((line) => {
+        DATE_RANGE_RE.lastIndex = 0;
+        return DATE_RANGE_RE.test(line) || /\b(19|20)\d{2}\b/.test(line);
+      });
+      DATE_RANGE_RE.lastIndex = 0;
+
+      if (currentBlockHasDate) {
         flushBlock();
+      } else {
+        // Look ahead: if next line is a bullet or long line, it's experience
+        const nextLine = lines.slice(i + 1).find((l) => l.trim());
+        if (nextLine) {
+          const nextTrimmed = nextLine.trim();
+          // Split if next line looks like a description
+          if (isDescriptionLine(nextTrimmed)) {
+            flushBlock();
+          }
+          // Also split if next line starts with a job title + date pattern
+          // (indicating a new job entry)
+          else if (
+            /^\b(?:Software\s+Engineer|Frontend\s+Developer|Backend\s+Developer|Full\s*Stack\s+Developer|Engineer|Developer|Manager|Designer|Director|Analyst|Consultant|Lead|Architect|Specialist|Head|VP|President|Officer|Coordinator|Assistant|Administrator|Supervisor|Technician|Representative|Associate|Partner|Founder|Freelance)\b.*\d{4}/i.test(
+              nextTrimmed,
+            )
+          ) {
+            flushBlock();
+          }
+        }
       }
     }
 
