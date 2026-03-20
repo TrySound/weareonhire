@@ -17,7 +17,8 @@
   let isOpen = $state(false);
   let activeIndex = $state(-1);
   let listboxId = $derived(`${id}-listbox`);
-  let inputRef: HTMLInputElement | undefined = $state(undefined);
+  let inputRef: HTMLInputElement | undefined;
+  let listElement: HTMLElement | undefined = $state(undefined);
 
   // Flatten all options and remove duplicates
   const allOptions = $derived(
@@ -132,9 +133,13 @@
     }
   });
 
-  // Reset active index when filtered options change
+  // scroll while navigating with keyboard
   $effect(() => {
-    activeIndex = -1;
+    if (listElement) {
+      listElement.children.item(activeIndex)?.scrollIntoView({
+        block: "nearest",
+      });
+    }
   });
 
   // Announce to screen readers
@@ -171,6 +176,7 @@
     <input
       bind:this={inputRef}
       {id}
+      class="form-input"
       type="text"
       role="combobox"
       aria-expanded={isOpen}
@@ -184,12 +190,17 @@
       onkeydown={handleKeydown}
       onfocus={handleInputFocus}
       {placeholder}
-      class="combobox-input"
       autocomplete="off"
     />
 
     {#if isOpen}
-      <ul {id} role="listbox" aria-label="Skills options" class="combobox-list">
+      <ul
+        bind:this={listElement}
+        {id}
+        role="listbox"
+        aria-label="Skills options"
+        class="combobox-list"
+      >
         {#each filteredOptions as option, index}
           <!-- svelte-ignore a11y_click_events_have_key_events -->
           <li
@@ -233,6 +244,48 @@
 </div>
 
 <style>
+  .combobox {
+    position: relative;
+  }
+
+  .combobox-list {
+    position: absolute;
+    bottom: 100%;
+    left: 0;
+    right: 0;
+    margin-top: var(--space-1);
+    padding: 0;
+    list-style: none;
+    background: var(--color-bg-elevated);
+    border: 1px solid var(--color-border-input);
+    border-radius: var(--radius-md);
+    max-height: 300px;
+    overflow-y: auto;
+    z-index: var(--z-dropdown);
+    box-shadow: var(--shadow-md);
+  }
+
+  .combobox-option {
+    padding: var(--space-2) var(--space-3);
+    cursor: pointer;
+    font-size: var(--font-size-base);
+    color: var(--color-text-secondary);
+    transition: background-color var(--transition-fast);
+  }
+
+  .combobox-option:hover,
+  .combobox-option--active {
+    background-color: var(--color-primary-light);
+    color: var(--color-primary);
+  }
+
+  .combobox-empty {
+    padding: var(--space-3);
+    text-align: center;
+    color: var(--color-text-placeholder);
+    font-size: var(--font-size-sm);
+  }
+
   .selected-chips {
     display: flex;
     flex-wrap: wrap;

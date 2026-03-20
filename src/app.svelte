@@ -16,7 +16,7 @@
       return;
     }
     resume = parseResume(autofillText);
-    console.log(resume)
+    console.log(resume);
     autofillText = "";
     // Dialog will auto-close due to method=dialog on the form
   }
@@ -34,15 +34,15 @@
       >
         Autofill
       </button>
-      <button type="button" class="btn btn--primary" onclick={toggleView}>
-        {viewMode === "editor" ? "Preview" : "Edit"}
-      </button>
       <button
         type="button"
-        class="btn btn--success"
+        class="btn btn--secondary"
         onclick={() => window.print()}
       >
         Print
+      </button>
+      <button type="button" class="btn btn--primary" onclick={toggleView}>
+        {viewMode === "editor" ? "Preview" : "Edit"}
       </button>
     </div>
   </header>
@@ -65,7 +65,7 @@
       bind:value={autofillText}
       placeholder="Paste your resume text here..."
       rows="15"
-      class="form-textarea"
+      class="form-input autofill-input"
     ></textarea>
     <div class="flex justify-end">
       <button type="submit" class="btn btn--primary"> Extract </button>
@@ -74,6 +74,40 @@
 </dialog>
 
 <style>
+  .app-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-5);
+  }
+
+  .app-title {
+    color: var(--color-primary);
+    margin: 0;
+    font-size: var(--font-size-2xl);
+    font-weight: var(--font-weight-bold);
+  }
+
+  .autofill-input {
+    field-sizing: fixed;
+  }
+
+  @media (max-width: 640px) {
+    .app-header {
+      flex-direction: column;
+      gap: var(--space-4);
+      align-items: flex-start;
+    }
+
+    .app-header .flex {
+      width: 100%;
+    }
+
+    .app-header .btn {
+      flex: 1;
+    }
+  }
+
   @media print {
     @page {
       size: A4;

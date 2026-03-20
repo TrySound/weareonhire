@@ -13,9 +13,6 @@
       {#if resume.contact.email}
         <span class="caption">{resume.contact.email}</span>
       {/if}
-      {#if resume.contact.phone}
-        <span class="caption">{resume.contact.phone}</span>
-      {/if}
       {#if resume.contact.location}
         <span class="caption">{resume.contact.location}</span>
       {/if}
@@ -235,7 +232,7 @@
   }
 
   @media (max-width: 640px) {
-    .pag e {
+    .page {
       width: 100%;
       --page-padding: 4mm;
       --page-margin: 4mm;

@@ -1,7 +1,6 @@
 export interface ContactInfo {
   name?: string;
   email?: string;
-  phone?: string;
   linkedin?: string;
   github?: string;
   website?: string;
@@ -267,7 +266,7 @@ function detectSections(normalizedText: string): Section[] {
 function extractContact(text: string): ContactInfo {
   // Extract name: look for the first line that looks like a name
   // Name patterns: Title case (1-3 words) or ALL CAPS (1-3 words)
-  // Exclude lines with emails, URLs, or phone numbers
+  // Exclude lines with emails, URLs
   const lines = text
     .split("\n")
     .map((l) => l.trim())
@@ -275,7 +274,7 @@ function extractContact(text: string): ContactInfo {
   let name: string | undefined;
 
   for (const line of lines) {
-    // Skip lines with emails, URLs, phone numbers
+    // Skip lines with emails, URLs
     if (
       line.includes("@") ||
       /https?:\/\//.test(line) ||
@@ -302,9 +301,6 @@ function extractContact(text: string): ContactInfo {
   return {
     name,
     email: text.match(/[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-z]{2,}/)?.[0],
-    phone: text.match(
-      /(\+?1[\s.\-])?(\(?\d{3}\)?[\s.\-]?\d{3}[\s.\-]?\d{4})/,
-    )?.[0],
     linkedin: text.match(/linkedin\.com\/in\/([a-zA-Z0-9\-_%]+)/)?.[0],
     github: text.match(/github\.com\/([a-zA-Z0-9\-_%]+)/)?.[0],
     website: text.match(/https?:\/\/(?!linkedin|github)[^\s]+/)?.[0],

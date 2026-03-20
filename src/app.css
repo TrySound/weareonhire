@@ -53,39 +53,27 @@
 
 /* Light Mode (Default) */
 :root {
-  /* Primary Colors */
-  --color-primary: #ff3e00;
-  --color-primary-hover: #e63600;
-  --color-primary-light: #fff7ed;
-  --color-primary-alpha: rgba(255, 62, 0, 0.1);
+  --color-primary: #45a366;
+  --color-primary-hover: #40bf6e;
 
-  /* Semantic Colors */
-  --color-success: #10b981;
-  --color-success-hover: #059669;
-  --color-success-light: #ecfdf5;
-  --color-danger: #ef4444;
-  --color-danger-hover: #dc2626;
-  --color-danger-light: #fef2f2;
+  --color-danger: #f87171;
+  --color-danger-hover: #fca5a5;
+  --color-danger-light: rgba(239, 68, 68, 0.15);
 
-  /* Neutral Gray Scale */
   --color-text: #111827;
   --color-text-secondary: #374151;
   --color-text-tertiary: #4b5563;
   --color-text-muted: #6b7280;
   --color-text-placeholder: #9ca3af;
 
-  /* Background Colors */
   --color-bg: #ffffff;
   --color-bg-elevated: #ffffff;
-  --color-bg-surface: #f9fafb;
   --color-bg-hover: #f3f4f6;
 
-  /* Border Colors */
   --color-border: #e5e7eb;
   --color-border-light: #f3f4f6;
-  --color-border-input: #d1d5db;
+  --color-border-input: #3d3d45;
 
-  /* Overlay Colors */
   --color-backdrop: rgba(0, 0, 0, 0.5);
   --color-focus-ring: rgba(255, 62, 0, 0.2);
 }
@@ -93,21 +81,6 @@
 /* Dark Mode */
 @media (prefers-color-scheme: dark) {
   :root {
-    /* Primary Colors */
-    --color-primary: #ff6b3d;
-    --color-primary-hover: #ff855c;
-    --color-primary-light: rgba(255, 62, 0, 0.15);
-    --color-primary-alpha: rgba(255, 62, 0, 0.15);
-
-    /* Semantic Colors */
-    --color-success: #34d399;
-    --color-success-hover: #6ee7b7;
-    --color-success-light: rgba(16, 185, 129, 0.15);
-    --color-danger: #f87171;
-    --color-danger-hover: #fca5a5;
-    --color-danger-light: rgba(239, 68, 68, 0.15);
-
-    /* Neutral Gray Scale */
     --color-text: #f9fafb;
     --color-text-secondary: #e5e7eb;
     --color-text-tertiary: #d1d5db;
@@ -115,9 +88,8 @@
     --color-text-placeholder: #6b7280;
 
     /* Background Colors */
-    --color-bg: #111827;
-    --color-bg-elevated: #1f2937;
-    --color-bg-surface: #1f2937;
+    --color-bg: #333338;
+    --color-bg-elevated: #383b40;
     --color-bg-hover: #374151;
 
     /* Border Colors */
@@ -146,6 +118,8 @@
 
 * {
   box-sizing: border-box;
+  scrollbar-width: thin;
+  scrollbar-color: rgb(255 255 255 / 0.25) transparent;
 }
 
 body {
@@ -162,12 +136,6 @@ body {
   margin: 0 auto;
   padding: var(--space-4);
   text-align: center;
-}
-
-/* Focus Ring */
-:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 3px var(--color-focus-ring);
 }
 
 /* Screen Reader Only */
@@ -278,65 +246,46 @@ body {
   border: none;
   border-radius: var(--radius-md);
   font-size: var(--font-size-base);
-  font-weight: var(--font-weight-medium);
+  font-weight: var(--font-weight-semibold);
   cursor: pointer;
   transition:
     background-color var(--transition-base),
     transform var(--transition-fast);
   line-height: var(--line-height-tight);
-}
-
-.btn:hover {
-  transform: translateY(-1px);
-}
-
-.btn:active {
-  transform: translateY(0);
+  outline: none;
+  &:hover {
+    transform: translateY(-1px);
+  }
+  &:active {
+    transform: translateY(0);
+  }
 }
 
 .btn--primary {
   background: var(--color-primary);
   color: white;
-}
-
-.btn--primary:hover {
-  background: var(--color-primary-hover);
+  &:hover,
+  &:focus-visible {
+    background: var(--color-primary-hover);
+  }
 }
 
 .btn--secondary {
   background: var(--color-bg-hover);
   color: var(--color-text-secondary);
-}
-
-.btn--secondary:hover {
-  background: var(--color-border-light);
+  &:hover,
+  &:focus-visible {
+    background: var(--color-border-light);
+  }
 }
 
 .btn--danger {
   background: var(--color-danger);
   color: white;
-}
-
-.btn--danger:hover {
-  background: var(--color-danger-hover);
-}
-
-.btn--success {
-  background: var(--color-success);
-  color: white;
-}
-
-.btn--success:hover {
-  background: var(--color-success-hover);
-}
-
-.btn--ghost {
-  background: transparent;
-  color: var(--color-text-secondary);
-}
-
-.btn--ghost:hover {
-  background: var(--color-bg-hover);
+  &:hover,
+  &:focus-visible {
+    background: var(--color-danger-hover);
+  }
 }
 
 .btn--sm {
@@ -363,8 +312,7 @@ body {
   margin-bottom: var(--space-1);
 }
 
-.form-input,
-.form-textarea {
+.form-input {
   width: 100%;
   padding: var(--space-2) var(--space-3);
   border: 1px solid var(--color-border-input);
@@ -373,26 +321,25 @@ body {
   font-family: inherit;
   background: var(--color-bg-elevated);
   color: var(--color-text);
-  transition:
-    border-color var(--transition-base),
-    box-shadow var(--transition-base);
+  transition: border-color var(--transition-base);
 }
 
-.form-input::placeholder,
-.form-textarea::placeholder {
+.form-input::placeholder {
   color: var(--color-text-placeholder);
 }
 
-.form-input:focus,
-.form-textarea:focus {
+.form-input:focus {
   outline: none;
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px var(--color-primary-alpha);
 }
 
-.form-textarea {
+.form-input:where(textarea) {
   resize: vertical;
   min-height: 100px;
+  @supports (field-sizing: content) {
+    field-sizing: content;
+    resize: none;
+  }
 }
 
 .form-group {
@@ -535,117 +482,7 @@ body {
   font-size: var(--font-size-base);
 }
 
-/* Combobox */
-.combobox {
-  position: relative;
-}
-
-.combobox-input {
-  width: 100%;
-  padding: var(--space-2) var(--space-3);
-  border: 1px solid var(--color-border-input);
-  border-radius: var(--radius-md);
-  font-size: var(--font-size-base);
-  background: var(--color-bg-elevated);
-  color: var(--color-text);
-  transition:
-    border-color var(--transition-base),
-    box-shadow var(--transition-base);
-}
-
-.combobox-input:focus {
-  outline: none;
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px var(--color-primary-alpha);
-}
-
-.combobox-list {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
-  margin-top: var(--space-1);
-  padding: 0;
-  list-style: none;
-  background: var(--color-bg-elevated);
-  border: 1px solid var(--color-border-input);
-  border-radius: var(--radius-md);
-  max-height: 300px;
-  overflow-y: auto;
-  z-index: var(--z-dropdown);
-  box-shadow: var(--shadow-md);
-}
-
-.combobox-option {
-  padding: var(--space-2) var(--space-3);
-  cursor: pointer;
-  font-size: var(--font-size-base);
-  color: var(--color-text-secondary);
-  transition: background-color var(--transition-fast);
-}
-
-.combobox-option:hover,
-.combobox-option--active {
-  background-color: var(--color-primary-light);
-  color: var(--color-primary);
-}
-
-.combobox-empty {
-  padding: var(--space-3);
-  text-align: center;
-  color: var(--color-text-placeholder);
-  font-size: var(--font-size-sm);
-}
-
-/* App Header */
-.app-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: var(--space-5);
-  padding-bottom: var(--space-4);
-  border-bottom: 2px solid var(--color-border);
-}
-
-.app-title {
-  color: var(--color-primary);
-  margin: 0;
-  font-size: var(--font-size-2xl);
-  font-weight: var(--font-weight-bold);
-}
-
-/* Edit Container */
-.edit-container {
-  margin-top: var(--space-6);
-  padding: var(--space-5);
-  background: var(--color-bg-surface);
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--color-border);
-}
-
-.edit-title {
-  color: var(--color-text);
-  margin-bottom: var(--space-5);
-  font-size: var(--font-size-xl);
-  font-weight: var(--font-weight-semibold);
-}
-
-/* Responsive */
 @media (max-width: 640px) {
-  .app-header {
-    flex-direction: column;
-    gap: var(--space-4);
-    align-items: flex-start;
-  }
-
-  .app-header .flex {
-    width: 100%;
-  }
-
-  .app-header .btn {
-    flex: 1;
-  }
-
   .form-row {
     grid-template-columns: 1fr;
   }
