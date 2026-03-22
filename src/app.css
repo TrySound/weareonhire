@@ -181,90 +181,11 @@ body {
   border-width: 0;
 }
 
-/* Container */
 .container {
   width: 100%;
   max-width: 900px;
   margin: 0 auto;
   padding: var(--space-4);
-}
-
-.container-sm {
-  max-width: 600px;
-}
-
-.container-lg {
-  max-width: 1200px;
-}
-
-/* Layout */
-.flex {
-  display: flex;
-}
-
-.flex-col {
-  flex-direction: column;
-}
-
-.items-center {
-  align-items: center;
-}
-
-.items-start {
-  align-items: flex-start;
-}
-
-.justify-between {
-  justify-content: space-between;
-}
-
-.justify-end {
-  justify-content: flex-end;
-}
-
-.gap-2 {
-  gap: var(--space-2);
-}
-
-.gap-3 {
-  gap: var(--space-3);
-}
-
-.gap-4 {
-  gap: var(--space-4);
-}
-
-/* Typography */
-.text-sm {
-  font-size: var(--font-size-sm);
-}
-
-.text-base {
-  font-size: var(--font-size-base);
-}
-
-.text-lg {
-  font-size: var(--font-size-lg);
-}
-
-.text-xl {
-  font-size: var(--font-size-xl);
-}
-
-.text-2xl {
-  font-size: var(--font-size-2xl);
-}
-
-.font-medium {
-  font-weight: var(--font-weight-medium);
-}
-
-.font-semibold {
-  font-weight: var(--font-weight-semibold);
-}
-
-.font-bold {
-  font-weight: var(--font-weight-bold);
 }
 
 /* Buttons */
@@ -309,31 +230,6 @@ body {
   }
 }
 
-.btn--small {
-  padding: var(--space-1) var(--space-3);
-  font-size: var(--font-size-sm);
-}
-
-.btn--danger {
-  background: var(--color-danger);
-  color: white;
-  &:hover,
-  &:focus-visible {
-    background: var(--color-danger-hover);
-  }
-}
-
-/* Icon Buttons */
-.btn--icon {
-  padding: var(--space-2);
-  width: 2.5rem;
-  height: 2.5rem;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* Form Emements */
 .form-label {
   display: block;
   font-size: var(--font-size-sm);
@@ -364,7 +260,6 @@ body {
 
 .form-input:where(textarea) {
   resize: vertical;
-  min-height: 100px;
   @supports (field-sizing: content) {
     field-sizing: content;
     resize: none;
@@ -385,113 +280,6 @@ body {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: var(--space-2);
-}
-
-/* Cards */
-.card {
-  background: var(--color-bg-elevated);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  padding: var(--space-3);
-  display: grid;
-  gap: var(--space-3);
-}
-
-.card-actions {
-  display: flex;
-  gap: var(--space-2);
-  align-items: center;
-}
-
-.card--editing {
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(69, 163, 102, 0.15);
-}
-
-/* Chips */
-.chip {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-1);
-  padding: var(--space-1) var(--space-3);
-  background: var(--color-primary);
-  color: white;
-  border-radius: 20px;
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-medium);
-}
-
-.chip--removable {
-  cursor: default;
-}
-
-.chip-remove {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 1.25rem;
-  height: 1.25rem;
-  background: transparent;
-  border: none;
-  color: inherit;
-  cursor: pointer;
-  font-size: 1rem;
-  line-height: 1;
-  padding: 0;
-  margin-left: var(--space-1);
-  border-radius: 50%;
-  transition: background-color var(--transition-fast);
-}
-
-.chip-remove:hover {
-  background: rgba(255, 255, 255, 0.2);
-}
-
-.chip--secondary {
-  background: var(--color-bg-hover);
-  color: var(--color-text-secondary);
-}
-
-/* Icon buttons - minimal */
-.btn--icon {
-  padding: var(--space-1);
-  width: 2rem;
-  height: 2rem;
-  background: transparent;
-  border: 1px solid var(--color-border);
-  border-radius: 50%;
-}
-
-.btn--icon:hover {
-  background: var(--color-bg-hover);
-  border-color: var(--color-text-muted);
-}
-
-/* Card - Minimal */
-.card {
-  background: transparent;
-  border: none;
-  border-radius: 0;
-  padding: 0;
-  display: grid;
-  gap: var(--space-3);
-}
-
-.card--editing {
-  border-left: 2px solid var(--color-primary);
-  padding-left: var(--space-3);
-}
-
-/* Section Entry */
-.section-entry {
-  display: grid;
-  gap: var(--space-3);
-  padding: var(--space-3) 0;
-  border-bottom: 1px solid var(--color-border);
-}
-
-.section-entry:last-child {
-  border-bottom: none;
 }
 
 /* Dialog */
@@ -531,23 +319,7 @@ body {
 }
 
 @media (max-width: 640px) {
-  .card--header {
-    flex-direction: column;
-    gap: var(--space-2);
-    align-items: flex-start;
-  }
-
   .dialog-content {
     padding: var(--space-5);
   }
-}
-
-/* Error Message */
-.error-message {
-  color: var(--color-danger);
-  margin-top: var(--space-4);
-  padding: var(--space-3);
-  background: var(--color-danger-light);
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--color-danger);
 }

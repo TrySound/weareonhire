@@ -108,92 +108,95 @@
   {#if isEditing("contact")}
     <!-- Editor -->
 
-    <div class="form-stack">
-      <div class="form-grid">
-        <div class="form-group">
-          <label for="contact-name" class="form-label">Name</label>
-          <input
-            type="text"
-            id="contact-name"
-            bind:value={resume.contact.name}
-            placeholder="John Doe"
-            class="form-input"
-          />
-        </div>
-        <div class="form-group">
-          <label for="contact-location" class="form-label">Location</label>
-          <input
-            type="text"
-            id="contact-location"
-            bind:value={resume.contact.location}
-            placeholder="San Francisco, CA"
-            class="form-input"
-          />
-        </div>
-        <div class="form-group">
-          <label for="contact-email" class="form-label">Email</label>
-          <input
-            type="email"
-            id="contact-email"
-            bind:value={resume.contact.email}
-            placeholder="john@example.com"
-            class="form-input"
-          />
-        </div>
-      </div>
-      <div class="form-grid">
-        <div class="form-group">
-          <label for="contact-linkedin" class="form-label">LinkedIn</label>
-          <input
-            type="text"
-            id="contact-linkedin"
-            bind:value={resume.contact.linkedin}
-            placeholder="linkedin.com/in/johndoe"
-            class="form-input"
-          />
-        </div>
-        <div class="form-group">
-          <label for="contact-github" class="form-label">GitHub</label>
-          <input
-            type="text"
-            id="contact-github"
-            bind:value={resume.contact.github}
-            placeholder="github.com/johndoe"
-            class="form-input"
-          />
-        </div>
-        <div class="form-group">
-          <label for="contact-website" class="form-label">Website</label>
-          <input
-            type="text"
-            id="contact-website"
-            bind:value={resume.contact.website}
-            placeholder="https://johndoe.com"
-            class="form-input"
-          />
-        </div>
-      </div>
-      <div class="form-group">
-        <label for="contact-summary" class="form-label">Bio / Summary</label>
-        <textarea
-          id="contact-summary"
-          bind:value={resume.summary}
-          rows="4"
-          placeholder="Brief professional summary..."
-          class="form-input"
-        ></textarea>
-      </div>
-      <div class="card-actions">
+    <div class="cv-row">
+      <div><!-- skip column --></div>
+      <div class="cv-row-heading">
+        <h2 class="heading-2">Contacts and Summary</h2>
         <button
-          class="btn btn--primary btn--icon"
+          class="icon-button"
+          aria-label="Save contacts and summary"
           onclick={() => stopEditing()}
-          type="button"
-          aria-label="Save"
         >
           <svg width="20" height="20">
             <use href="#icon-check" />
           </svg>
         </button>
+      </div>
+      <div><!-- skip column --></div>
+
+      <div class="form-stack">
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="contact-name" class="form-label">Name</label>
+            <input
+              type="text"
+              id="contact-name"
+              bind:value={resume.contact.name}
+              placeholder="John Doe"
+              class="form-input"
+            />
+          </div>
+          <div class="form-group">
+            <label for="contact-location" class="form-label">Location</label>
+            <input
+              type="text"
+              id="contact-location"
+              bind:value={resume.contact.location}
+              placeholder="San Francisco, CA"
+              class="form-input"
+            />
+          </div>
+          <div class="form-group">
+            <label for="contact-email" class="form-label">Email</label>
+            <input
+              type="email"
+              id="contact-email"
+              bind:value={resume.contact.email}
+              placeholder="john@example.com"
+              class="form-input"
+            />
+          </div>
+          <div class="form-group">
+            <label for="contact-website" class="form-label">Website</label>
+            <input
+              type="text"
+              id="contact-website"
+              bind:value={resume.contact.website}
+              placeholder="https://johndoe.com"
+              class="form-input"
+            />
+          </div>
+          <div class="form-group">
+            <label for="contact-linkedin" class="form-label">LinkedIn</label>
+            <input
+              type="text"
+              id="contact-linkedin"
+              bind:value={resume.contact.linkedin}
+              placeholder="linkedin.com/in/johndoe"
+              class="form-input"
+            />
+          </div>
+          <div class="form-group">
+            <label for="contact-github" class="form-label">GitHub</label>
+            <input
+              type="text"
+              id="contact-github"
+              bind:value={resume.contact.github}
+              placeholder="github.com/johndoe"
+              class="form-input"
+            />
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="contact-summary" class="form-label">Bio / Summary</label>
+          <textarea
+            id="contact-summary"
+            bind:value={resume.summary}
+            rows="4"
+            placeholder="Brief professional summary..."
+            class="form-input"
+          ></textarea>
+        </div>
       </div>
     </div>
   {:else}
@@ -274,7 +277,7 @@
   <div class="cv-row">
     <div><!-- skip column --></div>
     <heading class="cv-row-heading">
-      <h3 class="heading-2 subtle">Work Experience</h3>
+      <h2 class="heading-2 subtle">Work Experience</h2>
       <button
         class="icon-button"
         onclick={addExperience}
@@ -291,15 +294,50 @@
     {#if isEditing("experience", index)}
       <!-- Editor -->
 
-      <div
-        class="section-entry"
-        class:card--editing={isEditing("experience", index)}
-      >
+      <div class="cv-row">
+        <div><!-- skip column --></div>
+        <div class="cv-row-heading">
+          <h3 class="heading-3 subtle">Edit Experience</h3>
+          <button
+            class="icon-button"
+            aria-label="Save"
+            onclick={() => stopEditing()}
+          >
+            <svg width="20" height="20">
+              <use href="#icon-check" />
+            </svg>
+          </button>
+        </div>
+        <div><!-- skip column --></div>
+
         <div class="form-stack">
           <div class="form-grid">
             <div class="form-group">
-              <label for="job-title-{index}" class="form-label">Job Title</label
-              >
+              <label for="job-start-{index}" class="form-label">
+                Start Date
+              </label>
+              <input
+                type="text"
+                id="job-start-{index}"
+                bind:value={job.dateRange!.start}
+                placeholder="Jan 2020"
+                class="form-input"
+              />
+            </div>
+            <div class="form-group">
+              <label for="job-end-{index}" class="form-label">End Date</label>
+              <input
+                type="text"
+                id="job-end-{index}"
+                bind:value={job.dateRange!.end}
+                placeholder="Present"
+                class="form-input"
+              />
+            </div>
+            <div class="form-group">
+              <label for="job-title-{index}" class="form-label">
+                Job Title
+              </label>
               <input
                 type="text"
                 id="job-title-{index}"
@@ -319,38 +357,14 @@
               />
             </div>
             <div class="form-group">
-              <label for="job-location-{index}" class="form-label"
-                >Location</label
-              >
+              <label for="job-location-{index}" class="form-label">
+                Location
+              </label>
               <input
                 type="text"
                 id="job-location-{index}"
                 bind:value={job.location}
                 placeholder="San Francisco, CA (or Remote)"
-                class="form-input"
-              />
-            </div>
-          </div>
-          <div class="form-grid">
-            <div class="form-group">
-              <label for="job-start-{index}" class="form-label"
-                >Start Date</label
-              >
-              <input
-                type="text"
-                id="job-start-{index}"
-                bind:value={job.dateRange!.start}
-                placeholder="Jan 2020"
-                class="form-input"
-              />
-            </div>
-            <div class="form-group">
-              <label for="job-end-{index}" class="form-label">End Date</label>
-              <input
-                type="text"
-                id="job-end-{index}"
-                bind:value={job.dateRange!.end}
-                placeholder="Present"
                 class="form-input"
               />
             </div>
@@ -364,18 +378,6 @@
               placeholder="Describe your role, responsibilities, and achievements..."
               class="form-input"
             ></textarea>
-          </div>
-          <div class="card-actions">
-            <button
-              class="btn btn--primary btn--icon"
-              onclick={() => stopEditing()}
-              type="button"
-              aria-label="Save"
-            >
-              <svg width="20" height="20">
-                <use href="#icon-check" />
-              </svg>
-            </button>
           </div>
         </div>
       </div>
@@ -437,7 +439,7 @@
   <div class="cv-row">
     <div><!-- skip column --></div>
     <heading class="cv-row-heading">
-      <h3 class="heading-2 subtle">Education</h3>
+      <h2 class="heading-2 subtle">Education</h2>
       <button
         class="icon-button"
         aria-label="Add Education"
@@ -454,16 +456,50 @@
     {#if isEditing("education", index)}
       <!-- Editor -->
 
-      <div
-        class="section-entry"
-        class:card--editing={isEditing("education", index)}
-      >
+      <div class="cv-row">
+        <div><!-- skip column --></div>
+        <heading class="cv-row-heading">
+          <h3 class="heading-3 subtle">Edit Education</h3>
+          <button
+            class="icon-button"
+            aria-label="Save"
+            onclick={() => stopEditing()}
+          >
+            <svg width="20" height="20">
+              <use href="#icon-check" />
+            </svg>
+          </button>
+        </heading>
+        <div><!-- skip column --></div>
+
         <div class="form-stack">
           <div class="form-grid">
             <div class="form-group">
-              <label for="edu-institution-{index}" class="form-label"
-                >Institution</label
-              >
+              <label for="edu-start-{index}" class="form-label">
+                Start Date
+              </label>
+              <input
+                type="text"
+                id="edu-start-{index}"
+                bind:value={edu.dateRange!.start}
+                placeholder="Sep 2016"
+                class="form-input"
+              />
+            </div>
+            <div class="form-group">
+              <label for="edu-end-{index}" class="form-label">End Date</label>
+              <input
+                type="text"
+                id="edu-end-{index}"
+                bind:value={edu.dateRange!.end}
+                placeholder="May 2020"
+                class="form-input"
+              />
+            </div>
+            <div class="form-group">
+              <label for="edu-institution-{index}" class="form-label">
+                Institution
+              </label>
               <input
                 type="text"
                 id="edu-institution-{index}"
@@ -483,38 +519,14 @@
               />
             </div>
             <div class="form-group">
-              <label for="edu-field-{index}" class="form-label"
-                >Field of Study</label
-              >
+              <label for="edu-field-{index}" class="form-label">
+                Field of Study
+              </label>
               <input
                 type="text"
                 id="edu-field-{index}"
                 bind:value={edu.field}
                 placeholder="Computer Science"
-                class="form-input"
-              />
-            </div>
-          </div>
-          <div class="form-grid">
-            <div class="form-group">
-              <label for="edu-start-{index}" class="form-label"
-                >Start Date</label
-              >
-              <input
-                type="text"
-                id="edu-start-{index}"
-                bind:value={edu.dateRange!.start}
-                placeholder="Sep 2016"
-                class="form-input"
-              />
-            </div>
-            <div class="form-group">
-              <label for="edu-end-{index}" class="form-label">End Date</label>
-              <input
-                type="text"
-                id="edu-end-{index}"
-                bind:value={edu.dateRange!.end}
-                placeholder="May 2020"
                 class="form-input"
               />
             </div>
@@ -528,18 +540,6 @@
               placeholder="Honors, awards, achievements, relevant coursework..."
               class="form-input"
             ></textarea>
-          </div>
-          <div class="card-actions">
-            <button
-              class="btn btn--primary btn--icon"
-              onclick={() => stopEditing()}
-              type="button"
-              aria-label="Save"
-            >
-              <svg width="20" height="20">
-                <use href="#icon-check" />
-              </svg>
-            </button>
           </div>
         </div>
       </div>
@@ -601,7 +601,7 @@
   <div class="cv-row">
     <div><!-- skip column --></div>
     <header class="cv-row-heading">
-      <h3 class="heading-2">Projects</h3>
+      <h2 class="heading-2">Projects</h2>
       <button class="icon-button" aria-label="Add Project" onclick={addProject}>
         <svg width="20" height="20">
           <use href="#icon-plus" />
@@ -614,30 +614,28 @@
     {#if isEditing("projects", index)}
       <!-- Editor -->
 
-      <div
-        class="section-entry"
-        class:card--editing={isEditing("projects", index)}
-      >
+      <div class="cv-row">
+        <div><!-- skip column --></div>
+        <div class="cv-row-heading">
+          <h3 class="heading-3">Edit Project</h3>
+          <button
+            class="icon-button"
+            aria-label="Save"
+            onclick={() => stopEditing()}
+          >
+            <svg width="20" height="20">
+              <use href="#icon-check" />
+            </svg>
+          </button>
+        </div>
+        <div><!-- skip column --></div>
+
         <div class="form-stack">
           <div class="form-grid">
             <div class="form-group">
-              <label for="project-name-{index}" class="form-label"
-                >Project Name</label
-              >
-              <input
-                type="text"
-                id="project-name-{index}"
-                bind:value={project.name}
-                placeholder="E-commerce Platform"
-                class="form-input"
-              />
-            </div>
-          </div>
-          <div class="form-grid">
-            <div class="form-group">
-              <label for="project-start-{index}" class="form-label"
-                >Start Date</label
-              >
+              <label for="project-start-{index}" class="form-label">
+                Start Date
+              </label>
               <input
                 type="text"
                 id="project-start-{index}"
@@ -647,9 +645,9 @@
               />
             </div>
             <div class="form-group">
-              <label for="project-end-{index}" class="form-label"
-                >End Date</label
-              >
+              <label for="project-end-{index}" class="form-label">
+                End Date
+              </label>
               <input
                 type="text"
                 id="project-end-{index}"
@@ -658,11 +656,23 @@
                 class="form-input"
               />
             </div>
+            <div class="form-group">
+              <label for="project-name-{index}" class="form-label">
+                Project Name
+              </label>
+              <input
+                type="text"
+                id="project-name-{index}"
+                bind:value={project.name}
+                placeholder="E-commerce Platform"
+                class="form-input"
+              />
+            </div>
           </div>
           <div class="form-group">
-            <label for="project-desc-{index}" class="form-label"
-              >Description</label
-            >
+            <label for="project-desc-{index}" class="form-label">
+              Description
+            </label>
             <textarea
               id="project-desc-{index}"
               bind:value={project.description}
@@ -670,18 +680,6 @@
               placeholder="Brief description of the project..."
               class="form-input"
             ></textarea>
-          </div>
-          <div class="card-actions">
-            <button
-              class="btn btn--primary btn--icon"
-              onclick={() => stopEditing()}
-              type="button"
-              aria-label="Save"
-            >
-              <svg width="20" height="20">
-                <use href="#icon-check" />
-              </svg>
-            </button>
           </div>
         </div>
       </div>
@@ -736,7 +734,7 @@
   <div class="cv-row">
     <div><!-- skip column --></div>
     <header class="cv-row-heading">
-      <h3 class="heading-2 subtle">Technical Skills</h3>
+      <h2 class="heading-2 subtle">Technical Skills</h2>
       {#if isEditing("skills")}
         <button
           class="icon-button"
@@ -762,13 +760,18 @@
   </div>
 
   {#if isEditing("skills")}
-    <MultiSelectCombobox
-      options={allSkills}
-      bind:selected={resume.skills}
-      label="Select your skills (type to search or add custom)"
-      placeholder="e.g., TypeScript"
-      id="skills-combobox"
-    />
+    <div class="cv-row">
+      <div><!-- skip column --></div>
+      <div class="cv-row-main">
+        <MultiSelectCombobox
+          options={allSkills}
+          bind:selected={resume.skills}
+          label="Select your skills (type to search or add custom)"
+          placeholder="e.g., TypeScript"
+          id="skills-combobox"
+        />
+      </div>
+    </div>
   {:else if resume.skills.length > 0}
     <div>
       {#each Object.entries(skillsByCategory()) as [category, skills]}

@@ -292,4 +292,47 @@
     color: var(--color-text-muted);
     border-top: 1px solid var(--color-border);
   }
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+    padding: var(--space-1) var(--space-3);
+    background: var(--color-primary);
+    color: white;
+    border-radius: 20px;
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+  }
+
+  .chip--removable {
+    cursor: default;
+  }
+
+  .chip-remove {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.25rem;
+    height: 1.25rem;
+    background: transparent;
+    border: none;
+    color: inherit;
+    cursor: pointer;
+    font-size: 1rem;
+    line-height: 1;
+    padding: 0;
+    margin-left: var(--space-1);
+    border-radius: 50%;
+    transition: background-color var(--transition-fast);
+  }
+
+  .chip-remove:hover {
+    background: rgba(255, 255, 255, 0.2);
+  }
+
+  .chip--secondary {
+    background: var(--color-bg-hover);
+    color: var(--color-text-secondary);
+  }
 </style>
