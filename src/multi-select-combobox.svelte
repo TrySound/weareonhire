@@ -147,8 +147,6 @@
 </script>
 
 <div class={`combobox-wrapper-${id} combobox`}>
-  <label for={id} class="form-label">{label}</label>
-
   <!-- Selected option chips -->
   <div class="selected-chips">
     {#each selected as option}
