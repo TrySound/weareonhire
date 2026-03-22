@@ -1,11 +1,10 @@
 <script lang="ts">
-  import { parseResume, createEmptyResume, type Resume } from "./cv-parser";
+  import { parseResume, type Resume } from "./cv-parser";
   import { saveToStorage, loadFromStorage } from "./storage";
-  import Preview from "./preview.svelte";
+  import Print from "./print.svelte";
   import Editor from "./editor.svelte";
 
   let resume = $state<Resume>(loadFromStorage());
-  let viewMode = $state<"editor" | "preview">("editor");
   let autofillText = $state("");
 
   // Auto-save resume changes to localStorage
@@ -13,16 +12,11 @@
     saveToStorage(resume);
   });
 
-  function toggleView() {
-    viewMode = viewMode === "editor" ? "preview" : "editor";
-  }
-
   function handleExtract() {
     if (!autofillText.trim()) {
       return;
     }
     resume = parseResume(autofillText);
-    console.log(resume);
     autofillText = "";
     // Dialog will auto-close due to method=dialog on the form
   }
@@ -30,22 +24,8 @@
 
 <main class="container">
   <header class="app-header">
-    <div class="app-brand">
-      <svg
-        class="app-icon"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-        width="20"
-        height="20"
-      >
-        <circle cx="12" cy="12" r="10" />
-        <path d="M12 16v-4M12 8h.01" />
-      </svg>
-      <h1 class="app-title">CV Builder</h1>
-    </div>
-    <div class="flex gap-3">
+    <h1 class="heading-1">CV Builder</h1>
+    <div>
       <button
         type="button"
         class="btn btn--secondary"
@@ -61,17 +41,14 @@
       >
         Print
       </button>
-      <button type="button" class="btn btn--primary" onclick={toggleView}>
-        {viewMode === "editor" ? "Preview" : "Edit"}
-      </button>
     </div>
   </header>
 
-  <div class="editor-container" hidden={viewMode !== "editor"}>
+  <div class="editor-container">
     <Editor bind:resume />
   </div>
-  <div class="preview-container" hidden={viewMode !== "preview"}>
-    <Preview {resume} />
+  <div class="print-container" hidden>
+    <Print {resume} />
   </div>
 </main>
 
@@ -88,7 +65,7 @@
       class="form-input autofill-input"
     ></textarea>
     <div class="flex justify-end">
-      <button type="submit" class="btn btn--primary"> Extract </button>
+      <button type="submit" class="btn btn--secondary">Extract</button>
     </div>
   </form>
 </dialog>
@@ -98,24 +75,8 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: var(--space-6);
-  }
-
-  .app-brand {
-    display: flex;
-    align-items: center;
-    gap: var(--space-2);
-  }
-
-  .app-icon {
-    color: var(--color-text-muted);
-  }
-
-  .app-title {
-    color: var(--color-text);
-    margin: 0;
-    font-size: var(--font-size-base);
-    font-weight: var(--font-weight-normal);
+    padding-left: calc(180px + var(--space-8));
+    margin-bottom: var(--space-8);
   }
 
   .autofill-input {
@@ -156,7 +117,7 @@
       display: none;
     }
 
-    .preview-container {
+    .print-container {
       display: block;
     }
   }

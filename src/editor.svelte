@@ -205,7 +205,7 @@
     <div class="cv-row">
       <div><!-- skip column --></div>
       <div class="cv-row-heading">
-        <h2 class="heading-1">{resume.contact.name || "Your Name"}</h2>
+        <h2 class="heading-1 subtle">{resume.contact.name || "Your Name"}</h2>
         <button
           class="icon-button"
           aria-label="Edit contacts and summary"
