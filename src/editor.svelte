@@ -601,7 +601,7 @@
   <div class="cv-row">
     <div><!-- skip column --></div>
     <header class="cv-row-heading">
-      <h2 class="heading-2">Projects</h2>
+      <h2 class="heading-2 subtle">Projects</h2>
       <button class="icon-button" aria-label="Add Project" onclick={addProject}>
         <svg width="20" height="20">
           <use href="#icon-plus" />
@@ -776,13 +776,18 @@
     <div>
       {#each Object.entries(skillsByCategory()) as [category, skills]}
         <div class="cv-row">
-          <span class="cv-row-side subtle">{category}</span>
-          <span class="cv-row-main">{skills.join(", ")}</span>
+          <div class="cv-row-side subtle">{category}</div>
+          <div class="cv-row-main">{skills.join(", ")}</div>
         </div>
       {/each}
     </div>
   {:else}
-    <p class="subtle">No skills added yet. Click Edit to add skills.</p>
+    <div class="cv-row">
+      <span><!-- skip columns --></span>
+      <span class="cv-row-main">
+        <p class="subtle">No skills added yet. Click Edit to add skills.</p>
+      </span>
+    </div>
   {/if}
 </section>
 
@@ -824,6 +829,17 @@
   .cv-row-main {
     p {
       margin-top: 0;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .cv-row {
+      grid-template-columns: 1fr;
+      row-gap: var(--space-4);
+    }
+
+    .cv-row-side {
+      justify-items: start;
     }
   }
 </style>

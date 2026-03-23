@@ -81,13 +81,11 @@
 
 /* Base Styles */
 :root {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   font-family: var(--font-family);
   line-height: var(--line-height-normal);
   font-weight: var(--font-weight-normal);
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
   font-size: var(--font-size-sm);
   color: var(--color-text-secondary);
   background-color: var(--color-bg);
@@ -133,6 +131,25 @@ body {
   transition: background-color var(--transition-fast);
   &:hover {
     background: var(--color-bg-hover);
+  }
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-2) var(--space-4);
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+  line-height: var(--line-height-tight);
+  background: var(--color-bg-hover);
+  color: var(--color-text-secondary);
+  transition: background-color var(--transition-base);
+  &:hover {
+    background: var(--color-border-light);
   }
 }
 
@@ -186,48 +203,6 @@ body {
   max-width: 900px;
   margin: 0 auto;
   padding: var(--space-4);
-}
-
-/* Buttons */
-.btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: var(--space-2) var(--space-4);
-  border: none;
-  border-radius: var(--radius-md);
-  font-size: var(--font-size-base);
-  font-weight: var(--font-weight-semibold);
-  cursor: pointer;
-  transition:
-    background-color var(--transition-base),
-    transform var(--transition-fast);
-  line-height: var(--line-height-tight);
-  outline: none;
-  &:hover {
-    transform: translateY(-1px);
-  }
-  &:active {
-    transform: translateY(0);
-  }
-}
-
-.btn--primary {
-  background: var(--color-primary);
-  color: white;
-  &:hover,
-  &:focus-visible {
-    background: var(--color-primary-hover);
-  }
-}
-
-.btn--secondary {
-  background: var(--color-bg-hover);
-  color: var(--color-text-secondary);
-  &:hover,
-  &:focus-visible {
-    background: var(--color-border-light);
-  }
 }
 
 .form-label {

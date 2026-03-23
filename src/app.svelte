@@ -28,17 +28,13 @@
     <div>
       <button
         type="button"
-        class="btn btn--secondary"
+        class="button"
         commandfor="app-autofill-dialog"
         command="show-modal"
       >
         Autofill
       </button>
-      <button
-        type="button"
-        class="btn btn--secondary"
-        onclick={() => window.print()}
-      >
+      <button type="button" class="button" onclick={() => window.print()}>
         Print
       </button>
     </div>
@@ -65,7 +61,7 @@
       class="form-input autofill-input"
     ></textarea>
     <div class="flex justify-end">
-      <button type="submit" class="btn btn--secondary">Extract</button>
+      <button type="submit" class="button">Extract</button>
     </div>
   </form>
 </dialog>
@@ -88,14 +84,7 @@
       flex-direction: column;
       gap: var(--space-4);
       align-items: flex-start;
-    }
-
-    .app-header .flex {
-      width: 100%;
-    }
-
-    .app-header .btn {
-      flex: 1;
+      padding-left: 0;
     }
   }
 
