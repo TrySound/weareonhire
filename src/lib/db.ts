@@ -1,6 +1,5 @@
+import { env } from "$env/dynamic/private";
 import { Kysely } from "kysely";
-import { SqliteDialect } from "@takinprofit/kysely-node-sqlite";
-import { DatabaseSync } from "node:sqlite";
 
 export interface DatabaseSchema {
   states: {
@@ -17,13 +16,38 @@ export interface DatabaseSchema {
 
 let db: Kysely<DatabaseSchema> | null = null;
 
-export function getDB(): Kysely<DatabaseSchema> {
-  if (!db) {
-    db = new Kysely<DatabaseSchema>({
-      dialect: new SqliteDialect({
-        database: new DatabaseSync("app.db"),
+async function createDB(): Promise<Kysely<DatabaseSchema>> {
+  if (env.DEV) {
+    const { NodeNativeSqliteDialect } =
+      await import("kysely-node-native-sqlite");
+
+    return new Kysely<DatabaseSchema>({
+      dialect: new NodeNativeSqliteDialect("app.db"),
+    });
+  } else {
+    const connectionString = process.env.CONNECTION_STRING;
+    if (!connectionString) {
+      throw new Error(
+        "CONNECTION_STRING environment variable is required in production",
+      );
+    }
+
+    const { PostgresDialect } = await import("kysely");
+    const { Pool } = await import("pg");
+
+    return new Kysely<DatabaseSchema>({
+      dialect: new PostgresDialect({
+        pool: new Pool({
+          connectionString,
+        }),
       }),
     });
+  }
+}
+
+export async function getDB(): Promise<Kysely<DatabaseSchema>> {
+  if (!db) {
+    db = await createDB();
   }
   return db;
 }

@@ -47,8 +47,8 @@ const requestLock: RuntimeLock = (key, fn) => {
   return next;
 };
 
-const createKyselyStateStore = (): NodeSavedStateStore => {
-  const db = getDB();
+const createKyselyStateStore = async (): Promise<NodeSavedStateStore> => {
+  const db = await getDB();
   return {
     async get(key) {
       const result = await db
@@ -74,8 +74,8 @@ const createKyselyStateStore = (): NodeSavedStateStore => {
   };
 };
 
-const createKyselySessionStore = (): NodeSavedSessionStore => {
-  const db = getDB();
+const createKyselySessionStore = async (): Promise<NodeSavedSessionStore> => {
+  const db = await getDB();
   return {
     async get(key) {
       const result = await db
@@ -118,8 +118,8 @@ const createOAuthClient = async () => {
     clientMetadata,
     keyset,
     requestLock,
-    stateStore: createKyselyStateStore(),
-    sessionStore: createKyselySessionStore(),
+    stateStore: await createKyselyStateStore(),
+    sessionStore: await createKyselySessionStore(),
   });
 };
 

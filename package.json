@@ -15,7 +15,9 @@
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
     "test": "vitest run",
     "generate-jwk": "node ./scripts/generate-jwk.ts",
-    "migrate": "node ./scripts/migrate.ts"
+    "migrate": "node ./scripts/migrate.ts --mode=dev",
+    "migrate:dev": "node ./scripts/migrate.ts --mode=dev",
+    "migrate:prod": "node ./scripts/migrate.ts --mode=prod"
   },
   "prettier": {
     "plugins": [
@@ -28,13 +30,15 @@
   "dependencies": {
     "@atproto/api": "^0.19.4",
     "@atproto/oauth-client-node": "^0.3.17",
-    "@takinprofit/kysely-node-sqlite": "^1.0.1",
-    "kysely": "^0.27.6"
+    "kysely": "^0.27.6",
+    "kysely-node-native-sqlite": "^1.1.0",
+    "pg": "^8.20.0"
   },
   "devDependencies": {
     "@sveltejs/adapter-netlify": "^5.0.0",
     "@sveltejs/kit": "^2.21.0",
     "@types/node": "^25.5.0",
+    "@types/pg": "^8.20.0",
     "prettier": "^3.8.1",
     "prettier-plugin-svelte": "^3.5.1",
     "svelte": "^5.54.0",

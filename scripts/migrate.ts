@@ -1,17 +1,51 @@
-import { DatabaseSync } from "node:sqlite";
 import { dirname, join } from "node:path";
 import { readdir } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
+import { parseArgs } from "node:util";
 import { Kysely, Migrator, FileMigrationProvider } from "kysely";
-import { SqliteDialect } from "@takinprofit/kysely-node-sqlite";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-const db = new Kysely({
-  dialect: new SqliteDialect({
-    database: new DatabaseSync("app.db"),
-  }),
+const { values } = parseArgs({
+  args: process.argv.slice(2),
+  options: {
+    mode: {
+      type: "string",
+      default: "dev",
+    },
+  },
 });
+
+const mode = values.mode;
+
+let db: Kysely<any>;
+
+if (mode === "prod") {
+  const connectionString = process.env.CONNECTION_STRING;
+  if (!connectionString) {
+    console.error(
+      "Error: CONNECTION_STRING environment variable is required for prod mode",
+    );
+    process.exit(1);
+  }
+
+  const { PostgresDialect } = await import("kysely");
+  const { Pool } = await import("pg");
+
+  db = new Kysely({
+    dialect: new PostgresDialect({
+      pool: new Pool({
+        connectionString,
+      }),
+    }),
+  });
+} else {
+  const { NodeNativeSqliteDialect } = await import("kysely-node-native-sqlite");
+
+  db = new Kysely({
+    dialect: new NodeNativeSqliteDialect("app.db"),
+  });
+}
 
 const migrator = new Migrator({
   db,
