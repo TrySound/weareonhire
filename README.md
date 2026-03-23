@@ -21,11 +21,23 @@ A simple CV/Resume builder.
 # Install dependencies
 pnpm install
 
+# Run database migrations (required on first setup and after schema changes)
+pnpm migrate
+
 # Start development server
 pnpm dev
 ```
 
 The application will be available at `http://localhost:5173`.
+
+### Database
+
+This application uses **SQLite** with **Kysely** for database operations:
+
+- Database file: `app.db` (SQLite, automatically created)
+- Migrations are located in `migrations/` directory
+- Run `pnpm migrate` to execute pending migrations
+- The database stores OAuth session state and user sessions
 
 ### Available Scripts
 
@@ -35,6 +47,7 @@ The application will be available at `http://localhost:5173`.
 - `pnpm format` - Format code with Prettier
 - `pnpm check` - Run TypeScript and Svelte checks
 - `pnpm test` - Run unit tests
+- `pnpm migrate` - Run database migrations
 
 ## Deployment
 
@@ -43,6 +56,7 @@ The application will be available at `http://localhost:5173`.
 This project is configured for seamless deployment to Netlify using the `@sveltejs/adapter-netlify` adapter.
 
 **Deploy via Netlify UI:**
+
 1. Push your code to GitHub/GitLab/Bitbucket
 2. Log in to [Netlify](https://netlify.com)
 3. Click "Add new site" → "Import an existing project"
@@ -55,10 +69,12 @@ This project is configured for seamless deployment to Netlify using the `@svelte
 
 **Required Environment Variables:**
 Set these in the Netlify UI (Site settings → Environment variables):
+
 - `BASE_URL` - Your site's URL (e.g., `https://your-site.netlify.app`)
 - `PRIVATE_KEY` - OAuth private key for AT Protocol authentication (keep this secret!)
 
 **Deploy via CLI:**
+
 ```bash
 # Install Netlify CLI
 npm install -g netlify-cli

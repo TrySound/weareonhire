@@ -2,13 +2,14 @@ import { env } from "$env/dynamic/private";
 import {
   NodeOAuthClient,
   buildAtprotoLoopbackClientMetadata,
-  type NodeSavedState,
-  type NodeSavedSession,
-  type OAuthClientMetadataInput,
   JoseKey,
   Keyset,
+  type OAuthClientMetadataInput,
   type RuntimeLock,
+  type NodeSavedStateStore,
+  type NodeSavedSessionStore,
 } from "@atproto/oauth-client-node";
+import { getDB } from "$lib/db";
 
 export const getClientMetadata = (): OAuthClientMetadataInput => {
   return {
@@ -27,8 +28,6 @@ export const getClientMetadata = (): OAuthClientMetadataInput => {
   };
 };
 
-const stateStore = new Map<string, NodeSavedState>();
-const sessionStore = new Map<string, NodeSavedSession>();
 const locks = new Map<string, Promise<void>>();
 
 const requestLock: RuntimeLock = (key, fn) => {
@@ -48,6 +47,60 @@ const requestLock: RuntimeLock = (key, fn) => {
   return next;
 };
 
+const createKyselyStateStore = (): NodeSavedStateStore => {
+  const db = getDB();
+  return {
+    async get(key) {
+      const result = await db
+        .selectFrom("states")
+        .select("data")
+        .where("key", "=", key)
+        .executeTakeFirst();
+      if (result) {
+        return JSON.parse(result.data);
+      }
+    },
+    async set(key, value) {
+      const data = JSON.stringify(value);
+      await db
+        .insertInto("states")
+        .values({ key, data })
+        .onConflict((oc) => oc.column("key").doUpdateSet({ data }))
+        .execute();
+    },
+    async del(key) {
+      await db.deleteFrom("states").where("key", "=", key).execute();
+    },
+  };
+};
+
+const createKyselySessionStore = (): NodeSavedSessionStore => {
+  const db = getDB();
+  return {
+    async get(key) {
+      const result = await db
+        .selectFrom("sessions")
+        .select("data")
+        .where("key", "=", key)
+        .executeTakeFirst();
+      if (result) {
+        return JSON.parse(result.data);
+      }
+    },
+    async set(key, value) {
+      const data = JSON.stringify(value);
+      await db
+        .insertInto("sessions")
+        .values({ key, data })
+        .onConflict((oc) => oc.column("key").doUpdateSet({ data }))
+        .execute();
+    },
+    async del(key) {
+      await db.deleteFrom("sessions").where("key", "=", key).execute();
+    },
+  };
+};
+
 const createOAuthClient = async () => {
   const isDev = Boolean(env.DEV);
   let clientMetadata;
@@ -65,29 +118,8 @@ const createOAuthClient = async () => {
     clientMetadata,
     keyset,
     requestLock,
-    // @todo bake by db
-    stateStore: {
-      async get(key) {
-        return stateStore.get(key);
-      },
-      async set(key, value) {
-        stateStore.set(key, value);
-      },
-      async del(key) {
-        stateStore.delete(key);
-      },
-    },
-    sessionStore: {
-      async get(key) {
-        return sessionStore.get(key);
-      },
-      async set(key, value) {
-        sessionStore.set(key, value);
-      },
-      async del(key) {
-        sessionStore.delete(key);
-      },
-    },
+    stateStore: createKyselyStateStore(),
+    sessionStore: createKyselySessionStore(),
   });
 };
 
