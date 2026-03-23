@@ -17,7 +17,7 @@
     "generate-jwk": "node ./scripts/generate-jwk.ts",
     "migrate": "node ./scripts/migrate.ts --mode=dev",
     "migrate:dev": "node ./scripts/migrate.ts --mode=dev",
-    "migrate:prod": "node ./scripts/migrate.ts --mode=prod"
+    "migrate:prod": "node --env-file=.env ./scripts/migrate.ts --mode=prod"
   },
   "prettier": {
     "plugins": [
