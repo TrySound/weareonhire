@@ -15,9 +15,9 @@
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
     "test": "vitest run",
     "generate-jwk": "node ./scripts/generate-jwk.ts",
-    "migrate": "node ./scripts/migrate.ts --mode=dev",
     "migrate:dev": "node ./scripts/migrate.ts --mode=dev",
-    "migrate:prod": "node --env-file=.env ./scripts/migrate.ts --mode=prod"
+    "migrate:prod": "node --env-file=.env ./scripts/migrate.ts --mode=prod",
+    "lexicons:build": "lex build --out src/lib/lexicons"
   },
   "prettier": {
     "plugins": [
@@ -29,6 +29,7 @@
   },
   "dependencies": {
     "@atproto/api": "^0.19.4",
+    "@atproto/lex": "^0.0.22",
     "@atproto/oauth-client-node": "^0.3.17",
     "kysely": "^0.27.6",
     "kysely-node-native-sqlite": "^1.1.0",

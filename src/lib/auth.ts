@@ -9,6 +9,7 @@ import {
   type NodeSavedStateStore,
   type NodeSavedSessionStore,
 } from "@atproto/oauth-client-node";
+import { Client } from "@atproto/lex";
 import { getDB } from "$lib/db";
 
 export const getClientMetadata = (): OAuthClientMetadataInput => {
@@ -130,4 +131,14 @@ export const getOAuthClient = async () => {
     oauthClient = await createOAuthClient();
   }
   return oauthClient;
+};
+
+// Public unauthenticated client for reading public data
+let publicClient: Client | null = null;
+
+export const getPublicClient = () => {
+  if (!publicClient) {
+    publicClient = new Client("https://public.api.bsky.app");
+  }
+  return publicClient;
 };
