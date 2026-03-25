@@ -31,6 +31,7 @@
     "@atproto/api": "^0.19.4",
     "@atproto/lex": "^0.0.22",
     "@atproto/oauth-client-node": "^0.3.17",
+    "cookie-signature": "^1.2.2",
     "kysely": "^0.27.6",
     "kysely-node-native-sqlite": "^1.1.0",
     "pg": "^8.20.0"
@@ -38,6 +39,7 @@
   "devDependencies": {
     "@sveltejs/adapter-netlify": "^5.0.0",
     "@sveltejs/kit": "^2.21.0",
+    "@types/cookie-signature": "^1.1.2",
     "@types/node": "^25.5.0",
     "@types/pg": "^8.20.0",
     "prettier": "^3.8.1",

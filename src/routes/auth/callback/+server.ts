@@ -1,17 +1,21 @@
 import { redirect } from "@sveltejs/kit";
+import { sign } from "cookie-signature";
 import { Agent } from "@atproto/api";
-import { getOAuthClient } from "$lib/auth";
 import { env } from "$env/dynamic/private";
+import { getOAuthClient } from "$lib/auth";
 
 export const GET = async ({ url, cookies }) => {
   const oauthClient = await getOAuthClient();
   const { session } = await oauthClient.callback(url.searchParams);
 
-  cookies.set("session_did", session.did, {
+  const signedSession = sign(session.did, env.SESSION_PASSWORD);
+
+  cookies.set("session", signedSession, {
     path: "/",
     httpOnly: true,
     sameSite: "lax",
     secure: !env.DEV,
+    // 30 days
     maxAge: 60 * 60 * 24 * 30,
   });
 
