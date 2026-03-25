@@ -1,47 +1,60 @@
-export interface ContactInfo {
-  name?: string;
+export type EmploymentType =
+  | "fulltime"
+  | "parttime"
+  | "contract"
+  | "freelance"
+  | "internship";
+
+export type WorkplaceType = "onsite" | "remote" | "hybrid";
+
+export interface Profile {
+  name: string;
   email?: string;
-  phone?: string;
   linkedin?: string;
   github?: string;
   website?: string;
   location?: string;
+  headline?: string;
+  summary?: string;
+  industry?: string;
+}
+
+export interface Position {
+  company: string;
+  title: string;
+  location?: string;
+  workplaceType?: WorkplaceType;
+  employmentType?: EmploymentType;
+  description?: string;
+  startedAt?: string;
+  endedAt?: string;
 }
 
 export interface Education {
-  institution?: string;
-  degree?: string;
+  institution: string;
+  degree: string;
   field?: string;
-  dateRange?: { start?: string; end?: string };
   description?: string;
-}
-
-export interface Skill {
-  skill: string;
-  category: string;
-}
-
-export interface Experience {
-  title?: string;
-  company?: string;
-  location?: string;
-  dateRange?: { start?: string; end?: string };
-  description?: string;
+  startedAt?: string;
+  endedAt?: string;
 }
 
 export interface Project {
-  name?: string;
+  name: string;
   description?: string;
-  dateRange?: { start?: string; end?: string };
+  url?: string;
+  startedAt?: string;
+  endedAt?: string;
 }
 
 export interface Resume {
-  contact: ContactInfo;
-  summary?: string;
-  skills: string[];
-  experience: Experience[];
+  profile: Profile;
+  positions: Position[];
   education: Education[];
   projects: Project[];
+  preferredWorkplace: WorkplaceType[];
+  skills: string[];
+  languages: string[];
 }
 
 interface Section {
@@ -264,7 +277,7 @@ function detectSections(normalizedText: string): Section[] {
   return sections;
 }
 
-function extractContact(text: string): ContactInfo {
+function extractContact(text: string): Profile {
   // Extract name: look for the first line that looks like a name
   // Name patterns: Title case (1-3 words) or ALL CAPS (1-3 words)
   // Exclude lines with emails, URLs
@@ -300,11 +313,8 @@ function extractContact(text: string): ContactInfo {
   }
 
   return {
-    name,
+    name: name ?? "",
     email: text.match(/[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-z]{2,}/)?.[0],
-    phone: text
-      .match(/\+?1?[-.\s]?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}/)?.[0]
-      ?.trim(),
     linkedin: text.match(/linkedin\.com\/in\/([a-zA-Z0-9\-_%]+)/)?.[0],
     github: text.match(/github\.com\/([a-zA-Z0-9\-_%]+)/)?.[0],
     website: text.match(/https?:\/\/(?!linkedin|github)[^\s]+/)?.[0],
@@ -352,8 +362,8 @@ function extractSummary(text: string): string | undefined {
 // --- Unified utilities ---
 
 interface DateRange {
-  start?: string;
-  end?: string;
+  startedAt?: string;
+  endedAt?: string;
 }
 
 const DATE_RANGE_RE =
@@ -367,12 +377,12 @@ function extractDateFromLine(line: string): DateRange | undefined {
   DATE_RANGE_RE.lastIndex = 0;
   const rangeMatch = DATE_RANGE_RE.exec(line);
   if (rangeMatch) {
-    return { start: rangeMatch[1], end: rangeMatch[2] };
+    return { startedAt: rangeMatch[1], endedAt: rangeMatch[2] };
   }
   SINGLE_YEAR_RE.lastIndex = 0;
   const yearMatch = SINGLE_YEAR_RE.exec(line);
   if (yearMatch) {
-    return { start: yearMatch[0] };
+    return { startedAt: yearMatch[0] };
   }
   return undefined;
 }
@@ -564,16 +574,19 @@ export function groupSkillsByCategory(skills: string[]): {
 
 export function createEmptyResume(): Resume {
   return {
-    contact: {},
-    summary: "",
-    skills: [],
-    experience: [],
+    profile: {
+      name: "",
+    },
+    positions: [],
     education: [],
     projects: [],
+    preferredWorkplace: [],
+    skills: [],
+    languages: [],
   };
 }
 
-function extractExperience(sectionContent: string): Experience[] {
+function extractPositions(sectionContent: string): Position[] {
   const blocks = splitIntoBlocks(sectionContent);
   return blocks.map(parseExperienceBlock);
 }
@@ -712,7 +725,7 @@ function splitIntoBlocks(text: string): string[] {
   return blocks.filter(Boolean);
 }
 
-function parseExperienceBlock(block: string): Experience {
+function parseExperienceBlock(block: string): Position {
   const lines = block
     .split("\n")
     .map((l) => l.trim())
@@ -761,10 +774,10 @@ function parseExperienceBlock(block: string): Experience {
   const description = lines.slice(contentStartIndex).join("\n").trim();
 
   return {
-    title: titleRaw || undefined,
-    company,
+    title: titleRaw ?? "",
+    company: company ?? "",
     location,
-    dateRange,
+    ...dateRange,
     description: description || undefined,
   };
 }
@@ -904,10 +917,10 @@ function parseEducationBlock(block: string): Education {
   const description = descriptionLines.join("\n").trim();
 
   return {
-    institution: institution || undefined,
-    degree: degree || undefined,
+    institution: institution ?? "",
+    degree: degree ?? "",
     field: field || undefined,
-    dateRange,
+    ...dateRange,
     description: description || undefined,
   };
 }
@@ -952,9 +965,9 @@ function parseProjectBlock(block: string): Project {
     .trim();
 
   return {
-    name: name || undefined,
+    name: name ?? "",
     description: description || undefined,
-    dateRange,
+    ...dateRange,
   };
 }
 
@@ -971,11 +984,19 @@ export function parseResume(rawText: string): Resume {
     sections.find((s) => s.type === type)?.content ?? "";
 
   const skills = extractSkills(getSection("skills") + "\n" + normalized);
-  const experience = extractExperience(getSection("experience"));
+  const positions = extractPositions(getSection("experience"));
   const education = extractEducation(getSection("education"));
   const projects = extractProjects(getSection("projects"));
-  const contact = extractContact(getSection("contact") + "\n" + normalized);
+  const profile = extractContact(getSection("contact") + "\n" + normalized);
   const summary = extractSummary(getSection("summary"));
 
-  return { contact, summary, skills, experience, education, projects };
+  return {
+    profile: { ...profile, summary },
+    positions,
+    education,
+    projects,
+    skills,
+    preferredWorkplace: [],
+    languages: []
+  };
 }

@@ -43,9 +43,9 @@
     if (!trimmed) return;
 
     // Check if option already exists (case-insensitive)
-    const exists = selected.some(
-      (s) => s.toLowerCase() === trimmed.toLowerCase(),
-    );
+    const exists =
+      selected.length > 0 &&
+      selected.some((s) => s.toLowerCase() === trimmed.toLowerCase());
     if (!exists) {
       selected.push(trimmed);
     }
@@ -261,6 +261,10 @@
     gap: var(--space-2);
     margin-bottom: var(--space-2);
     min-height: 2rem;
+  }
+
+  .selected-chips:empty {
+    display: none;
   }
 
   .custom-option {

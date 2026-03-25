@@ -9,6 +9,31 @@
   // Format: 'contact', 'summary', 'experience-0', 'education-2', 'skills'
   let editingId = $state<string | null>(null);
 
+  // Define options for comboboxes
+  const workplaceOptions = ["onsite", "remote", "hybrid"];
+  const languageOptions = [
+    "English",
+    "Spanish",
+    "French",
+    "German",
+    "Italian",
+    "Portuguese",
+    "Russian",
+    "Chinese",
+    "Japanese",
+    "Korean",
+    "Arabic",
+    "Hindi",
+    "Dutch",
+    "Swedish",
+    "Polish",
+    "Turkish",
+    "Vietnamese",
+    "Thai",
+    "Indonesian",
+    "Hebrew",
+  ];
+
   // Create flat list of all skills from taxonomy
   const allSkills = [...new Set(Object.values(SKILLS_TAXONOMY).flat())].sort(
     (a, b) => a.toLowerCase().localeCompare(b.toLowerCase()),
@@ -17,9 +42,10 @@
   // Group skills by category for display
   const skillsByCategory = $derived(() => {
     const grouped: Record<string, string[]> = {};
+    const profileSkills = resume.skills ?? [];
     for (const [category, skills] of Object.entries(SKILLS_TAXONOMY)) {
       const matched = skills.filter((skill) =>
-        resume.skills.some((s) => s.toLowerCase() === skill.toLowerCase()),
+        profileSkills.some((s) => s.toLowerCase() === skill.toLowerCase()),
       );
       if (matched.length > 0) {
         grouped[category] = matched;
@@ -27,7 +53,7 @@
     }
     // Add "Other" category for custom skills not in taxonomy
     const taxonomySkills = new Set(Object.values(SKILLS_TAXONOMY).flat());
-    const otherSkills = resume.skills.filter(
+    const otherSkills = profileSkills.filter(
       (skill) => !taxonomySkills.has(skill),
     );
     if (otherSkills.length > 0) {
@@ -51,18 +77,19 @@
   }
 
   function addExperience() {
-    resume.experience.unshift({
+    resume.positions.unshift({
       title: "",
       company: "",
       location: "",
-      dateRange: { start: "", end: "" },
+      startedAt: "",
+      endedAt: "",
     });
     // Start editing the new entry (index 0 after unshift)
     startEditing("experience", 0);
   }
 
   function removeExperience(index: number) {
-    resume.experience.splice(index, 1);
+    resume.positions.splice(index, 1);
     // If we were editing this card, stop editing
     if (isEditing("experience", index)) {
       stopEditing();
@@ -74,7 +101,8 @@
       institution: "",
       degree: "",
       field: "",
-      dateRange: { start: "", end: "" },
+      startedAt: "",
+      endedAt: "",
     });
     startEditing("education", 0);
   }
@@ -90,7 +118,8 @@
     resume.projects.unshift({
       name: "",
       description: "",
-      dateRange: { start: "", end: "" },
+      startedAt: "",
+      endedAt: "",
     });
     startEditing("projects", 0);
   }
@@ -131,8 +160,18 @@
             <input
               type="text"
               id="contact-name"
-              bind:value={resume.contact.name}
+              bind:value={resume.profile.name}
               placeholder="John Doe"
+              class="form-input"
+            />
+          </div>
+          <div class="form-group">
+            <label for="contact-website" class="form-label">Website</label>
+            <input
+              type="text"
+              id="contact-website"
+              bind:value={resume.profile.website}
+              placeholder="https://johndoe.com"
               class="form-input"
             />
           </div>
@@ -141,7 +180,7 @@
             <input
               type="text"
               id="contact-location"
-              bind:value={resume.contact.location}
+              bind:value={resume.profile.location}
               placeholder="San Francisco, CA"
               class="form-input"
             />
@@ -151,18 +190,8 @@
             <input
               type="email"
               id="contact-email"
-              bind:value={resume.contact.email}
+              bind:value={resume.profile.email}
               placeholder="john@example.com"
-              class="form-input"
-            />
-          </div>
-          <div class="form-group">
-            <label for="contact-website" class="form-label">Website</label>
-            <input
-              type="text"
-              id="contact-website"
-              bind:value={resume.contact.website}
-              placeholder="https://johndoe.com"
               class="form-input"
             />
           </div>
@@ -171,7 +200,7 @@
             <input
               type="text"
               id="contact-linkedin"
-              bind:value={resume.contact.linkedin}
+              bind:value={resume.profile.linkedin}
               placeholder="linkedin.com/in/johndoe"
               class="form-input"
             />
@@ -181,8 +210,28 @@
             <input
               type="text"
               id="contact-github"
-              bind:value={resume.contact.github}
+              bind:value={resume.profile.github}
               placeholder="github.com/johndoe"
+              class="form-input"
+            />
+          </div>
+          <div class="form-group">
+            <label for="contact-headline" class="form-label">Headline</label>
+            <input
+              type="text"
+              id="contact-headline"
+              bind:value={resume.profile.headline}
+              placeholder="Senior Software Engineer at TechCorp"
+              class="form-input"
+            />
+          </div>
+          <div class="form-group">
+            <label for="contact-industry" class="form-label">Industry</label>
+            <input
+              type="text"
+              id="contact-industry"
+              bind:value={resume.profile.industry}
+              placeholder="Software Development"
               class="form-input"
             />
           </div>
@@ -191,7 +240,7 @@
           <label for="contact-summary" class="form-label">Bio / Summary</label>
           <textarea
             id="contact-summary"
-            bind:value={resume.summary}
+            bind:value={resume.profile.summary}
             rows="4"
             placeholder="Brief professional summary..."
             class="form-input"
@@ -205,7 +254,9 @@
     <div class="cv-row">
       <div><!-- skip column --></div>
       <div class="cv-row-heading">
-        <h2 class="heading-1 subtle">{resume.contact.name || "Your Name"}</h2>
+        <div>
+          <h2 class="heading-1 subtle">{resume.profile.name || "Your Name"}</h2>
+        </div>
         <button
           class="icon-button"
           aria-label="Edit contacts and summary"
@@ -219,21 +270,21 @@
     </div>
     <div class="cv-row">
       <div class="cv-row-side subtle">
-        {#if resume.contact.location}
+        {#if resume.profile.location}
           <div>
-            {resume.contact.location}
+            {resume.profile.location}
             <svg width="14" height="14"><use href="#icon-location" /></svg>
           </div>
         {/if}
-        {#if resume.contact.email}
-          <a href="mailto:{resume.contact.email}" class="link">
-            {resume.contact.email}
+        {#if resume.profile.email}
+          <a href="mailto:{resume.profile.email}" class="link">
+            {resume.profile.email}
             <svg width="14" height="14"><use href="#icon-email" /></svg>
           </a>
         {/if}
-        {#if resume.contact.linkedin}
+        {#if resume.profile.linkedin}
           <a
-            href="https://{resume.contact.linkedin}"
+            href="https://{resume.profile.linkedin}"
             target="_blank"
             class="link"
           >
@@ -241,9 +292,9 @@
             <svg width="14" height="14"><use href="#icon-linkedin" /></svg>
           </a>
         {/if}
-        {#if resume.contact.github}
+        {#if resume.profile.github}
           <a
-            href="https://{resume.contact.github}"
+            href="https://{resume.profile.github}"
             target="_blank"
             class="link"
           >
@@ -251,16 +302,16 @@
             <svg width="14" height="14"><use href="#icon-github" /></svg>
           </a>
         {/if}
-        {#if resume.contact.website}
-          <a href={resume.contact.website} target="_blank" class="link">
+        {#if resume.profile.website}
+          <a href={resume.profile.website} target="_blank" class="link">
             Website
             <svg width="14" height="14"><use href="#icon-website" /></svg>
           </a>
         {/if}
       </div>
       <div class="cv-row-main">
-        {#if resume.summary}
-          <p>{resume.summary}</p>
+        {#if resume.profile.summary}
+          <p>{resume.profile.summary}</p>
         {:else}
           <p class="subtle">
             Add a professional summary to describe your background and
@@ -290,7 +341,7 @@
     </heading>
   </div>
 
-  {#each resume.experience as job, index}
+  {#each resume.positions as job, index}
     {#if isEditing("experience", index)}
       <!-- Editor -->
 
@@ -319,7 +370,7 @@
               <input
                 type="text"
                 id="job-start-{index}"
-                bind:value={job.dateRange!.start}
+                bind:value={job.startedAt}
                 placeholder="Jan 2020"
                 class="form-input"
               />
@@ -329,7 +380,7 @@
               <input
                 type="text"
                 id="job-end-{index}"
-                bind:value={job.dateRange!.end}
+                bind:value={job.endedAt}
                 placeholder="Present"
                 class="form-input"
               />
@@ -368,6 +419,38 @@
                 class="form-input"
               />
             </div>
+            <div class="form-group">
+              <label for="job-workplace-type-{index}" class="form-label">
+                Workplace Type
+              </label>
+              <select
+                id="job-workplace-type-{index}"
+                bind:value={job.workplaceType}
+                class="form-input"
+              >
+                <option value="">Select...</option>
+                <option value="onsite">On-site</option>
+                <option value="remote">Remote</option>
+                <option value="hybrid">Hybrid</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="job-employment-type-{index}" class="form-label">
+                Employment Type
+              </label>
+              <select
+                id="job-employment-type-{index}"
+                bind:value={job.employmentType}
+                class="form-input"
+              >
+                <option value="">Select...</option>
+                <option value="fulltime">Full-time</option>
+                <option value="parttime">Part-time</option>
+                <option value="contract">Contract</option>
+                <option value="freelance">Freelance</option>
+                <option value="internship">Internship</option>
+              </select>
+            </div>
           </div>
           <div class="form-group">
             <label for="job-desc-{index}" class="form-label">Description</label>
@@ -386,13 +469,19 @@
 
       <div class="cv-row">
         <div class="cv-row-side subtle">
-          {#if job.dateRange?.start || job.dateRange?.end}
+          {#if job.startedAt || job.endedAt}
             <div>
-              {job.dateRange?.start || ""} — {job.dateRange?.end || "Present"}
+              {job.startedAt || ""} — {job.endedAt || "Present"}
             </div>
           {/if}
           {#if job.location}
             <div>{job.location}</div>
+          {/if}
+          {#if job.employmentType}
+            <div>{job.employmentType}</div>
+          {/if}
+          {#if job.workplaceType}
+            <div>{job.workplaceType}</div>
           {/if}
         </div>
         <div class="cv-row-heading">
@@ -481,7 +570,7 @@
               <input
                 type="text"
                 id="edu-start-{index}"
-                bind:value={edu.dateRange!.start}
+                bind:value={edu.startedAt}
                 placeholder="Sep 2016"
                 class="form-input"
               />
@@ -491,7 +580,7 @@
               <input
                 type="text"
                 id="edu-end-{index}"
-                bind:value={edu.dateRange!.end}
+                bind:value={edu.endedAt}
                 placeholder="May 2020"
                 class="form-input"
               />
@@ -548,9 +637,9 @@
 
       <div class="cv-row">
         <div class="cv-row-side subtle">
-          {#if edu.dateRange?.start || edu.dateRange?.end}
+          {#if edu.startedAt || edu.endedAt}
             <div>
-              {edu.dateRange?.start || ""} — {edu.dateRange?.end || "Present"}
+              {edu.startedAt || ""} — {edu.endedAt || "Present"}
             </div>
           {/if}
           {#if edu.field}
@@ -639,7 +728,7 @@
               <input
                 type="text"
                 id="project-start-{index}"
-                bind:value={project.dateRange!.start}
+                bind:value={project.startedAt}
                 placeholder="Jan 2023"
                 class="form-input"
               />
@@ -651,7 +740,7 @@
               <input
                 type="text"
                 id="project-end-{index}"
-                bind:value={project.dateRange!.end}
+                bind:value={project.endedAt}
                 placeholder="Present"
                 class="form-input"
               />
@@ -665,6 +754,18 @@
                 id="project-name-{index}"
                 bind:value={project.name}
                 placeholder="E-commerce Platform"
+                class="form-input"
+              />
+            </div>
+            <div class="form-group">
+              <label for="project-url-{index}" class="form-label">
+                Project URL
+              </label>
+              <input
+                type="url"
+                id="project-url-{index}"
+                bind:value={project.url}
+                placeholder="https://github.com/username/project"
                 class="form-input"
               />
             </div>
@@ -688,15 +789,20 @@
 
       <div class="cv-row">
         <div class="cv-row-side subtle">
-          {#if project.dateRange?.start || project.dateRange?.end}
+          {#if project.startedAt || project.endedAt}
             <div>
-              {project.dateRange?.start || ""} — {project.dateRange?.end ||
-                "Present"}
+              {project.startedAt || ""} — {project.endedAt || "Present"}
             </div>
           {/if}
         </div>
         <div class="cv-row-heading">
-          <h4 class="heading-3">{project.name || "Untitled Project"}</h4>
+          {#if project.url}
+            <a href={project.url} target="_blank" class="heading-3 link">
+              {project.name || "Untitled Project"}
+            </a>
+          {:else}
+            <h4 class="heading-3">{project.name || "Untitled Project"}</h4>
+          {/if}
           <div class="cv-actions">
             <button
               class="icon-button"
@@ -766,7 +872,6 @@
         <MultiSelectCombobox
           options={allSkills}
           bind:selected={resume.skills}
-          label="Select your skills (type to search or add custom)"
           placeholder="e.g., TypeScript"
           id="skills-combobox"
         />
@@ -786,6 +891,124 @@
       <span><!-- skip columns --></span>
       <span class="cv-row-main">
         <p class="subtle">No skills added yet. Click Edit to add skills.</p>
+      </span>
+    </div>
+  {/if}
+</section>
+
+<!-- Workplace Preferences -->
+<section class="cv-section">
+  <div class="cv-row">
+    <div><!-- skip column --></div>
+    <header class="cv-row-heading">
+      <h2 class="heading-2 subtle">Workplace Preferences</h2>
+      {#if isEditing("workplace")}
+        <button
+          class="icon-button"
+          aria-label="Save workplace preferences"
+          onclick={() => stopEditing()}
+        >
+          <svg width="20" height="20">
+            <use href="#icon-check" />
+          </svg>
+        </button>
+      {:else}
+        <button
+          class="icon-button"
+          aria-label="Edit workplace preferences"
+          onclick={() => startEditing("workplace")}
+        >
+          <svg width="20" height="20">
+            <use href="#icon-pencil" />
+          </svg>
+        </button>
+      {/if}
+    </header>
+  </div>
+
+  {#if isEditing("workplace")}
+    <div class="cv-row">
+      <div><!-- skip column --></div>
+      <div class="cv-row-main">
+        <MultiSelectCombobox
+          id="workplace-combobox"
+          options={workplaceOptions}
+          bind:selected={resume.preferredWorkplace}
+          placeholder="Select workplace preferences"
+        />
+      </div>
+    </div>
+  {:else if resume.preferredWorkplace.length > 0}
+    <div class="cv-row">
+      <span><!-- skip column --></span>
+      <span class="cv-row-main">
+        {resume.preferredWorkplace.join(", ")}
+      </span>
+    </div>
+  {:else}
+    <div class="cv-row">
+      <span><!-- skip column --></span>
+      <span class="cv-row-main">
+        <p class="subtle">No workplace preferences set. Click Edit to add.</p>
+      </span>
+    </div>
+  {/if}
+</section>
+
+<!-- Languages -->
+<section class="cv-section">
+  <div class="cv-row">
+    <div><!-- skip column --></div>
+    <header class="cv-row-heading">
+      <h2 class="heading-2 subtle">Languages</h2>
+      {#if isEditing("languages")}
+        <button
+          class="icon-button"
+          aria-label="Save languages"
+          onclick={() => stopEditing()}
+        >
+          <svg width="20" height="20">
+            <use href="#icon-check" />
+          </svg>
+        </button>
+      {:else}
+        <button
+          class="icon-button"
+          aria-label="Edit languages"
+          onclick={() => startEditing("languages")}
+        >
+          <svg width="20" height="20">
+            <use href="#icon-pencil" />
+          </svg>
+        </button>
+      {/if}
+    </header>
+  </div>
+
+  {#if isEditing("languages")}
+    <div class="cv-row">
+      <div><!-- skip column --></div>
+      <div class="cv-row-main">
+        <MultiSelectCombobox
+          id="languages-combobox"
+          options={languageOptions}
+          bind:selected={resume.languages}
+          placeholder="Select or add languages"
+        />
+      </div>
+    </div>
+  {:else if resume.languages.length > 0}
+    <div class="cv-row">
+      <span><!-- skip column --></span>
+      <span class="cv-row-main">
+        {resume.languages.join(", ")}
+      </span>
+    </div>
+  {:else}
+    <div class="cv-row">
+      <span><!-- skip column --></span>
+      <span class="cv-row-main">
+        <p class="subtle">No languages added yet. Click Edit to add.</p>
       </span>
     </div>
   {/if}

@@ -1,6 +1,6 @@
 import { type Resume, createEmptyResume } from "$lib/cv-parser";
 
-const STORAGE_KEY = "cv-builder-resume";
+const STORAGE_KEY = "cv-builder";
 
 function isBrowser(): boolean {
   return typeof window !== "undefined" && typeof localStorage !== "undefined";

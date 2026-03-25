@@ -9,23 +9,7 @@ john.doe@email.com
 Software Engineer
       `;
     const result = parseResume(resume);
-    expect(result.contact.email).toBe("john.doe@email.com");
-  });
-
-  it("should extract phone numbers in various formats", () => {
-    const formats = [
-      { input: "(555) 123-4567", expected: "(555) 123-4567" },
-      { input: "555-123-4567", expected: "555-123-4567" },
-      { input: "555.123.4567", expected: "555.123.4567" },
-      { input: "555 123 4567", expected: "555 123 4567" },
-      { input: "+1 555-123-4567", expected: "+1 555-123-4567" },
-    ];
-
-    for (const { input, expected } of formats) {
-      const resume = `John Doe\n${input}\nSoftware Engineer`;
-      const result = parseResume(resume);
-      expect(result.contact.phone).toBe(expected);
-    }
+    expect(result.profile.email).toBe("john.doe@email.com");
   });
 
   it("should extract LinkedIn profile URLs", () => {
@@ -35,7 +19,7 @@ linkedin.com/in/johndoe
 Software Engineer
       `;
     const result = parseResume(resume);
-    expect(result.contact.linkedin).toBe("linkedin.com/in/johndoe");
+    expect(result.profile.linkedin).toBe("linkedin.com/in/johndoe");
   });
 
   it("should extract GitHub profile URLs", () => {
@@ -45,7 +29,7 @@ github.com/johndoe
 Software Engineer
       `;
     const result = parseResume(resume);
-    expect(result.contact.github).toBe("github.com/johndoe");
+    expect(result.profile.github).toBe("github.com/johndoe");
   });
 
   it("should extract personal websites", () => {
@@ -55,7 +39,7 @@ https://johndoe.com
 Software Engineer
       `;
     const result = parseResume(resume);
-    expect(result.contact.website).toBe("https://johndoe.com");
+    expect(result.profile.website).toBe("https://johndoe.com");
   });
 
   it("should extract all contact information together", () => {
@@ -68,11 +52,10 @@ github.com/johndoe
 https://johndoe.com
       `;
     const result = parseResume(resume);
-    expect(result.contact.email).toBe("john.doe@email.com");
-    expect(result.contact.phone).toBe("(555) 123-4567");
-    expect(result.contact.linkedin).toBe("linkedin.com/in/johndoe");
-    expect(result.contact.github).toBe("github.com/johndoe");
-    expect(result.contact.website).toBe("https://johndoe.com");
+    expect(result.profile.email).toBe("john.doe@email.com");
+    expect(result.profile.linkedin).toBe("linkedin.com/in/johndoe");
+    expect(result.profile.github).toBe("github.com/johndoe");
+    expect(result.profile.website).toBe("https://johndoe.com");
   });
 });
 
@@ -175,8 +158,8 @@ Software Engineer | Tech Corp | Jan 2020 - Present
 - Built scalable applications using React
       `;
     const result = parseResume(resume);
-    expect(result.experience.length).toBeGreaterThanOrEqual(1);
-    expect(result.experience[0].title?.toLowerCase()).toContain("software");
+    expect(result.positions.length).toBeGreaterThanOrEqual(1);
+    expect(result.positions[0].title?.toLowerCase()).toContain("software");
   });
 
   it("should extract company name", () => {
@@ -189,10 +172,8 @@ Jan 2020 - Present
 - Built scalable applications
       `;
     const result = parseResume(resume);
-    expect(result.experience[0]).toBeDefined();
-    if (result.experience[0].company) {
-      expect(result.experience[0].company.toLowerCase()).toContain("tech");
-    }
+    expect(result.positions[0]).toBeDefined();
+    expect(result.positions[0].company.toLowerCase()).toContain("tech");
   });
 
   it("should extract date ranges in various formats", () => {
@@ -211,7 +192,7 @@ Software Engineer | Company | ${date}
         `;
       const result = parseResume(resume);
       // Date parsing may vary based on format, so we just check it doesn't crash
-      expect(result.experience[0]).toBeDefined();
+      expect(result.positions[0]).toBeDefined();
     }
   });
 
@@ -226,9 +207,9 @@ Jan 2020 - Present
 - Built scalable applications
       `;
     const result = parseResume(resume);
-    expect(result.experience[0]).toBeDefined();
-    if (result.experience[0].location) {
-      expect(result.experience[0].location.toLowerCase()).toContain("remote");
+    expect(result.positions[0]).toBeDefined();
+    if (result.positions[0]!.location) {
+      expect(result.positions[0]!.location.toLowerCase()).toContain("remote");
     }
   });
 
@@ -242,7 +223,7 @@ Software Engineer | Tech Corp | Jan 2020 - Present
 - Mentored junior developers
       `;
     const result = parseResume(resume);
-    expect(result.experience[0].description).toBeTruthy();
+    expect(result.positions[0].description).toBeTruthy();
   });
 
   it("should handle multiple job entries", () => {
@@ -260,8 +241,8 @@ Jan 2020 - Dec 2021
 - Built MVP from scratch
       `;
     const result = parseResume(resume);
-    expect(result.experience.length).toBeGreaterThanOrEqual(1);
-    const jobs = result.experience.filter((e) => e.title);
+    expect(result.positions.length).toBeGreaterThanOrEqual(1);
+    const jobs = result.positions.filter((e) => e.title);
     expect(jobs.length).toBeGreaterThanOrEqual(1);
   });
 });
@@ -277,12 +258,9 @@ BS Computer Science
       `;
     const result = parseResume(resume);
     expect(result.education).toHaveLength(1);
-    expect(result.education[0].institution?.toLowerCase()).toContain(
-      "stanford",
-    );
-    expect(result.education[0].dateRange).toBeDefined();
-    expect(result.education[0].dateRange?.start).toContain("2016");
-    expect(result.education[0].dateRange?.end).toContain("2020");
+    expect(result.education[0].institution.toLowerCase()).toContain("stanford");
+    expect(result.education[0].startedAt).toContain("2016");
+    expect(result.education[0].endedAt).toContain("2020");
   });
 
   it("should normalize degree types", () => {
@@ -353,7 +331,7 @@ BS Electrical Engineering
     expect(result.education.length).toBeGreaterThanOrEqual(2);
     // Check for any degrees found, not specific ones since parsing varies
     const hasInstitution = result.education.some((e) =>
-      e.institution?.toLowerCase().includes("stanford"),
+      e.institution.toLowerCase().includes("stanford"),
     );
     expect(hasInstitution).toBe(true);
   });
@@ -410,7 +388,7 @@ John Doe
 john@email.com
       `;
     const result = parseResume(resume);
-    expect(result.contact.email).toBe("john@email.com");
+    expect(result.profile.email).toBe("john@email.com");
   });
 
   it("should detect experience section with various headers", () => {
@@ -430,8 +408,8 @@ Software Engineer | Company | 2020-2022
 - Did things
         `;
       const result = parseResume(resume);
-      expect(result.experience.length).toBeGreaterThanOrEqual(1);
-      expect(result.experience[0].title?.toLowerCase()).toContain("engineer");
+      expect(result.positions.length).toBeGreaterThanOrEqual(1);
+      expect(result.positions[0].title?.toLowerCase()).toContain("engineer");
     }
   });
 
@@ -525,9 +503,9 @@ describe("Edge Cases", () => {
   it("should handle empty input", () => {
     const result = parseResume("");
     expect(result).toBeDefined();
-    expect(result.contact).toBeDefined();
+    expect(result.profile).toBeDefined();
     expect(result.skills).toBeDefined();
-    expect(result.experience).toBeDefined();
+    expect(result.positions).toBeDefined();
     expect(result.education).toBeDefined();
     expect(result.projects).toBeDefined();
   });
@@ -567,8 +545,7 @@ Just a resume with no contact details
 Only experience and skills
       `;
     const result = parseResume(resume);
-    expect(result.contact.email).toBeUndefined();
-    expect(result.contact.phone).toBeUndefined();
+    expect(result.profile.email).toBeUndefined();
   });
 
   it("should handle very long bullet points", () => {
@@ -579,7 +556,7 @@ Engineer | Company | Jan 2020 - Dec 2022
 - ${"This is a very long bullet point with lots of text ".repeat(20)}
       `;
     const result = parseResume(resume);
-    expect(result.experience[0]).toBeDefined();
+    expect(result.positions[0]).toBeDefined();
   });
 
   it("should handle skills section without skills taxonomy matches", () => {
@@ -650,11 +627,10 @@ Command-line utility for automated code formatting
     const result = parseResume(resume);
 
     // Contact
-    expect(result.contact.name).toBe("John Smith");
-    expect(result.contact.email).toBe("john.smith@email.com");
-    expect(result.contact.phone).toBe("(555) 123-4567");
-    expect(result.contact.linkedin).toBe("linkedin.com/in/johnsmith");
-    expect(result.contact.github).toBe("github.com/johnsmith");
+    expect(result.profile.name).toBe("John Smith");
+    expect(result.profile.email).toBe("john.smith@email.com");
+    expect(result.profile.linkedin).toBe("linkedin.com/in/johnsmith");
+    expect(result.profile.github).toBe("github.com/johnsmith");
 
     // Skills
     expect(result.skills).toContain("typescript");
@@ -668,26 +644,26 @@ Command-line utility for automated code formatting
     expect(result.skills).toContain("kubernetes");
 
     // Experience
-    expect(result.experience.length).toBeGreaterThanOrEqual(1);
-    const hasSeniorJob = result.experience.some((e) =>
-      e.title?.toLowerCase().includes("senior"),
+    expect(result.positions.length).toBeGreaterThanOrEqual(1);
+    const hasSeniorJob = result.positions.some((e) =>
+      e.title.toLowerCase().includes("senior"),
     );
-    const hasSoftwareJob = result.experience.some((e) =>
-      e.title?.toLowerCase().includes("software"),
+    const hasSoftwareJob = result.positions.some((e) =>
+      e.title.toLowerCase().includes("software"),
     );
     expect(hasSeniorJob || hasSoftwareJob).toBe(true);
 
     // Education
     expect(result.education.length).toBeGreaterThanOrEqual(1);
     const stanford = result.education.find((e) =>
-      e.institution?.toLowerCase().includes("stanford"),
+      e.institution.toLowerCase().includes("stanford"),
     );
     if (stanford) {
       expect(stanford.degree).toBe("Master of Science");
     }
 
     const berkeley = result.education.find((e) =>
-      e.institution?.toLowerCase().includes("berkeley"),
+      e.institution.toLowerCase().includes("berkeley"),
     );
     // Just verify Berkeley was found as an institution
     expect(berkeley).toBeDefined();
@@ -695,7 +671,7 @@ Command-line utility for automated code formatting
     // Projects
     expect(result.projects.length).toBeGreaterThanOrEqual(1);
     const dashboard = result.projects.find((p) =>
-      p.name?.toLowerCase().includes("analytics"),
+      p.name.toLowerCase().includes("analytics"),
     );
     expect(dashboard).toBeDefined();
   });
@@ -739,8 +715,8 @@ BS Statistics
 
     const result = parseResume(resume);
 
-    expect(result.contact.email).toBe("jane.doe@email.com");
-    expect(result.experience.length).toBeGreaterThanOrEqual(1);
+    expect(result.profile.email).toBe("jane.doe@email.com");
+    expect(result.positions.length).toBeGreaterThanOrEqual(1);
     expect(result.education.length).toBeGreaterThanOrEqual(1);
 
     expect(result.skills).toContain("python");
@@ -796,10 +772,9 @@ GPA: 3.7/4.0, Dean's List
 
     const result = parseResume(resume);
 
-    expect(result.contact.email).toBe("alex.chen@email.com");
-    expect(result.contact.phone).toBe("555.123.4567");
-    expect(result.contact.website).toBe("https://alexchen.dev");
-    expect(result.contact.github).toBe("github.com/alexchen");
+    expect(result.profile.email).toBe("alex.chen@email.com");
+    expect(result.profile.website).toBe("https://alexchen.dev");
+    expect(result.profile.github).toBe("github.com/alexchen");
 
     expect(result.skills).toContain("typescript");
     expect(result.skills).toContain("react");
@@ -807,7 +782,7 @@ GPA: 3.7/4.0, Dean's List
     expect(result.skills).toContain("node.js");
     expect(result.skills).toContain("postgresql");
 
-    expect(result.experience.length).toBeGreaterThanOrEqual(1);
+    expect(result.positions.length).toBeGreaterThanOrEqual(1);
     expect(result.education.length).toBeGreaterThanOrEqual(1);
   });
 
@@ -822,23 +797,22 @@ Built scalable microservices architecture Led migration to cloud infrastructure 
     const result = parseResume(blobText);
 
     // Should detect this as an experience section and extract at least 3-4 entries
-    expect(result.experience.length).toBeGreaterThanOrEqual(3);
+    expect(result.positions.length).toBeGreaterThanOrEqual(3);
 
     // Check for key job entries
-    const hasTechCorp = result.experience.some(
+    const hasTechCorp = result.positions.some(
       (e) =>
-        e.company?.toLowerCase().includes("techcorp") ||
-        e.dateRange?.start === "2022",
+        e.company.toLowerCase().includes("techcorp") || e.startedAt === "2022",
     );
-    const hasDataSystems = result.experience.some(
-      (e) => e.dateRange?.start === "2017" && e.dateRange?.end === "2022",
+    const hasDataSystems = result.positions.some(
+      (e) => e.startedAt === "2017" && e.endedAt === "2022",
     );
-    const hasIndustrialTech = result.experience.some(
-      (e) => e.dateRange?.start === "2015" && e.dateRange?.end === "2017",
+    const hasIndustrialTech = result.positions.some(
+      (e) => e.startedAt === "2015" && e.endedAt === "2017",
     );
-    const hasFrontend = result.experience.some(
+    const hasFrontend = result.positions.some(
       (e) =>
-        e.title?.toLowerCase().includes("frontend") ||
+        e.title.toLowerCase().includes("frontend") ||
         e.description?.toLowerCase().includes("frontend"),
     );
 
@@ -877,41 +851,41 @@ Delivered responsive web applications`;
     const result = parseResume(resumeText);
 
     // Should extract all 4 experience entries
-    expect(result.experience.length).toBeGreaterThanOrEqual(4);
+    expect(result.positions.length).toBeGreaterThanOrEqual(4);
 
     // Check each job entry is properly extracted
-    const techCorp = result.experience.find(
+    const techCorp = result.positions.find(
       (e) =>
-        e.company?.toLowerCase().includes("techcorp") ||
-        (e.dateRange?.start === "2022" && e.dateRange?.end === "Present"),
+        e.company.toLowerCase().includes("techcorp") ||
+        (e.startedAt === "2022" && e.endedAt === "Present"),
     );
     expect(techCorp).toBeDefined();
     expect(techCorp?.title?.toLowerCase()).toContain("developer");
     expect(techCorp?.location?.toLowerCase()).toBe("remote");
 
-    const dataSystems = result.experience.find(
+    const dataSystems = result.positions.find(
       (e) =>
-        e.company?.toLowerCase().includes("datasystems") ||
-        (e.dateRange?.start === "2017" && e.dateRange?.end === "2022"),
+        e.company.toLowerCase().includes("datasystems") ||
+        (e.startedAt === "2017" && e.endedAt === "2022"),
     );
     expect(dataSystems).toBeDefined();
     expect(dataSystems?.title?.toLowerCase()).toContain("developer");
     expect(dataSystems?.location?.toLowerCase()).toBe("remote");
 
-    const industrialTech = result.experience.find(
+    const industrialTech = result.positions.find(
       (e) =>
-        e.company?.toLowerCase().includes("industrialtech") ||
-        (e.dateRange?.start === "2015" && e.dateRange?.end === "2017"),
+        e.company.toLowerCase().includes("industrialtech") ||
+        (e.startedAt === "2015" && e.endedAt === "2017"),
     );
     expect(industrialTech).toBeDefined();
     expect(industrialTech?.title?.toLowerCase()).toContain("developer");
     expect(industrialTech?.location?.toLowerCase()).toBe("remote");
 
-    const freelance = result.experience.find(
+    const freelance = result.positions.find(
       (e) =>
-        e.company?.toLowerCase().includes("freelance") ||
-        (e.dateRange?.start === "2012" && e.dateRange?.end === "2015") ||
-        e.title?.toLowerCase().includes("frontend"),
+        e.company.toLowerCase().includes("freelance") ||
+        (e.startedAt === "2012" && e.endedAt === "2015") ||
+        e.title.toLowerCase().includes("frontend"),
     );
     expect(freelance).toBeDefined();
     expect(freelance?.title?.toLowerCase()).toContain("frontend");

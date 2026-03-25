@@ -6,45 +6,45 @@
 
 <div class="page" hidden>
   <header class="header">
-    {#if resume.contact.name}
-      <h2 class="display">{resume.contact.name}</h2>
+    {#if resume.profile.name}
+      <h2 class="display">{resume.profile.name}</h2>
     {/if}
     <div class="contact-info">
-      {#if resume.contact.email}
-        <span class="caption">{resume.contact.email}</span>
+      {#if resume.profile.email}
+        <span class="caption">{resume.profile.email}</span>
       {/if}
-      {#if resume.contact.location}
-        <span class="caption">{resume.contact.location}</span>
+      {#if resume.profile.location}
+        <span class="caption">{resume.profile.location}</span>
       {/if}
-      {#if resume.contact.linkedin}
-        <span class="caption">{resume.contact.linkedin}</span>
+      {#if resume.profile.linkedin}
+        <span class="caption">{resume.profile.linkedin}</span>
       {/if}
-      {#if resume.contact.github}
-        <span class="caption">{resume.contact.github}</span>
+      {#if resume.profile.github}
+        <span class="caption">{resume.profile.github}</span>
       {/if}
-      {#if resume.contact.website}
-        <span class="caption">{resume.contact.website}</span>
+      {#if resume.profile.website}
+        <span class="caption">{resume.profile.website}</span>
       {/if}
     </div>
   </header>
 
-  {#if resume.summary}
+  {#if resume.profile.summary}
     <section class="section">
       <h3 class="heading">Summary</h3>
-      <p class="body">{resume.summary}</p>
+      <p class="body">{resume.profile.summary}</p>
     </section>
   {/if}
 
-  {#if resume.experience.length > 0}
+  {#if resume.positions.length > 0}
     <section class="section">
       <h3 class="heading">Experience</h3>
       <div class="stack">
-        {#each resume.experience as job}
+        {#each resume.positions as job}
           <div class="stack-item">
             <div class="space-between">
               <h4 class="title">{job.title}</h4>
               <span class="caption">
-                {job.dateRange?.start || ""} - {job.dateRange?.end || ""}
+                {job.startedAt || ""} - {job.endedAt || ""}
               </span>
             </div>
             <div class="space-between">
@@ -71,7 +71,7 @@
             <div class="space-between">
               <h4 class="title">{edu.institution}</h4>
               <span class="caption">
-                {edu.dateRange?.start || ""} - {edu.dateRange?.end || ""}
+                {edu.startedAt || ""} - {edu.endedAt || ""}
               </span>
             </div>
             <div class="space-between">
@@ -100,8 +100,7 @@
             <div class="space-between">
               <h4 class="title">{project.name}</h4>
               <span class="caption">
-                {project.dateRange?.start || ""} - {project.dateRange?.end ||
-                  ""}
+                {project.startedAt || ""} - {project.endedAt || ""}
               </span>
             </div>
             {#if project.description}
