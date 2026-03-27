@@ -17,6 +17,9 @@ importers:
       '@atproto/oauth-client-node':
         specifier: ^0.3.17
         version: 0.3.17
+      '@electric-sql/pglite':
+        specifier: ^0.2.0
+        version: 0.2.17
       cookie-signature:
         specifier: ^1.2.2
         version: 1.2.2
@@ -26,13 +29,16 @@ importers:
       kysely:
         specifier: ^0.27.6
         version: 0.27.6
-      kysely-node-native-sqlite:
-        specifier: ^1.1.0
-        version: 1.1.0(kysely@0.27.6)
+      kysely-pglite-dialect:
+        specifier: ^1.2.0
+        version: 1.2.0(@electric-sql/pglite@0.2.17)(kysely@0.27.6)
       pg:
         specifier: ^8.20.0
         version: 8.20.0
     devDependencies:
+      '@electric-sql/pglite-socket':
+        specifier: ^0.1.2
+        version: 0.1.2(@electric-sql/pglite@0.2.17)
       '@sveltejs/adapter-netlify':
         specifier: ^5.0.0
         version: 5.2.4(@sveltejs/kit@2.55.0(@sveltejs/vite-plugin-svelte@7.0.0(svelte@5.54.0)(vite@8.0.1(@types/node@25.5.0)))(svelte@5.54.0)(typescript@5.9.3)(vite@8.0.1(@types/node@25.5.0)))
@@ -183,6 +189,15 @@ packages:
 
   '@atproto/xrpc@0.7.7':
     resolution: {integrity: sha512-K1ZyO/BU8JNtXX5dmPp7b5UrkLMMqpsIa/Lrj5D3Su+j1Xwq1m6QJ2XJ1AgjEjkI1v4Muzm7klianLE6XGxtmA==}
+
+  '@electric-sql/pglite-socket@0.1.2':
+    resolution: {integrity: sha512-Hz+IIentlbz9Zpln7Ft0iTDtbLvIfmmwIIC0CCU6ViklsDzbOIZV9xqcbvME21O3pqjjDNhERc57ynRCdshkZA==}
+    hasBin: true
+    peerDependencies:
+      '@electric-sql/pglite': 0.4.2
+
+  '@electric-sql/pglite@0.2.17':
+    resolution: {integrity: sha512-qEpKRT2oUaWDH6tjRxLHjdzMqRUGYDnGZlKrnL4dJ77JVMcP2Hpo3NYnOSPKdZdeec57B6QPprCUFg0picx5Pw==}
 
   '@emnapi/core@1.9.1':
     resolution: {integrity: sha512-mukuNALVsoix/w1BJwFzwXBN/dHeejQtuVzcDsfOEsdpCumXb/E9j8w11h5S54tT1xhifGfbbSm/ICrObRb3KA==}
@@ -779,11 +794,11 @@ packages:
     resolution: {integrity: sha512-o+NO+8WrRiQEE4/7nwRJhN1HWpVmJm511pBHUxPLtp0BUISzlBplORYSmTclCnJvQq2tKu/sgl3xVpkc7ZWuQQ==}
     engines: {node: '>=6'}
 
-  kysely-node-native-sqlite@1.1.0:
-    resolution: {integrity: sha512-RUEslfInufxA0XN3bLBWwgBNUYC20Ac8RC4aijnYTqQq22ABAH5bVoDtLMr5Re/m94PA+d+XRcJBYB+sM+scxQ==}
-    engines: {node: ^22.5.0}
+  kysely-pglite-dialect@1.2.0:
+    resolution: {integrity: sha512-VYrShTuV0VGVdCm1qNC6imo45KIK1dtVn57Q95DsTcouzhgd0xWcJ6KG9gowXoQ+l+TJSoemh3FUhOsw0KKlAA==}
     peerDependencies:
-      kysely: '>=0.27.0'
+      '@electric-sql/pglite': ^0.2.0 || ^0.3.0
+      kysely: '>=0.23.0'
 
   kysely@0.27.6:
     resolution: {integrity: sha512-FIyV/64EkKhJmjgC0g2hygpBv5RNWVPyNCqSAD7eTCv6eFWNIi4PN1UvdSJGicN/o35bnevgis4Y0UDC0qi8jQ==}
@@ -1508,6 +1523,12 @@ snapshots:
       '@atproto/lexicon': 0.6.2
       zod: 3.25.76
 
+  '@electric-sql/pglite-socket@0.1.2(@electric-sql/pglite@0.2.17)':
+    dependencies:
+      '@electric-sql/pglite': 0.2.17
+
+  '@electric-sql/pglite@0.2.17': {}
+
   '@emnapi/core@1.9.1':
     dependencies:
       '@emnapi/wasi-threads': 1.2.0
@@ -1973,8 +1994,9 @@ snapshots:
 
   kleur@4.1.5: {}
 
-  kysely-node-native-sqlite@1.1.0(kysely@0.27.6):
+  kysely-pglite-dialect@1.2.0(@electric-sql/pglite@0.2.17)(kysely@0.27.6):
     dependencies:
+      '@electric-sql/pglite': 0.2.17
       kysely: 0.27.6
 
   kysely@0.27.6: {}

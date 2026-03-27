@@ -32,11 +32,11 @@ The application will be available at `http://localhost:5173`.
 
 ### Database
 
-This application uses **SQLite** with **Kysely** for database operations:
+This application uses **PGlite** (WASM PostgreSQL) with **Kysely** for local development:
 
-- Database file: `app.db` (SQLite, automatically created)
+- Database: `PGlite` (WebAssembly PostgreSQL, automatically created in `.pgdata/`)
 - Migrations are located in `migrations/` directory
-- Run `pnpm migrate` to execute pending migrations
+- Run `pnpm migrate:dev` to execute pending migrations
 - The database stores OAuth session state and user sessions
 
 ### Available Scripts
@@ -48,6 +48,31 @@ This application uses **SQLite** with **Kysely** for database operations:
 - `pnpm check` - Run TypeScript and Svelte checks
 - `pnpm test` - Run unit tests
 - `pnpm migrate` - Run database migrations
+- `pnpm pglite:server` - Start PGlite socket server for debugging with PostgreSQL clients
+
+### Database Debugging
+
+You can connect to the PGlite database using standard PostgreSQL clients for debugging:
+
+1. Start the socket server:
+
+   ```bash
+   pnpm pglite:server
+   ```
+
+2. Connect using any PostgreSQL client (psql, DBeaver, pgAdmin, etc.):
+   - **Host:** `localhost`
+   - **Port:** `5432`
+   - **Database:** `postgres`
+   - **SSL:** Disabled (required)
+
+   **Using psql:**
+
+   ```bash
+   PGSSLMODE=disable psql -h localhost -p 5432 -d postgres
+   ```
+
+   **Note:** The server runs with debug logging enabled. Stop it with `Ctrl+C` when finished.
 
 ## Deployment
 

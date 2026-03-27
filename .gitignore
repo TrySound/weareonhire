@@ -3,5 +3,4 @@ build
 .svelte-kit
 .netlify
 .env
-app.db
-app.db-journal
+.pgdata/

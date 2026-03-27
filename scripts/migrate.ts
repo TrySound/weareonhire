@@ -40,10 +40,11 @@ if (mode === "prod") {
     }),
   });
 } else {
-  const { NodeNativeSqliteDialect } = await import("kysely-node-native-sqlite");
-
+  const { PGlite } = await import("@electric-sql/pglite");
+  const { PGliteDialect } = await import("kysely-pglite-dialect");
+  const pglite = new PGlite("./.pgdata");
   db = new Kysely({
-    dialect: new NodeNativeSqliteDialect("app.db"),
+    dialect: new PGliteDialect(pglite),
   });
 }
 

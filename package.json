@@ -17,7 +17,8 @@
     "generate-jwk": "node ./scripts/generate-jwk.ts",
     "migrate:dev": "node ./scripts/migrate.ts --mode=dev",
     "migrate:prod": "node --env-file=.env ./scripts/migrate.ts --mode=prod",
-    "lexicons:build": "lex build --out src/lib/lexicons"
+    "lexicons:build": "lex build --out src/lib/lexicons",
+    "pglite:server": "pglite-server --db=./.pgdata --port=5432 --max-connections=1 --debug=1"
   },
   "prettier": {
     "plugins": [
@@ -33,11 +34,13 @@
     "@atproto/oauth-client-node": "^0.3.17",
     "cookie-signature": "^1.2.2",
     "keyux": "^0.11.3",
+    "@electric-sql/pglite": "^0.2.0",
     "kysely": "^0.27.6",
-    "kysely-node-native-sqlite": "^1.1.0",
+    "kysely-pglite-dialect": "^1.2.0",
     "pg": "^8.20.0"
   },
   "devDependencies": {
+    "@electric-sql/pglite-socket": "^0.1.2",
     "@sveltejs/adapter-netlify": "^5.0.0",
     "@sveltejs/kit": "^2.21.0",
     "@types/cookie-signature": "^1.1.2",

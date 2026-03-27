@@ -25,8 +25,8 @@ export async function up(db: Kysely<any>): Promise<void> {
   // Positions table
   await db.schema
     .createTable("member_positions")
-    .addColumn("id", "integer", (col) =>
-      col.notNull().primaryKey().autoIncrement(),
+    .addColumn("id", "uuid", (col) =>
+      col.primaryKey().defaultTo(sql`gen_random_uuid()`),
     )
     .addColumn("did", "text", (col) =>
       col.notNull().references("members.did").onDelete("cascade"),
@@ -44,8 +44,8 @@ export async function up(db: Kysely<any>): Promise<void> {
   // Education table
   await db.schema
     .createTable("member_education")
-    .addColumn("id", "integer", (col) =>
-      col.notNull().primaryKey().autoIncrement(),
+    .addColumn("id", "uuid", (col) =>
+      col.primaryKey().defaultTo(sql`gen_random_uuid()`),
     )
     .addColumn("did", "text", (col) =>
       col.notNull().references("members.did").onDelete("cascade"),
@@ -61,8 +61,8 @@ export async function up(db: Kysely<any>): Promise<void> {
   // Projects table
   await db.schema
     .createTable("member_projects")
-    .addColumn("id", "integer", (col) =>
-      col.notNull().primaryKey().autoIncrement(),
+    .addColumn("id", "uuid", (col) =>
+      col.primaryKey().defaultTo(sql`gen_random_uuid()`),
     )
     .addColumn("did", "text", (col) =>
       col.notNull().references("members.did").onDelete("cascade"),
@@ -77,8 +77,8 @@ export async function up(db: Kysely<any>): Promise<void> {
   // Skills table
   await db.schema
     .createTable("member_skills")
-    .addColumn("id", "integer", (col) =>
-      col.notNull().primaryKey().autoIncrement(),
+    .addColumn("id", "uuid", (col) =>
+      col.primaryKey().defaultTo(sql`gen_random_uuid()`),
     )
     .addColumn("did", "text", (col) =>
       col.notNull().references("members.did").onDelete("cascade"),
@@ -90,8 +90,8 @@ export async function up(db: Kysely<any>): Promise<void> {
   // Languages table
   await db.schema
     .createTable("member_languages")
-    .addColumn("id", "integer", (col) =>
-      col.notNull().primaryKey().autoIncrement(),
+    .addColumn("id", "uuid", (col) =>
+      col.primaryKey().defaultTo(sql`gen_random_uuid()`),
     )
     .addColumn("did", "text", (col) =>
       col.notNull().references("members.did").onDelete("cascade"),
@@ -106,8 +106,8 @@ export async function up(db: Kysely<any>): Promise<void> {
   // Preferred workplaces table
   await db.schema
     .createTable("member_preferred_workplaces")
-    .addColumn("id", "integer", (col) =>
-      col.notNull().primaryKey().autoIncrement(),
+    .addColumn("id", "uuid", (col) =>
+      col.primaryKey().defaultTo(sql`gen_random_uuid()`),
     )
     .addColumn("did", "text", (col) =>
       col.notNull().references("members.did").onDelete("cascade"),

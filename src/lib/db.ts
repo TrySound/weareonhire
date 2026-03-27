@@ -27,7 +27,7 @@ export interface DatabaseSchema {
     updated_at?: string;
   };
   member_positions: {
-    id?: number;
+    id?: string;
     did: string;
     company: string;
     title: string;
@@ -39,7 +39,7 @@ export interface DatabaseSchema {
     description: string | null;
   };
   member_education: {
-    id?: number;
+    id?: string;
     did: string;
     institution: string;
     degree: string;
@@ -49,7 +49,7 @@ export interface DatabaseSchema {
     description: string | null;
   };
   member_projects: {
-    id?: number;
+    id?: string;
     did: string;
     name: string;
     description: string | null;
@@ -58,17 +58,17 @@ export interface DatabaseSchema {
     ended_at: string | null;
   };
   member_skills: {
-    id?: number;
+    id?: string;
     did: string;
     skill: string;
   };
   member_languages: {
-    id?: number;
+    id?: string;
     did: string;
     language: string;
   };
   member_preferred_workplaces: {
-    id?: number;
+    id?: string;
     did: string;
     workplace_type: string;
   };
@@ -78,11 +78,11 @@ let db: Kysely<DatabaseSchema> | null = null;
 
 async function createDB(): Promise<Kysely<DatabaseSchema>> {
   if (env.DEV) {
-    const { NodeNativeSqliteDialect } =
-      await import("kysely-node-native-sqlite");
-
+    const { PGlite } = await import("@electric-sql/pglite");
+    const { PGliteDialect } = await import("kysely-pglite-dialect");
+    const pglite = new PGlite("./.pgdata");
     return new Kysely<DatabaseSchema>({
-      dialect: new NodeNativeSqliteDialect("app.db"),
+      dialect: new PGliteDialect(pglite),
     });
   } else {
     const connectionString = env.CONNECTION_STRING;
