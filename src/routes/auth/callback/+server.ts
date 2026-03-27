@@ -5,18 +5,23 @@ import { env } from "$env/dynamic/private";
 import { getOAuthClient } from "$lib/auth";
 import { getDB } from "$lib/db";
 
-const ALLOWED_DIDS = ["did:plc:ookzzzg4hc3mxf44jkocwiep"];
+const ALLOWED_HANDLES = ["trysound.io"];
 
 export const GET = async ({ url, cookies }) => {
   const oauthClient = await getOAuthClient();
   const { session } = await oauthClient.callback(url.searchParams);
 
+  const agent = new Agent(session);
+  const profile = await agent.getProfile({ actor: session.did });
+  const handle = profile.data.handle;
   // Check if DID is allowed in the closed community
-  if (!ALLOWED_DIDS.includes(session.did)) {
+  if (!ALLOWED_HANDLES.includes(handle)) {
     redirect(302, "/unauthorized");
   }
 
-  const signedSession = sign(session.did, env.SESSION_PASSWORD);
+  // Store both did and handle in the session cookie
+  const sessionData = JSON.stringify({ did: session.did, handle });
+  const signedSession = sign(sessionData, env.SESSION_PASSWORD);
 
   cookies.set("session", signedSession, {
     path: "/",
@@ -26,10 +31,6 @@ export const GET = async ({ url, cookies }) => {
     // 30 days
     maxAge: 60 * 60 * 24 * 30,
   });
-
-  const agent = new Agent(session);
-  const profile = await agent.getProfile({ actor: session.did });
-  const handle = profile.data.handle;
 
   // Create or update member record with prefilled data
   const db = await getDB();
@@ -45,13 +46,17 @@ export const GET = async ({ url, cookies }) => {
       .insertInto("members")
       .values({
         did: session.did,
-        name: profile.data.displayName || null,
-        summary: profile.data.description || null,
-        headline: null,
-        email: null,
-        location: null,
-        industry: null,
+        handle,
+        name: profile.data.displayName,
+        summary: profile.data.description,
       })
+      .execute();
+  } else {
+    // Existing member - update handle in case it changed
+    await db
+      .updateTable("members")
+      .set({ handle })
+      .where("did", "=", session.did)
       .execute();
   }
 

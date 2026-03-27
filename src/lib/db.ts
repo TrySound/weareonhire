@@ -14,6 +14,7 @@ export interface DatabaseSchema {
   };
   members: {
     did: string;
+    handle: string;
     name: string | null;
     email: string | null;
     location: string | null;
