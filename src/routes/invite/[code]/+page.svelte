@@ -60,38 +60,6 @@
 </div>
 
 <style>
-  .invite-header {
-    display: flex;
-    align-items: center;
-    gap: var(--space-4);
-    margin-bottom: var(--space-6);
-    padding-bottom: var(--space-6);
-    border-bottom: 1px solid var(--color-border);
-  }
-
-  .avatar {
-    width: 64px;
-    height: 64px;
-    border-radius: 50%;
-    background: var(--color-primary);
-    color: var(--color-text);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: var(--font-size-xl);
-    font-weight: var(--font-weight-semibold);
-  }
-
-  .inviter-info h1 {
-    margin: 0;
-  }
-
-  .handle {
-    color: var(--color-text-tertiary);
-    margin: var(--space-1) 0 0;
-    font-size: var(--font-size-sm);
-  }
-
   .recommendation-section h2 {
     margin-bottom: var(--space-4);
   }

@@ -88,9 +88,10 @@
 
   <!-- Recommendations Section -->
   {#if data.inviter || data.recommendations.length > 0 || (!data.isOwnProfile && !data.hasRecommended)}
-    <div class="recommendations-section">
-      <h2 class="heading-2">Recommendations from other members</h2>
-
+    <section
+      class="recommendations-section"
+      aria-label="Recommendations from other members"
+    >
       <!-- Write Recommendation Form -->
       {#if !data.isOwnProfile && !data.hasRecommended}
         {#if !showRecommendationForm}
@@ -133,7 +134,7 @@
                 </div>
               </div>
 
-              <div class="form-actions">
+              <div class="actions">
                 <button
                   type="button"
                   class="button button-ghost"
@@ -142,7 +143,7 @@
                   Cancel
                 </button>
                 <button type="submit" class="button button-primary">
-                  Submit Recommendation
+                  Submit
                 </button>
               </div>
             {/if}
@@ -152,28 +153,27 @@
 
       {#if data.recommendations.length > 0}
         <div class="recommendations-list">
-          {#each data.recommendations as rec}
-            <div
-              class="card-lg recommendation-card"
-              class:from-invite={rec.isFromInvite}
-            >
-              <div class="recommendation-header">
-                <a href="/profile/{rec.authorHandle}" class="author-link">
-                  {rec.authorName || rec.authorHandle}
-                </a>
-                {#if rec.isFromInvite}
-                  <span class="badge badge-primary">Invitation</span>
+          {#each data.recommendations as item}
+            <article>
+              <div class="subtle">
+                {#if item.isFromInvite}
+                  Invited by
+                {:else}
+                  Recommended by
                 {/if}
+                <a href="/profile/{item.authorHandle}" class="link">
+                  {item.authorName || item.authorHandle}
+                </a>
+                <time datetime={item.createdAt}>
+                  {new Date(item.createdAt ?? 0).toLocaleDateString()}
+                </time>
               </div>
-              <p class="recommendation-text">{rec.text}</p>
-              <time class="recommendation-date" datetime={rec.createdAt}>
-                {new Date(rec.createdAt ?? 0).toLocaleDateString()}
-              </time>
-            </div>
+              <p>{item.text}</p>
+            </article>
           {/each}
         </div>
       {/if}
-    </div>
+    </section>
   {/if}
 </div>
 
@@ -198,6 +198,12 @@
 <Print {resume} />
 
 <style>
+  .container {
+    @media print {
+      display: none;
+    }
+  }
+
   .autofill-input {
     field-sizing: fixed;
   }
@@ -205,12 +211,6 @@
   .save-message {
     text-align: center;
     margin-bottom: var(--space-4);
-  }
-
-  @media print {
-    .container {
-      display: none;
-    }
   }
 
   .recommendations-section {
@@ -222,45 +222,8 @@
   }
 
   .recommendations-list {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-4);
-  }
-
-  .recommendation-card {
-    padding: var(--space-5);
-  }
-
-  .recommendation-card.from-invite {
-    border-left: 4px solid var(--color-primary);
-  }
-
-  .recommendation-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: var(--space-3);
-  }
-
-  .author-link {
-    color: var(--color-text);
-    font-weight: var(--font-weight-semibold);
-    text-decoration: none;
-  }
-
-  .author-link:hover {
-    color: var(--color-primary);
-  }
-
-  .recommendation-text {
-    line-height: var(--line-height-relaxed);
-    margin-bottom: var(--space-3);
-    color: var(--color-text);
-  }
-
-  .recommendation-date {
-    font-size: var(--font-size-sm);
-    color: var(--color-text-tertiary);
+    display: grid;
+    gap: var(--space-6);
   }
 
   .recommendation-form {
@@ -272,18 +235,6 @@
 
   .recommendation-form h3 {
     margin: 0;
-  }
-
-  .form-group {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-2);
-  }
-
-  .form-actions {
-    display: flex;
-    gap: var(--space-3);
-    justify-content: flex-end;
   }
 
   .character-count {
