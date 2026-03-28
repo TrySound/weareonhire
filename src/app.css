@@ -280,11 +280,11 @@ body {
   /*
    * border
    * padding
-   * 2 lines
+   * 3 lines
    * padding
    * border
    * */
-  min-height: calc(2lh + var(--space-2) * 2 + 2px);
+  min-height: calc(3lh + var(--space-2) * 2 + 2px);
   @supports (field-sizing: content) {
     field-sizing: content;
     resize: none;
