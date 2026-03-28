@@ -142,6 +142,13 @@
       stopEditing();
     }
   }
+
+  const normalizeUrl = (url: string) => {
+    if (url.startsWith("https://")) {
+      return url;
+    }
+    return `https://${url}`;
+  };
 </script>
 
 <!-- Contacts and summary -->
@@ -298,7 +305,7 @@
         {/if}
         {#if resume.profile.linkedin}
           <a
-            href="https://{resume.profile.linkedin}"
+            href={normalizeUrl(resume.profile.linkedin)}
             target="_blank"
             class="link"
           >
@@ -308,7 +315,7 @@
         {/if}
         {#if resume.profile.github}
           <a
-            href="https://{resume.profile.github}"
+            href={normalizeUrl(resume.profile.github)}
             target="_blank"
             class="link"
           >
@@ -317,7 +324,11 @@
           </a>
         {/if}
         {#if resume.profile.website}
-          <a href={resume.profile.website} target="_blank" class="link">
+          <a
+            href={normalizeUrl(resume.profile.website)}
+            target="_blank"
+            class="link"
+          >
             Website
             <svg width="14" height="14"><use href="#icon-website" /></svg>
           </a>

@@ -35,7 +35,6 @@ export const load = async ({ locals }) => {
     .orderBy("m.created_at", "desc")
     .execute();
 
-    console.log(members)
   return {
     handle: locals.handle,
     members,

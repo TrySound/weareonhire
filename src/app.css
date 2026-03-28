@@ -63,14 +63,14 @@
   --color-text-muted: #666666;
   --color-text-placeholder: #555555;
 
-  --color-bg: #1a1a1a;
-  --color-bg-elevated: #1a1a1a;
+  --color-bg: oklch(17.1% 0 0);
+  --color-bg-elevated: oklch(20% 0 0);
   --color-bg-hover: #2a2a2a;
 
   --color-border: #2a2a2a;
   --color-border-input: #444444;
 
-  --color-backdrop: rgba(0, 0, 0, 0.8);
+  --color-backdrop: oklch(24% 0 0 / 0.75);
   --color-focus-ring: rgba(136, 136, 136, 0.3);
 }
 
@@ -410,7 +410,7 @@ body {
   max-width: 480px;
   width: 90vw;
   max-height: 80vh;
-  background: var(--color-bg-elevated);
+  background: var(--color-bg);
   /* color is not inherited from the root */
   color: var(--color-text-secondary);
 }

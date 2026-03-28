@@ -6,9 +6,7 @@
 </script>
 
 <header class="topbar">
-  <a href={handle ? "/members" : "/"} class="heading-1 topbar-title">
-    CV Builder
-  </a>
+  <span class="heading-1 topbar-title">CV</span>
   <button class="icon-button" popovertarget="topbar-menu" aria-label="Menu">
     <svg width="24" height="24">
       <use href="#icon-menu" />
@@ -25,13 +23,21 @@
   onclick={(event) => event.currentTarget.hidePopover()}
 >
   <div class="menu" role="menu">
+    <a
+      target="_blank"
+      href="https://github.com/TrySound/cv-builder"
+      class="menuitem"
+      role="menuitem"
+    >
+      GitHub
+    </a>
+    <a href="/members" class="menuitem" role="menuitem">Members</a>
+    <a href="/invite" class="menuitem" role="menuitem">Invite</a>
     {#if handle}
       <!-- svelte-ignore a11y_autofocus -->
       <a href="/profile/{handle}" class="menuitem" role="menuitem" autofocus>
         Profile
       </a>
-      <a href="/members" class="menuitem" role="menuitem">Members</a>
-      <a href="/invite" class="menuitem" role="menuitem">Invite</a>
       <form method="POST" action="/auth/logout">
         <button class="menuitem" role="menuitem">Logout</button>
       </form>
@@ -47,13 +53,6 @@
         Connect to Atmosphere
       </button>
     {/if}
-    <a
-      href="https://github.com/TrySound/cv-builder"
-      class="menuitem"
-      role="menuitem"
-    >
-      GitHub
-    </a>
   </div>
 </div>
 

@@ -17,8 +17,6 @@
 <div class="container">
   <Topbar handle={data.handle} />
 
-  <h1 class="heading-1 subtle">Members</h1>
-
   <div class="member-list">
     {#each data.members as member}
       <article>
@@ -27,8 +25,7 @@
             {member.name || member.handle}
           </a>
           {#if member.headline}
-            |
-            <span class="subtle">{member.headline}</span>
+            <span>| {member.headline}</span>
           {/if}
         </div>
         <div class="subtle">
@@ -36,9 +33,8 @@
             Joined {formatDate(member.created_at)}
           </span>
           {#if member.inviter_name || member.inviter_handle}
-            |
             <span>
-              Invited by
+              | Invited by
               <a href="/profile/{member.inviter_handle}" class="link">
                 {member.inviter_name || member.inviter_handle}
               </a>
@@ -54,7 +50,6 @@
   .member-list {
     display: grid;
     gap: var(--space-4);
-    margin-top: var(--space-6);
+    margin: var(--space-6) 0;
   }
 </style>
-
