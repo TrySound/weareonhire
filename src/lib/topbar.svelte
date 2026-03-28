@@ -22,14 +22,10 @@
   <div class="menu" role="menu">
     {#if handle}
       <!-- svelte-ignore a11y_autofocus -->
-      <a
-        href="/profile/{handle}"
-        class="menuitem"
-        autofocus
-        role="menuitem"
-      >
+      <a href="/profile/{handle}" class="menuitem" role="menuitem" autofocus>
         Profile
       </a>
+      <a href="/invite" class="menuitem" role="menuitem">Invite</a>
       <form method="POST" action="/auth/logout">
         <button class="menuitem" role="menuitem">Logout</button>
       </form>

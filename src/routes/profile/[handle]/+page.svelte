@@ -49,7 +49,7 @@
 <div class="container">
   <Topbar handle={data.handle} />
 
-  <div class="profile-actions">
+  <div class="actions">
     {#if data.isOwnProfile}
       <button
         type="button"
@@ -59,7 +59,6 @@
       >
         Autofill
       </button>
-      <a href="/invite" class="button">Invite</a>
     {/if}
     <button type="button" class="button" onclick={() => window.print()}>
       Print
@@ -68,9 +67,9 @@
 
   {#if saveMessage}
     <div
-      class="save-message"
-      class:success={!saveMessage.includes("Failed")}
-      class:error={saveMessage.includes("Failed")}
+      class="save-message alert"
+      class:alert-success={!saveMessage.includes("Failed")}
+      class:alert-error={saveMessage.includes("Failed")}
     >
       {saveMessage}
     </div>
@@ -81,12 +80,12 @@
   <!-- Recommendations Section -->
   {#if data.inviter || data.recommendations.length > 0}
     <div class="recommendations-section">
-      <h2 class="recommendations-title">Community Recommendations</h2>
+      <h2 class="heading-2">Community Recommendations</h2>
 
       {#if data.inviter}
-        <div class="inviter-info">
+        <div class="alert alert-info inviter-info">
           <span class="badge">Invited by</span>
-          <a href="/profile/{data.inviter.handle}" class="inviter-link">
+          <a href="/profile/{data.inviter.handle}" class="link inviter-link">
             {data.inviter.name || data.inviter.handle}
           </a>
         </div>
@@ -96,7 +95,7 @@
         <div class="recommendations-list">
           {#each data.recommendations as rec}
             <div
-              class="recommendation-card"
+              class="card-lg recommendation-card"
               class:from-invite={rec.isFromInvite}
             >
               <div class="recommendation-header">
@@ -104,7 +103,7 @@
                   {rec.authorName || rec.authorHandle}
                 </a>
                 {#if rec.isFromInvite}
-                  <span class="badge invite-badge">Invitation</span>
+                  <span class="badge badge-primary">Invitation</span>
                 {/if}
               </div>
               <p class="recommendation-text">{rec.text}</p>
@@ -140,33 +139,13 @@
 <Print {resume} />
 
 <style>
-  .profile-actions {
-    display: flex;
-    align-items: center;
-    justify-content: end;
-    gap: var(--space-2);
-    margin-bottom: var(--space-6);
-  }
-
   .autofill-input {
     field-sizing: fixed;
   }
 
   .save-message {
-    padding: var(--space-3);
-    border-radius: var(--radius-md);
-    margin-bottom: var(--space-4);
     text-align: center;
-  }
-
-  .save-message.success {
-    background: var(--color-success-bg, #dcfce7);
-    color: var(--color-success, #166534);
-  }
-
-  .save-message.error {
-    background: var(--color-danger-bg, #fee2e2);
-    color: var(--color-danger, #991b1b);
+    margin-bottom: var(--space-4);
   }
 
   @media print {
@@ -176,16 +155,11 @@
   }
 
   .recommendations-section {
+    display: grid;
+    gap: var(--space-8);
     margin-top: var(--space-8);
-    padding-top: var(--space-8);
+    padding: var(--space-8) 0;
     border-top: 2px solid var(--color-border);
-  }
-
-  .recommendations-title {
-    font-size: 1.5rem;
-    font-weight: 600;
-    margin-bottom: var(--space-6);
-    color: var(--color-text);
   }
 
   .inviter-info {
@@ -193,32 +167,12 @@
     align-items: center;
     gap: var(--space-2);
     margin-bottom: var(--space-6);
-    padding: var(--space-4);
     background: var(--color-info-bg, #dbeafe);
-    border-radius: var(--radius-md);
-  }
-
-  .badge {
-    font-size: 0.75rem;
-    padding: var(--space-1) var(--space-2);
-    background: var(--color-badge-bg, var(--color-bg-secondary));
-    border-radius: var(--radius-sm);
-    color: var(--color-muted);
-  }
-
-  .invite-badge {
-    background: var(--color-primary);
-    color: var(--color-primary-text, white);
   }
 
   .inviter-link {
     color: var(--color-primary);
-    text-decoration: none;
-    font-weight: 500;
-  }
-
-  .inviter-link:hover {
-    text-decoration: underline;
+    font-weight: var(--font-weight-medium);
   }
 
   .recommendations-list {
@@ -228,10 +182,7 @@
   }
 
   .recommendation-card {
-    background: var(--color-card-bg, var(--color-bg-secondary));
     padding: var(--space-5);
-    border-radius: var(--radius-lg);
-    border: 1px solid var(--color-border);
   }
 
   .recommendation-card.from-invite {
@@ -247,7 +198,7 @@
 
   .author-link {
     color: var(--color-text);
-    font-weight: 600;
+    font-weight: var(--font-weight-semibold);
     text-decoration: none;
   }
 
@@ -256,13 +207,13 @@
   }
 
   .recommendation-text {
-    line-height: 1.6;
+    line-height: var(--line-height-relaxed);
     margin-bottom: var(--space-3);
     color: var(--color-text);
   }
 
   .recommendation-date {
-    font-size: 0.875rem;
-    color: var(--color-muted);
+    font-size: var(--font-size-sm);
+    color: var(--color-text-tertiary);
   }
 </style>

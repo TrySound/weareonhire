@@ -1,6 +1,6 @@
 <script lang="ts">
   import { page } from "$app/state";
-import Topbar from "$lib/topbar.svelte";
+  import Topbar from "$lib/topbar.svelte";
 
   let { data, form } = $props();
 
@@ -17,14 +17,14 @@ import Topbar from "$lib/topbar.svelte";
   <Topbar handle={data.handle} />
 
   <div class="content">
-    <h1>Create Invitation</h1>
-    <p class="description">
+    <h1 class="heading-2">Create Invitation</h1>
+    <p class="subtle">
       Invite someone to join the community with a personal recommendation.
     </p>
 
-    <form method="POST" class="invite-form" action="?/create">
+    <form method="POST" class="card-lg form-stack" action="?/create">
       <div class="form-group">
-        <label for="name">Invitation Name</label>
+        <label for="name" class="form-label">Invitation Name</label>
         <input
           type="text"
           id="name"
@@ -37,7 +37,7 @@ import Topbar from "$lib/topbar.svelte";
       </div>
 
       <div class="form-group">
-        <label for="recommendation_text">
+        <label for="recommendation_text" class="form-label">
           Recommendation
           <span class="char-count">
             {charCount}/200
@@ -47,8 +47,7 @@ import Topbar from "$lib/topbar.svelte";
           id="recommendation_text"
           name="recommendation_text"
           bind:value={recommendationText}
-          placeholder="Write a recommendation letter for recruiters..."
-          rows="6"
+          placeholder="Write a recommendation letter..."
           minlength="200"
           required
           class="form-input"
@@ -56,22 +55,23 @@ import Topbar from "$lib/topbar.svelte";
       </div>
 
       {#if form?.error}
-        <div class="error-message">{form.error}</div>
+        <div class="alert alert-error">{form.error}</div>
       {/if}
 
-      <button type="submit" class="button"> Generate Invite Link </button>
+      <button type="submit" class="button">Generate Invite Link</button>
     </form>
 
     {#if form?.success && form.inviteUrl}
-      <div class="success-section">
-        <h2>Invitation Created!</h2>
+      <div class="alert alert-success">
+        <h2 class="heading-3">Invitation Created!</h2>
         <p>Share this link with your invitee:</p>
         <div class="invite-link">
           <code>{page.url.origin}{form.inviteUrl}</code>
           <button
             type="button"
             class="button-small"
-            onclick={() => copyToClipboard(`${page.url.origin}${form.inviteUrl}`)}
+            onclick={() =>
+              copyToClipboard(`${page.url.origin}${form.inviteUrl}`)}
           >
             Copy
           </button>
@@ -81,13 +81,13 @@ import Topbar from "$lib/topbar.svelte";
 
     {#if data.invitations.length > 0}
       <div class="invitations-list">
-        <h2>Your Invitations</h2>
+        <h2 class="heading-3">Your Invitations</h2>
         <div class="list">
           {#each data.invitations as invitation}
-            <div class="invitation-card">
+            <div class="card-lg invitation-card">
               <div class="invitation-header">
-                <h3>{invitation.name}</h3>
-                <span class="usage-badge">
+                <h3 class="heading-3">{invitation.name}</h3>
+                <span class="badge">
                   {invitation.used_count}/{invitation.max_uses} used
                 </span>
               </div>
@@ -95,7 +95,9 @@ import Topbar from "$lib/topbar.svelte";
                 {invitation.recommendation_text.slice(0, 100)}...
               </p>
               <div class="invitation-actions">
-                <code class="code">{page.url.origin}/invite/{invitation.code}</code>
+                <code class="invite-code"
+                  >{page.url.origin}/invite/{invitation.code}</code
+                >
                 <button
                   type="button"
                   class="button-small"
@@ -116,128 +118,23 @@ import Topbar from "$lib/topbar.svelte";
 </div>
 
 <style>
-  .container {
-    max-width: 800px;
-    margin: 0 auto;
-    padding: var(--space-4);
-  }
-
   .content {
-    margin-top: var(--space-8);
-  }
-
-  h1 {
-    font-size: 1.5rem;
-    font-weight: 600;
-    margin-bottom: var(--space-2);
-  }
-
-  h2 {
-    font-size: 1.25rem;
-    font-weight: 600;
-    margin-bottom: var(--space-4);
-  }
-
-  h3 {
-    font-size: 1rem;
-    font-weight: 600;
-  }
-
-  .description {
-    color: var(--color-muted);
-    margin-bottom: var(--space-6);
-  }
-
-  .invite-form {
-    background: var(--color-card-bg, var(--color-bg-secondary));
-    padding: var(--space-6);
-    border-radius: var(--radius-lg);
-    margin-bottom: var(--space-8);
-  }
-
-  .form-group {
-    margin-bottom: var(--space-4);
-  }
-
-  label {
-    display: block;
-    font-weight: 500;
-    margin-bottom: var(--space-2);
+    max-width: 800px;
+    margin: var(--space-8) auto 0;
   }
 
   .char-count {
     float: right;
     font-weight: normal;
-    color: var(--color-muted);
-    font-size: 0.875rem;
-  }
-
-  .form-input {
-    width: 100%;
-    padding: var(--space-3);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-md);
-    background: var(--color-bg);
-    color: var(--color-text);
-    font-size: 1rem;
-  }
-
-  .form-input:focus {
-    outline: none;
-    border-color: var(--color-primary);
-  }
-
-  .button {
-    background: var(--color-primary);
-    color: var(--color-primary-text, white);
-    border: none;
-    padding: var(--space-3) var(--space-6);
-    border-radius: var(--radius-md);
-    font-size: 1rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: opacity 0.2s;
-  }
-
-  .button:hover:not(:disabled) {
-    opacity: 0.9;
-  }
-
-  .button:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-
-  .button-small {
-    background: var(--color-secondary-bg, var(--color-bg-secondary));
-    color: var(--color-text);
-    border: 1px solid var(--color-border);
-    padding: var(--space-1) var(--space-3);
-    border-radius: var(--radius-md);
-    font-size: 0.875rem;
-    cursor: pointer;
-  }
-
-  .error-message {
-    background: var(--color-danger-bg, #fee2e2);
-    color: var(--color-danger, #991b1b);
-    padding: var(--space-3);
-    border-radius: var(--radius-md);
-    margin-bottom: var(--space-4);
-  }
-
-  .success-section {
-    background: var(--color-success-bg, #dcfce7);
-    padding: var(--space-6);
-    border-radius: var(--radius-lg);
-    margin-bottom: var(--space-8);
+    color: var(--color-text-tertiary);
+    font-size: var(--font-size-sm);
   }
 
   .invite-link {
     display: flex;
     align-items: center;
     gap: var(--space-3);
-    background: var(--color-bg);
+    background: var(--color-bg-elevated);
     padding: var(--space-3);
     border-radius: var(--radius-md);
     margin-top: var(--space-3);
@@ -245,8 +142,8 @@ import Topbar from "$lib/topbar.svelte";
 
   .invite-link code {
     flex: 1;
-    font-family: monospace;
-    font-size: 0.875rem;
+    font-family: var(--font-mono);
+    font-size: var(--font-size-sm);
   }
 
   .invitations-list {
@@ -257,13 +154,11 @@ import Topbar from "$lib/topbar.svelte";
     display: flex;
     flex-direction: column;
     gap: var(--space-4);
+    margin-top: var(--space-4);
   }
 
   .invitation-card {
-    background: var(--color-card-bg, var(--color-bg-secondary));
     padding: var(--space-4);
-    border-radius: var(--radius-lg);
-    border: 1px solid var(--color-border);
   }
 
   .invitation-header {
@@ -273,16 +168,9 @@ import Topbar from "$lib/topbar.svelte";
     margin-bottom: var(--space-2);
   }
 
-  .usage-badge {
-    font-size: 0.75rem;
-    padding: var(--space-1) var(--space-2);
-    background: var(--color-badge-bg, var(--color-bg));
-    border-radius: var(--radius-sm);
-  }
-
   .recommendation-preview {
-    color: var(--color-muted);
-    font-size: 0.875rem;
+    color: var(--color-text-tertiary);
+    font-size: var(--font-size-sm);
     margin-bottom: var(--space-3);
   }
 
@@ -292,10 +180,10 @@ import Topbar from "$lib/topbar.svelte";
     gap: var(--space-3);
   }
 
-  .code {
+  .invite-code {
     flex: 1;
-    font-family: monospace;
-    font-size: 0.75rem;
-    color: var(--color-muted);
+    font-family: var(--font-mono);
+    font-size: var(--font-size-xs);
+    color: var(--color-text-tertiary);
   }
 </style>

@@ -126,7 +126,7 @@ body {
   background-color: transparent;
   border: 0;
   border-radius: 50%;
-  color: var(--text-primary);
+  color: var(--color-text);
   transition: all 0.2s ease;
   transition: background-color var(--transition-fast);
   &:hover {
@@ -266,6 +266,14 @@ body {
 
 .form-input:where(textarea) {
   resize: vertical;
+  /*
+   * border
+   * padding
+   * 2 lines
+   * padding
+   * border
+   * */
+  min-height: calc(2lh + var(--space-2) * 2 + 2px);
   @supports (field-sizing: content) {
     field-sizing: content;
     resize: none;
@@ -286,6 +294,131 @@ body {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: var(--space-2);
+}
+
+/* Button Variants */
+.button-primary {
+  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+  color: white;
+  border: none;
+}
+
+.button-primary:hover {
+  background: linear-gradient(135deg, #4338ca 0%, #6d28d9 100%);
+}
+
+.button-small {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-hover);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: background-color var(--transition-fast);
+}
+
+.button-small:hover {
+  background: var(--color-border-light);
+}
+
+/* Layout Utilities */
+.centered-container {
+  margin: auto;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-4);
+}
+
+.actions {
+  display: flex;
+  gap: var(--space-1);
+  justify-content: end;
+  align-items: center;
+  margin-bottom: var(--space-4);
+}
+
+/* Card Components */
+.card {
+  width: 100%;
+  max-width: 400px;
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  padding: var(--space-8);
+}
+
+.card-lg {
+  background: var(--color-bg-elevated);
+  border-radius: var(--radius-lg);
+  padding: var(--space-8);
+  border: 1px solid var(--color-border);
+}
+
+.card-header {
+  text-align: center;
+  margin-bottom: var(--space-6);
+}
+
+.card-header h1,
+.card-header h2 {
+  margin-bottom: var(--space-2);
+}
+
+/* Alert/Message Boxes */
+.alert {
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  border: 1px solid;
+}
+
+.alert-success {
+  background: var(--color-success-bg, #dcfce7);
+  border-color: var(--color-success-border, #86efac);
+  color: var(--color-success-text, #166534);
+}
+
+.alert-error {
+  background: var(--color-danger-bg, #fee2e2);
+  border-color: var(--color-danger, #991b1b);
+  color: var(--color-danger, #991b1b);
+}
+
+.alert-info {
+  background: var(--color-info-bg, #dbeafe);
+  border-color: var(--color-info-border, #93c5fd);
+  color: var(--color-info-text, #1e40af);
+}
+
+/* Badges */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: var(--font-size-xs);
+  padding: var(--space-1) var(--space-2);
+  background: var(--color-bg-hover);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-tertiary);
+}
+
+.badge-primary {
+  background: var(--color-primary);
+  color: white;
+}
+
+/* Flex Utilities */
+.flex {
+  display: flex;
+}
+
+.justify-end {
+  justify-content: flex-end;
 }
 
 /* Dialog */

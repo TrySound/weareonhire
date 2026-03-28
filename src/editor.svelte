@@ -495,7 +495,7 @@
               <p class="subtle">at {job.company}</p>
             {/if}
           </div>
-          <div class="cv-actions">
+          <div class="actions">
             <button
               class="icon-button"
               aria-label="Edit experience"
@@ -657,7 +657,7 @@
               <p class="subtle">at {edu.institution}</p>
             {/if}
           </div>
-          <div class="cv-actions">
+          <div class="actions">
             <button
               class="icon-button"
               aria-label="Edit education"
@@ -807,7 +807,7 @@
           {:else}
             <h4 class="heading-3">{project.name || "Untitled Project"}</h4>
           {/if}
-          <div class="cv-actions">
+          <div class="actions">
             <button
               class="icon-button"
               aria-label="Edit project"
@@ -1039,12 +1039,6 @@
     p {
       margin-top: 0;
     }
-  }
-
-  .cv-actions {
-    display: flex;
-    align-items: center;
-    gap: var(--space-1);
   }
 
   .cv-row-side {

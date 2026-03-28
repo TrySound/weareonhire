@@ -23,7 +23,7 @@
 <div class="container">
   <Topbar handle={data.handle} />
 
-  <div class="page-actions">
+  <div class="actions">
     <button
       type="button"
       class="button"
@@ -61,23 +61,8 @@
 <Print {resume} />
 
 <style>
-  .page-actions {
-    display: flex;
-    gap: var(--space-2);
-    justify-content: end;
-    align-items: center;
-    padding-left: calc(180px + var(--space-8));
-    margin-bottom: var(--space-4);
-  }
-
   .autofill-input {
     field-sizing: fixed;
-  }
-
-  @media (max-width: 640px) {
-    .page-actions {
-      padding-left: 0;
-    }
   }
 
   @media print {
