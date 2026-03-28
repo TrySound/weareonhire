@@ -4,12 +4,14 @@
   import Editor from "../../../editor.svelte";
   import Print from "../../../print.svelte";
 
-  let { data } = $props();
+  let { data, form } = $props();
 
   let resume = $state<Resume>(data.resume);
   let isSaving = $state(false);
   let saveMessage = $state("");
   let autofillText = $state("");
+  let recommendationText = $state("");
+  let showRecommendationForm = $state(false);
 
   async function handleSave() {
     if (!data.isOwnProfile) return;
@@ -43,6 +45,13 @@
     autofillText = "";
     handleSave();
     // Dialog will auto-close due to method=dialog on the form
+  }
+
+  function toggleRecommendationForm() {
+    showRecommendationForm = !showRecommendationForm;
+    if (!showRecommendationForm) {
+      recommendationText = "";
+    }
   }
 </script>
 
@@ -78,9 +87,68 @@
   <Editor bind:resume onSave={handleSave} readonly={!data.isOwnProfile} />
 
   <!-- Recommendations Section -->
-  {#if data.inviter || data.recommendations.length > 0}
+  {#if data.inviter || data.recommendations.length > 0 || (!data.isOwnProfile && !data.hasRecommended)}
     <div class="recommendations-section">
       <h2 class="heading-2">Recommendations from other members</h2>
+
+      <!-- Write Recommendation Form -->
+      {#if !data.isOwnProfile && !data.hasRecommended}
+        {#if !showRecommendationForm}
+          <button
+            type="button"
+            class="button button-secondary"
+            onclick={toggleRecommendationForm}
+          >
+            Write a recommendation
+          </button>
+        {:else}
+          <form
+            method="POST"
+            action="?/recommend"
+            class="recommendation-form card-lg"
+          >
+            <h3 class="heading-3">Write a recommendation</h3>
+
+            {#if form?.error}
+              <div class="alert alert-error">{form.error}</div>
+            {/if}
+
+            {#if form?.success}
+              <div class="alert alert-success">
+                Recommendation submitted successfully!
+              </div>
+            {:else}
+              <div class="form-group">
+                <textarea
+                  name="text"
+                  bind:value={recommendationText}
+                  placeholder="Write your recommendation here..."
+                  rows="6"
+                  class="form-input"
+                  required
+                  minlength="200"
+                ></textarea>
+                <div class="character-count">
+                  {recommendationText.length} / 200 characters
+                </div>
+              </div>
+
+              <div class="form-actions">
+                <button
+                  type="button"
+                  class="button button-ghost"
+                  onclick={toggleRecommendationForm}
+                >
+                  Cancel
+                </button>
+                <button type="submit" class="button button-primary">
+                  Submit Recommendation
+                </button>
+              </div>
+            {/if}
+          </form>
+        {/if}
+      {/if}
 
       {#if data.recommendations.length > 0}
         <div class="recommendations-list">
@@ -193,5 +261,34 @@
   .recommendation-date {
     font-size: var(--font-size-sm);
     color: var(--color-text-tertiary);
+  }
+
+  .recommendation-form {
+    padding: var(--space-5);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+
+  .recommendation-form h3 {
+    margin: 0;
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  .form-actions {
+    display: flex;
+    gap: var(--space-3);
+    justify-content: flex-end;
+  }
+
+  .character-count {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-tertiary);
+    text-align: right;
   }
 </style>

@@ -1,9 +1,9 @@
-import { redirect, error } from "@sveltejs/kit";
+import { redirect, error, fail } from "@sveltejs/kit";
 import type { HandleString } from "@atproto/lex";
+import { sql } from "kysely";
 import { getDB } from "$lib/db";
 import type { EmploymentType, Resume, WorkplaceType } from "$lib/cv-parser";
 import { handleResolver } from "$lib/auth.js";
-import { sql } from "kysely";
 
 export const load = async ({ params, locals }) => {
   const currentDid = locals.did;
@@ -158,6 +158,15 @@ export const load = async ({ params, locals }) => {
       languages: languages.map((l) => l.language),
     };
 
+    // Check if current user has already recommended this profile
+    const hasRecommended = await db
+      .selectFrom("recommendations")
+      .select("id")
+      .where("author_did", "=", currentDid)
+      .where("subject_did", "=", did)
+      .executeTakeFirst()
+      .then((result) => result !== undefined);
+
     return {
       handle,
       resume,
@@ -175,9 +184,65 @@ export const load = async ({ params, locals }) => {
           handle: inviter.handle,
         }
         : null,
+      hasRecommended,
     };
   } catch (e) {
     console.log(e);
     error(404, "Profile not found");
   }
+};
+
+export const actions = {
+  recommend: async ({ request, params, locals }) => {
+    if (!locals.did) {
+      return fail(401, { error: "Not authenticated" });
+    }
+
+    const handle = params.handle as HandleString;
+
+    const db = await getDB();
+
+    // Verify target is also a member
+    const targetMember = await db
+      .selectFrom("members")
+      .select(["handle", "did"])
+      .where("handle", "=", handle)
+      .executeTakeFirst();
+
+    if (!targetMember) {
+      return fail(404, { error: "Member not found" });
+    }
+
+    // Prevent self-recommendations
+    if (locals.did === targetMember.did) {
+      return fail(400, { error: "Cannot recommend yourself" });
+    }
+
+    // Check if already recommended
+    const existingRecommendation = await db
+      .selectFrom("recommendations")
+      .select("id")
+      .where("author_did", "=", locals.did)
+      .where("subject_did", "=", targetMember.did)
+      .executeTakeFirst();
+
+    if (existingRecommendation) {
+      return fail(400, { error: "Already recommended this member" });
+    }
+
+    const formData = await request.formData();
+    const text = formData.get("text")?.toString().trim() ?? "";
+
+    // Create the recommendation (without invitation_id)
+    await db
+      .insertInto("recommendations")
+      .values({
+        author_did: locals.did,
+        subject_did: targetMember.did,
+        text,
+      })
+      .execute();
+
+    return { success: true };
+  },
 };
