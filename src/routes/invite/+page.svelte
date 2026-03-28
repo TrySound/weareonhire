@@ -60,23 +60,6 @@
     <button type="submit" class="button">Generate Invite Link</button>
   </form>
 
-  {#if form?.success && form.inviteUrl}
-    <div class="alert alert-success">
-      <h2 class="heading-3">Invitation Created!</h2>
-      <p>Share this link with your invitee:</p>
-      <div class="invite-link">
-        <code>{page.url.origin}{form.inviteUrl}</code>
-        <button
-          type="button"
-          class="button-small"
-          onclick={() => copyToClipboard(`${page.url.origin}${form.inviteUrl}`)}
-        >
-          Copy
-        </button>
-      </div>
-    </div>
-  {/if}
-
   {#if data.invitations.length > 0}
     <div class="invitations-list">
       <h2 class="heading-3">Your Invitations</h2>
