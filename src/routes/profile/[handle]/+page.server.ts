@@ -88,7 +88,8 @@ export const load = async ({ params, locals }) => {
         "recommendations.text",
         "recommendations.invitation_id",
         "recommendations.created_at",
-        sql<string>`members.name`.as("author_name"),
+        "members.name as author_name",
+        "members.handle as author_handle",
       ])
       .execute();
 
@@ -170,13 +171,13 @@ export const load = async ({ params, locals }) => {
       })),
       inviter: inviter
         ? {
-            name: inviter.name,
-            handle: inviter.handle,
-          }
+          name: inviter.name,
+          handle: inviter.handle,
+        }
         : null,
     };
   } catch (e) {
-    console.log(e)
+    console.log(e);
     error(404, "Profile not found");
   }
 };

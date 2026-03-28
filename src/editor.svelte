@@ -6,7 +6,8 @@
   let {
     resume = $bindable(),
     onSave,
-  }: { resume: Resume; onSave?: () => void } = $props();
+    readonly = false,
+  }: { resume: Resume; onSave?: () => void; readonly?: boolean } = $props();
 
   // Track which section/card is being edited
   // Format: 'contact', 'summary', 'experience-0', 'education-2', 'skills'
@@ -71,6 +72,7 @@
   }
 
   function startEditing(section: string, index?: number) {
+    if (readonly) return;
     const targetId = index !== undefined ? `${section}-${index}` : section;
     editingId = targetId;
   }
@@ -81,6 +83,7 @@
   }
 
   function addExperience() {
+    if (readonly) return;
     resume.positions.unshift({
       title: "",
       company: "",
@@ -93,6 +96,7 @@
   }
 
   function removeExperience(index: number) {
+    if (readonly) return;
     resume.positions.splice(index, 1);
     // If we were editing this card, stop editing
     if (isEditing("experience", index)) {
@@ -101,6 +105,7 @@
   }
 
   function addEducation() {
+    if (readonly) return;
     resume.education.unshift({
       institution: "",
       degree: "",
@@ -112,6 +117,7 @@
   }
 
   function removeEducation(index: number) {
+    if (readonly) return;
     resume.education.splice(index, 1);
     if (isEditing("education", index)) {
       stopEditing();
@@ -119,6 +125,7 @@
   }
 
   function addProject() {
+    if (readonly) return;
     resume.projects.unshift({
       name: "",
       description: "",
@@ -129,6 +136,7 @@
   }
 
   function removeProject(index: number) {
+    if (readonly) return;
     resume.projects.splice(index, 1);
     if (isEditing("projects", index)) {
       stopEditing();
@@ -261,15 +269,17 @@
         <div>
           <h2 class="heading-1 subtle">{resume.profile.name || "Your Name"}</h2>
         </div>
-        <button
-          class="icon-button"
-          aria-label="Edit contacts and summary"
-          onclick={() => startEditing("contact")}
-        >
-          <svg width="16" height="16">
-            <use href="#icon-pencil" />
-          </svg>
-        </button>
+        {#if !readonly}
+          <button
+            class="icon-button"
+            aria-label="Edit contacts and summary"
+            onclick={() => startEditing("contact")}
+          >
+            <svg width="16" height="16">
+              <use href="#icon-pencil" />
+            </svg>
+          </button>
+        {/if}
       </div>
     </div>
     <div class="cv-row">
@@ -333,15 +343,17 @@
     <div><!-- skip column --></div>
     <heading class="cv-row-heading">
       <h2 class="heading-2 subtle">Work Experience</h2>
-      <button
-        class="icon-button"
-        onclick={addExperience}
-        aria-label="Add Experience"
-      >
-        <svg width="20" height="20">
-          <use href="#icon-plus" />
-        </svg>
-      </button>
+      {#if !readonly}
+        <button
+          class="icon-button"
+          onclick={addExperience}
+          aria-label="Add Experience"
+        >
+          <svg width="20" height="20">
+            <use href="#icon-plus" />
+          </svg>
+        </button>
+      {/if}
     </heading>
   </div>
 
@@ -496,24 +508,26 @@
             {/if}
           </div>
           <div class="actions">
-            <button
-              class="icon-button"
-              aria-label="Edit experience"
-              onclick={() => startEditing("experience", index)}
-            >
-              <svg width="20" height="20">
-                <use href="#icon-pencil" />
-              </svg>
-            </button>
-            <button
-              class="icon-button"
-              aria-label="Delete experience"
-              onclick={() => removeExperience(index)}
-            >
-              <svg width="20" height="20">
-                <use href="#icon-minus-circle" />
-              </svg>
-            </button>
+            {#if !readonly}
+              <button
+                class="icon-button"
+                aria-label="Edit experience"
+                onclick={() => startEditing("experience", index)}
+              >
+                <svg width="20" height="20">
+                  <use href="#icon-pencil" />
+                </svg>
+              </button>
+              <button
+                class="icon-button"
+                aria-label="Delete experience"
+                onclick={() => removeExperience(index)}
+              >
+                <svg width="20" height="20">
+                  <use href="#icon-minus-circle" />
+                </svg>
+              </button>
+            {/if}
           </div>
         </div>
         <div><!-- skip column --></div>
@@ -533,15 +547,17 @@
     <div><!-- skip column --></div>
     <heading class="cv-row-heading">
       <h2 class="heading-2 subtle">Education</h2>
-      <button
-        class="icon-button"
-        aria-label="Add Education"
-        onclick={addEducation}
-      >
-        <svg width="20" height="20">
-          <use href="#icon-plus" />
-        </svg>
-      </button>
+      {#if !readonly}
+        <button
+          class="icon-button"
+          aria-label="Add Education"
+          onclick={addEducation}
+        >
+          <svg width="20" height="20">
+            <use href="#icon-plus" />
+          </svg>
+        </button>
+      {/if}
     </heading>
   </div>
 
@@ -658,24 +674,26 @@
             {/if}
           </div>
           <div class="actions">
-            <button
-              class="icon-button"
-              aria-label="Edit education"
-              onclick={() => startEditing("education", index)}
-            >
-              <svg width="20" height="20">
-                <use href="#icon-pencil" />
-              </svg>
-            </button>
-            <button
-              class="icon-button"
-              aria-label="Delete education"
-              onclick={() => removeEducation(index)}
-            >
-              <svg width="20" height="20">
-                <use href="#icon-minus-circle" />
-              </svg>
-            </button>
+            {#if !readonly}
+              <button
+                class="icon-button"
+                aria-label="Edit education"
+                onclick={() => startEditing("education", index)}
+              >
+                <svg width="20" height="20">
+                  <use href="#icon-pencil" />
+                </svg>
+              </button>
+              <button
+                class="icon-button"
+                aria-label="Delete education"
+                onclick={() => removeEducation(index)}
+              >
+                <svg width="20" height="20">
+                  <use href="#icon-minus-circle" />
+                </svg>
+              </button>
+            {/if}
           </div>
         </div>
         <div><!-- skip column --></div>
@@ -695,11 +713,17 @@
     <div><!-- skip column --></div>
     <header class="cv-row-heading">
       <h2 class="heading-2 subtle">Projects</h2>
-      <button class="icon-button" aria-label="Add Project" onclick={addProject}>
-        <svg width="20" height="20">
-          <use href="#icon-plus" />
-        </svg>
-      </button>
+      {#if !readonly}
+        <button
+          class="icon-button"
+          aria-label="Add Project"
+          onclick={addProject}
+        >
+          <svg width="20" height="20">
+            <use href="#icon-plus" />
+          </svg>
+        </button>
+      {/if}
     </header>
   </div>
 
@@ -808,24 +832,26 @@
             <h4 class="heading-3">{project.name || "Untitled Project"}</h4>
           {/if}
           <div class="actions">
-            <button
-              class="icon-button"
-              aria-label="Edit project"
-              onclick={() => startEditing("projects", index)}
-            >
-              <svg width="20" height="20">
-                <use href="#icon-pencil" />
-              </svg>
-            </button>
-            <button
-              class="icon-button"
-              aria-label="Delete project"
-              onclick={() => removeProject(index)}
-            >
-              <svg width="20" height="20">
-                <use href="#icon-minus-circle" />
-              </svg>
-            </button>
+            {#if !readonly}
+              <button
+                class="icon-button"
+                aria-label="Edit project"
+                onclick={() => startEditing("projects", index)}
+              >
+                <svg width="20" height="20">
+                  <use href="#icon-pencil" />
+                </svg>
+              </button>
+              <button
+                class="icon-button"
+                aria-label="Delete project"
+                onclick={() => removeProject(index)}
+              >
+                <svg width="20" height="20">
+                  <use href="#icon-minus-circle" />
+                </svg>
+              </button>
+            {/if}
           </div>
         </div>
         <div><!-- skip column --></div>
@@ -845,26 +871,28 @@
     <div><!-- skip column --></div>
     <header class="cv-row-heading">
       <h2 class="heading-2 subtle">Technical Skills</h2>
-      {#if isEditing("skills")}
-        <button
-          class="icon-button"
-          aria-label="Save skills"
-          onclick={() => stopEditing()}
-        >
-          <svg width="20" height="20">
-            <use href="#icon-check" />
-          </svg>
-        </button>
-      {:else}
-        <button
-          class="icon-button"
-          aria-label="Edit skills"
-          onclick={() => startEditing("skills")}
-        >
-          <svg width="20" height="20">
-            <use href="#icon-pencil" />
-          </svg>
-        </button>
+      {#if !readonly}
+        {#if isEditing("skills")}
+          <button
+            class="icon-button"
+            aria-label="Save skills"
+            onclick={() => stopEditing()}
+          >
+            <svg width="20" height="20">
+              <use href="#icon-check" />
+            </svg>
+          </button>
+        {:else}
+          <button
+            class="icon-button"
+            aria-label="Edit skills"
+            onclick={() => startEditing("skills")}
+          >
+            <svg width="20" height="20">
+              <use href="#icon-pencil" />
+            </svg>
+          </button>
+        {/if}
       {/if}
     </header>
   </div>
@@ -906,26 +934,28 @@
     <div><!-- skip column --></div>
     <header class="cv-row-heading">
       <h2 class="heading-2 subtle">Workplace Preferences</h2>
-      {#if isEditing("workplace")}
-        <button
-          class="icon-button"
-          aria-label="Save workplace preferences"
-          onclick={() => stopEditing()}
-        >
-          <svg width="20" height="20">
-            <use href="#icon-check" />
-          </svg>
-        </button>
-      {:else}
-        <button
-          class="icon-button"
-          aria-label="Edit workplace preferences"
-          onclick={() => startEditing("workplace")}
-        >
-          <svg width="20" height="20">
-            <use href="#icon-pencil" />
-          </svg>
-        </button>
+      {#if !readonly}
+        {#if isEditing("workplace")}
+          <button
+            class="icon-button"
+            aria-label="Save workplace preferences"
+            onclick={() => stopEditing()}
+          >
+            <svg width="20" height="20">
+              <use href="#icon-check" />
+            </svg>
+          </button>
+        {:else}
+          <button
+            class="icon-button"
+            aria-label="Edit workplace preferences"
+            onclick={() => startEditing("workplace")}
+          >
+            <svg width="20" height="20">
+              <use href="#icon-pencil" />
+            </svg>
+          </button>
+        {/if}
       {/if}
     </header>
   </div>
@@ -965,26 +995,28 @@
     <div><!-- skip column --></div>
     <header class="cv-row-heading">
       <h2 class="heading-2 subtle">Languages</h2>
-      {#if isEditing("languages")}
-        <button
-          class="icon-button"
-          aria-label="Save languages"
-          onclick={() => stopEditing()}
-        >
-          <svg width="20" height="20">
-            <use href="#icon-check" />
-          </svg>
-        </button>
-      {:else}
-        <button
-          class="icon-button"
-          aria-label="Edit languages"
-          onclick={() => startEditing("languages")}
-        >
-          <svg width="20" height="20">
-            <use href="#icon-pencil" />
-          </svg>
-        </button>
+      {#if !readonly}
+        {#if isEditing("languages")}
+          <button
+            class="icon-button"
+            aria-label="Save languages"
+            onclick={() => stopEditing()}
+          >
+            <svg width="20" height="20">
+              <use href="#icon-check" />
+            </svg>
+          </button>
+        {:else}
+          <button
+            class="icon-button"
+            aria-label="Edit languages"
+            onclick={() => startEditing("languages")}
+          >
+            <svg width="20" height="20">
+              <use href="#icon-pencil" />
+            </svg>
+          </button>
+        {/if}
       {/if}
     </header>
   </div>

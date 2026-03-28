@@ -75,7 +75,7 @@
     </div>
   {/if}
 
-  <Editor bind:resume onSave={handleSave} />
+  <Editor bind:resume onSave={handleSave} readonly={!data.isOwnProfile} />
 
   <!-- Recommendations Section -->
   {#if data.inviter || data.recommendations.length > 0}
@@ -151,19 +151,6 @@
     margin-top: var(--space-8);
     padding: var(--space-8) 0;
     border-top: 2px solid var(--color-border);
-  }
-
-  .inviter-info {
-    display: flex;
-    align-items: center;
-    gap: var(--space-2);
-    margin-bottom: var(--space-6);
-    background: var(--color-info-bg, #dbeafe);
-  }
-
-  .inviter-link {
-    color: var(--color-primary);
-    font-weight: var(--font-weight-medium);
   }
 
   .recommendations-list {
