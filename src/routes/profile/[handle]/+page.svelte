@@ -4,13 +4,7 @@
   import Editor from "../../../editor.svelte";
   import Print from "../../../print.svelte";
 
-  let { data } = $props<{
-    data: {
-      handle: string;
-      resume: Resume;
-      isOwnProfile: boolean;
-    };
-  }>();
+  let { data } = $props();
 
   let resume = $state<Resume>(data.resume);
   let isSaving = $state(false);
@@ -65,6 +59,7 @@
       >
         Autofill
       </button>
+      <a href="/invite" class="button">Invite</a>
     {/if}
     <button type="button" class="button" onclick={() => window.print()}>
       Print
@@ -82,6 +77,46 @@
   {/if}
 
   <Editor bind:resume onSave={handleSave} />
+
+  <!-- Recommendations Section -->
+  {#if data.inviter || data.recommendations.length > 0}
+    <div class="recommendations-section">
+      <h2 class="recommendations-title">Community Recommendations</h2>
+
+      {#if data.inviter}
+        <div class="inviter-info">
+          <span class="badge">Invited by</span>
+          <a href="/profile/{data.inviter.handle}" class="inviter-link">
+            {data.inviter.name || data.inviter.handle}
+          </a>
+        </div>
+      {/if}
+
+      {#if data.recommendations.length > 0}
+        <div class="recommendations-list">
+          {#each data.recommendations as rec}
+            <div
+              class="recommendation-card"
+              class:from-invite={rec.isFromInvite}
+            >
+              <div class="recommendation-header">
+                <a href="/profile/{rec.authorHandle}" class="author-link">
+                  {rec.authorName || rec.authorHandle}
+                </a>
+                {#if rec.isFromInvite}
+                  <span class="badge invite-badge">Invitation</span>
+                {/if}
+              </div>
+              <p class="recommendation-text">{rec.text}</p>
+              <time class="recommendation-date" datetime={rec.createdAt}>
+                {new Date(rec.createdAt ?? 0).toLocaleDateString()}
+              </time>
+            </div>
+          {/each}
+        </div>
+      {/if}
+    </div>
+  {/if}
 </div>
 
 <dialog id="app-autofill-dialog" closedby="any" class="dialog">
@@ -138,5 +173,96 @@
     .container {
       display: none;
     }
+  }
+
+  .recommendations-section {
+    margin-top: var(--space-8);
+    padding-top: var(--space-8);
+    border-top: 2px solid var(--color-border);
+  }
+
+  .recommendations-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: var(--space-6);
+    color: var(--color-text);
+  }
+
+  .inviter-info {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin-bottom: var(--space-6);
+    padding: var(--space-4);
+    background: var(--color-info-bg, #dbeafe);
+    border-radius: var(--radius-md);
+  }
+
+  .badge {
+    font-size: 0.75rem;
+    padding: var(--space-1) var(--space-2);
+    background: var(--color-badge-bg, var(--color-bg-secondary));
+    border-radius: var(--radius-sm);
+    color: var(--color-muted);
+  }
+
+  .invite-badge {
+    background: var(--color-primary);
+    color: var(--color-primary-text, white);
+  }
+
+  .inviter-link {
+    color: var(--color-primary);
+    text-decoration: none;
+    font-weight: 500;
+  }
+
+  .inviter-link:hover {
+    text-decoration: underline;
+  }
+
+  .recommendations-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+
+  .recommendation-card {
+    background: var(--color-card-bg, var(--color-bg-secondary));
+    padding: var(--space-5);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--color-border);
+  }
+
+  .recommendation-card.from-invite {
+    border-left: 4px solid var(--color-primary);
+  }
+
+  .recommendation-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-3);
+  }
+
+  .author-link {
+    color: var(--color-text);
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  .author-link:hover {
+    color: var(--color-primary);
+  }
+
+  .recommendation-text {
+    line-height: 1.6;
+    margin-bottom: var(--space-3);
+    color: var(--color-text);
+  }
+
+  .recommendation-date {
+    font-size: 0.875rem;
+    color: var(--color-muted);
   }
 </style>

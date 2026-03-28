@@ -18,7 +18,7 @@
     "migrate:dev": "node ./scripts/migrate.ts --mode=dev",
     "migrate:prod": "node --env-file=.env ./scripts/migrate.ts --mode=prod",
     "lexicons:build": "lex build --out src/lib/lexicons",
-    "pglite:server": "pglite-server --db=./.pgdata --port=5432 --max-connections=1 --debug=1"
+    "pglite:server": "pglite-server --db=./.pgdata --port=5432 --max-connections=10 --debug=1"
   },
   "prettier": {
     "plugins": [
@@ -32,11 +32,12 @@
     "@atproto/api": "^0.19.4",
     "@atproto/lex": "^0.0.22",
     "@atproto/oauth-client-node": "^0.3.17",
+    "@electric-sql/pglite": "^0.2.0",
     "cookie-signature": "^1.2.2",
     "keyux": "^0.11.3",
-    "@electric-sql/pglite": "^0.2.0",
     "kysely": "^0.27.6",
     "kysely-pglite-dialect": "^1.2.0",
+    "nanoid": "^5.1.7",
     "pg": "^8.20.0"
   },
   "devDependencies": {

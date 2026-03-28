@@ -24,6 +24,7 @@ export interface DatabaseSchema {
     linkedin: string | null;
     github: string | null;
     website: string | null;
+    invited_by: string | null;
     created_at?: string;
     updated_at?: string;
   };
@@ -72,6 +73,24 @@ export interface DatabaseSchema {
     id?: string;
     did: string;
     workplace_type: string;
+  };
+  invitations: {
+    id?: string;
+    code: string;
+    name: string;
+    created_by: string;
+    recommendation_text: string;
+    max_uses?: number;
+    used_count?: number;
+    created_at?: string;
+  };
+  recommendations: {
+    id?: string;
+    author_did: string;
+    subject_did: string;
+    text: string;
+    invitation_id?: string | null;
+    created_at?: string;
   };
 }
 

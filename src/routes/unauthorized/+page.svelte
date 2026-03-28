@@ -19,6 +19,7 @@
 
 <style>
   .unauthorized-container {
+    margin: auto;
     min-height: 100vh;
     display: flex;
     align-items: center;
