@@ -58,7 +58,7 @@
     // Add "Other" category for custom skills not in taxonomy
     const taxonomySkills = new Set(Object.values(SKILLS_TAXONOMY).flat());
     const otherSkills = profileSkills.filter(
-      (skill) => !taxonomySkills.has(skill),
+      (skill) => !taxonomySkills.has(skill.toLowerCase()),
     );
     if (otherSkills.length > 0) {
       grouped["Other"] = otherSkills;
@@ -1088,6 +1088,8 @@
     display: grid;
     grid-auto-rows: min-content;
     justify-items: end;
+    /* align when text gets wrapped */
+    text-align: right;
   }
 
   .cv-row-main {

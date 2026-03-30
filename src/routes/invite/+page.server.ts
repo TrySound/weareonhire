@@ -24,6 +24,7 @@ export const load = async ({ locals }) => {
     .selectFrom("invitations")
     .selectAll()
     .where("created_by", "=", locals.did)
+    .whereRef("invitations.used_count", "<", "invitations.max_uses")
     .orderBy("created_at", "desc")
     .execute();
 

@@ -16,17 +16,19 @@
 <div class="container">
   <Topbar handle={data.handle} />
 
-  <h1 class="heading-2">Create Invitation</h1>
+  <h1 class="heading-2">Invitations</h1>
   <p class="subtle">
     Invite someone to join the community with a personal recommendation.
   </p>
 
-  <form method="POST" class="card-lg form-stack" action="?/create">
+  <form method="POST" class="form-stack" action="?/create">
     <div class="form-group">
-      <label for="name" class="form-label">Invitation Name</label>
+      <label for="invite-recommendation-name" class="form-label">
+        Invitation Name
+      </label>
       <input
         type="text"
-        id="name"
+        id="invite-recommendation-name"
         name="name"
         bind:value={name}
         placeholder="e.g., My colleague from Meta"
@@ -36,14 +38,14 @@
     </div>
 
     <div class="form-group">
-      <label for="recommendation_text" class="form-label">
+      <label for="invite-recommendation-input" class="form-label">
         Recommendation
         <span class="char-count">
           {charCount}/200
         </span>
       </label>
       <textarea
-        id="recommendation_text"
+        id="invite-recommendation-input"
         name="recommendation_text"
         bind:value={recommendationText}
         placeholder="Write a recommendation letter..."
@@ -57,43 +59,35 @@
       <div class="alert alert-error">{form.error}</div>
     {/if}
 
-    <button type="submit" class="button">Generate Invite Link</button>
+    <div>
+      <button class="button">Generate Invite Link</button>
+    </div>
   </form>
 
   {#if data.invitations.length > 0}
-    <div class="invitations-list">
-      <h2 class="heading-3">Your Invitations</h2>
-      <div class="list">
-        {#each data.invitations as invitation}
-          <div class="card-lg invitation-card">
-            <div class="invitation-header">
-              <h3 class="heading-3">{invitation.name}</h3>
-              <span class="badge">
-                {invitation.used_count}/{invitation.max_uses} used
-              </span>
-            </div>
-            <p class="recommendation-preview">
-              {invitation.recommendation_text.slice(0, 100)}...
-            </p>
-            <div class="invitation-actions">
-              <code class="invite-code">
-                {page.url.origin}/invite/{invitation.code}
-              </code>
-              <button
-                type="button"
-                class="button"
-                onclick={() => {
-                  copyToClipboard(
-                    `${page.url.origin}/invite/${invitation.code}`,
-                  );
-                }}
-              >
-                Copy Link
-              </button>
-            </div>
+    <div class="list">
+      {#each data.invitations as invitation}
+        <div class="invite">
+          <h3 class="heading-3 subtle">{invitation.name}</h3>
+          <p class="subtle">
+            {invitation.recommendation_text}
+          </p>
+          <div class="invite-actions">
+            <code class="invite-code">
+              {page.url.origin}/invite/{invitation.code}
+            </code>
+            <button
+              type="button"
+              class="button"
+              onclick={() => {
+                copyToClipboard(`${page.url.origin}/invite/${invitation.code}`);
+              }}
+            >
+              Copy Link
+            </button>
           </div>
-        {/each}
-      </div>
+        </div>
+      {/each}
     </div>
   {/if}
 </div>
@@ -106,35 +100,14 @@
     font-size: var(--font-size-sm);
   }
 
-  .invitations-list {
-    margin-top: var(--space-8);
-  }
-
   .list {
     display: flex;
     flex-direction: column;
-    gap: var(--space-4);
-    margin-top: var(--space-4);
+    gap: var(--space-6);
+    margin-top: var(--space-6);
   }
 
-  .invitation-card {
-    padding: var(--space-4);
-  }
-
-  .invitation-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: var(--space-2);
-  }
-
-  .recommendation-preview {
-    color: var(--color-text-tertiary);
-    font-size: var(--font-size-sm);
-    margin-bottom: var(--space-3);
-  }
-
-  .invitation-actions {
+  .invite-actions {
     display: flex;
     align-items: center;
     gap: var(--space-3);

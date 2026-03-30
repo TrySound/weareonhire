@@ -11,7 +11,6 @@
   let saveMessage = $state("");
   let autofillText = $state("");
   let recommendationText = $state("");
-  let showRecommendationForm = $state(false);
 
   async function handleSave() {
     if (!data.isOwnProfile) return;
@@ -45,13 +44,6 @@
     autofillText = "";
     handleSave();
     // Dialog will auto-close due to method=dialog on the form
-  }
-
-  function toggleRecommendationForm() {
-    showRecommendationForm = !showRecommendationForm;
-    if (!showRecommendationForm) {
-      recommendationText = "";
-    }
   }
 </script>
 
@@ -89,94 +81,72 @@
   <Editor bind:resume onSave={handleSave} readonly={!data.isOwnProfile} />
 
   <!-- Recommendations Section -->
-  {#if data.inviter || data.recommendations.length > 0 || (!data.isOwnProfile && !data.hasRecommended)}
-    <section
-      class="recommendations-section"
-      aria-label="Recommendations from other members"
-    >
-      <!-- Write Recommendation Form -->
-      {#if !data.isOwnProfile && !data.hasRecommended}
-        {#if !showRecommendationForm}
-          <button
-            type="button"
-            class="button button-secondary"
-            onclick={toggleRecommendationForm}
-          >
-            Write a recommendation
-          </button>
-        {:else}
-          <form
-            method="POST"
-            action="?/recommend"
-            class="recommendation-form card-lg"
-          >
-            <h3 class="heading-3">Write a recommendation</h3>
-
-            {#if form?.error}
-              <div class="alert alert-error">{form.error}</div>
-            {/if}
-
-            {#if form?.success}
-              <div class="alert alert-success">
-                Recommendation submitted successfully!
-              </div>
-            {:else}
-              <div class="form-group">
-                <textarea
-                  name="text"
-                  bind:value={recommendationText}
-                  placeholder="Write your recommendation here..."
-                  rows="6"
-                  class="form-input"
-                  required
-                  minlength="200"
-                ></textarea>
-                <div class="character-count">
-                  {recommendationText.length} / 200 characters
-                </div>
-              </div>
-
-              <div class="actions">
-                <button
-                  type="button"
-                  class="button button-ghost"
-                  onclick={toggleRecommendationForm}
-                >
-                  Cancel
-                </button>
-                <button type="submit" class="button button-primary">
-                  Submit
-                </button>
-              </div>
-            {/if}
-          </form>
+  <section
+    class="recommendations-section"
+    aria-label="Recommendations from other members"
+  >
+    <h2 class="heading-2 subtle">Recommendations</h2>
+    <!-- Write Recommendation Form -->
+    {#if !data.isOwnProfile && !data.hasRecommended}
+      <form method="POST" action="?/recommend" class="form-stack">
+        {#if form?.error}
+          <div class="alert alert-error">{form.error}</div>
         {/if}
-      {/if}
+        {#if form?.success}
+          <div class="alert alert-success">
+            Recommendation posted successfully!
+          </div>
+        {:else}
+          <div class="form-group">
+            <label for="recommendation-input" class="form-label">
+              Write a recommendation
+              <span class="character-count">
+                {recommendationText.length} / 200 characters
+              </span>
+            </label>
+            <textarea
+              id="recommendation-input"
+              name="text"
+              bind:value={recommendationText}
+              placeholder="Write your recommendation here..."
+              rows="6"
+              class="form-input"
+              required
+              minlength="200"
+            ></textarea>
+          </div>
+          <div>
+            <button class="button">Post</button>
+          </div>
+        {/if}
+      </form>
+    {/if}
 
-      {#if data.recommendations.length > 0}
-        <div class="recommendations-list">
-          {#each data.recommendations as item}
-            <article>
-              <div class="subtle">
-                {#if item.isFromInvite}
-                  Invited by
-                {:else}
-                  Recommended by
-                {/if}
-                <a href="/profile/{item.authorHandle}" class="link">
-                  {item.authorName || item.authorHandle}
-                </a>
-                <time datetime={item.createdAt}>
-                  {new Date(item.createdAt ?? 0).toLocaleDateString()}
-                </time>
-              </div>
-              <p>{item.text}</p>
-            </article>
-          {/each}
-        </div>
-      {/if}
-    </section>
-  {/if}
+    {#if data.recommendations.length > 0}
+      <div class="recommendations-list">
+        {#each data.recommendations as item}
+          <article>
+            <div class="subtle">
+              {#if item.isFromInvite}
+                Invited by
+              {:else}
+                Recommended by
+              {/if}
+              <a href="/profile/{item.authorHandle}" class="link">
+                {item.authorName || item.authorHandle}
+              </a>
+              <time datetime={item.createdAt}>
+                {new Date(item.createdAt ?? 0).toLocaleDateString()}
+              </time>
+            </div>
+            <p>{item.text}</p>
+          </article>
+        {/each}
+      </div>
+    {:else}
+      <p class="subtle">The member has not been recommended yet</p>
+    {/if}
+  </section>
 </div>
 
 <dialog id="app-autofill-dialog" closedby="any" class="dialog">
@@ -229,31 +199,15 @@
 
   .recommendations-section {
     display: grid;
-    gap: var(--space-8);
-    margin-top: var(--space-8);
-    padding: var(--space-8) 0;
-    border-top: 2px solid var(--color-border);
+    gap: var(--space-6);
+  }
+
+  .character-count {
+    float: right;
   }
 
   .recommendations-list {
     display: grid;
     gap: var(--space-6);
-  }
-
-  .recommendation-form {
-    padding: var(--space-5);
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-4);
-  }
-
-  .recommendation-form h3 {
-    margin: 0;
-  }
-
-  .character-count {
-    font-size: var(--font-size-sm);
-    color: var(--color-text-tertiary);
-    text-align: right;
   }
 </style>
