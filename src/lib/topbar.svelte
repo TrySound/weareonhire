@@ -85,9 +85,20 @@
       with the same account.
     </p>
 
-    <form method="get" action="/auth/login">
+    <form class="form-stack" method="get" action="/auth/login">
       <input type="hidden" name="code" value={inviteCode} />
       <input type="hidden" name="prompt" value="login" />
+      <div class="form-group">
+        <label for="topbar-login-handle-input" class="form-label">Handle</label>
+        <input
+          type="text"
+          id="topbar-login-handle-input"
+          name="handle"
+          placeholder="e.g., user.bsky.social"
+          required
+          class="form-input"
+        />
+      </div>
       <button class="button button-primary">Connect</button>
     </form>
 

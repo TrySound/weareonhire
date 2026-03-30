@@ -5,8 +5,11 @@ export const GET = async ({ url, cookies }) => {
   const prompt =
     url.searchParams.get("prompt") === "login" ? "login" : "create";
   const code = url.searchParams.get("code");
+  const handle = url.searchParams.get("handle");
+
   const oauthClient = await getOAuthClient();
-  const authUrl = await oauthClient.authorize("https://bsky.social", {
+  // use handle to resolve pds or fallback to bsky login
+  const authUrl = await oauthClient.authorize(handle ?? "https://bsky.social", {
     scope: "atproto transition:generic",
     prompt,
   });

@@ -15,7 +15,7 @@ import { Client } from "@atproto/lex";
 import { getDB } from "$lib/db";
 
 export const handleResolver = createHandleResolver({
-  handleResolver: "https://bsky.social",
+  handleResolver: "https://npmx.social",
 });
 export const didResolver = createDidResolver({});
 
