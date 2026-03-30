@@ -98,7 +98,6 @@ body {
   min-width: 320px;
   min-height: 100vh;
   background-color: var(--color-bg);
-  padding-bottom: var(--space-12);
 }
 
 .link {
@@ -244,7 +243,7 @@ body {
   width: 100%;
   max-width: 900px;
   margin: 0 auto;
-  padding: 0 var(--space-4);
+  padding: 0 var(--space-4) var(--space-12);
 }
 
 .form-label {
