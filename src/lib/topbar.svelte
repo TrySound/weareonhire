@@ -31,9 +31,9 @@
     >
       GitHub
     </a>
-    <a href="/members" class="menuitem" role="menuitem">Members</a>
-    <a href="/invite" class="menuitem" role="menuitem">Invite</a>
     {#if handle}
+      <a href="/members" class="menuitem" role="menuitem">Members</a>
+      <a href="/invite" class="menuitem" role="menuitem">Invite</a>
       <!-- svelte-ignore a11y_autofocus -->
       <a href="/profile/{handle}" class="menuitem" role="menuitem" autofocus>
         Profile
