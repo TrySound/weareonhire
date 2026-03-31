@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { page } from "$app/stores";
   import { parseResume, type Resume } from "$lib/cv-parser";
   import Topbar from "$lib/topbar.svelte";
   import Editor from "../../../editor.svelte";
@@ -11,6 +12,9 @@
   let saveMessage = $state("");
   let autofillText = $state("");
   let recommendationText = $state("");
+
+  // Track which recommendation is currently targeted via URL hash
+  let targetedId = $derived($page.url.hash.slice(1));
 
   async function handleSave() {
     if (!data.isOwnProfile) return;
@@ -125,7 +129,11 @@
     {#if data.recommendations.length > 0}
       <div class="recommendations-list">
         {#each data.recommendations as item}
-          <article>
+          <article
+            id="recommendation-{item.id}"
+            class="recommendation-item"
+            class:highlight={targetedId === `recommendation-${item.id}`}
+          >
             <div class="subtle">
               {#if item.isFromInvite}
                 Invited by
@@ -209,5 +217,13 @@
   .recommendations-list {
     display: grid;
     gap: var(--space-6);
+  }
+
+  .recommendation-item.highlight {
+    background-color: var(--color-bg-hover);
+    padding: var(--space-4);
+    margin: calc(-1 * var(--space-4));
+    border-radius: var(--radius-md);
+    transition: background-color 0.3s ease;
   }
 </style>

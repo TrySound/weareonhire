@@ -20,7 +20,7 @@
 </script>
 
 <header class="topbar">
-  <a class="heading-1 topbar-title" href="/members">WAOH!</a>
+  <a class="heading-1 topbar-title" href="/feed">WAOH!</a>
   <button class="icon-button" popovertarget="topbar-menu" aria-label="Menu">
     <svg width="24" height="24">
       <use href="#icon-menu" />

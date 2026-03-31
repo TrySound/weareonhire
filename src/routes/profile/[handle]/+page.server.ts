@@ -82,6 +82,7 @@ export const load = async ({ params, locals }) => {
     )
     .orderBy("recommendations.created_at", "desc")
     .select([
+      "recommendations.id",
       "recommendations.text",
       "recommendations.invitation_id",
       "recommendations.created_at",
@@ -169,6 +170,7 @@ export const load = async ({ params, locals }) => {
     resume,
     isOwnProfile: currentDid === targetMember.did,
     recommendations: recommendations.map((rec) => ({
+      id: rec.id,
       text: rec.text,
       authorName: rec.author_name,
       authorHandle: rec.author_handle,
