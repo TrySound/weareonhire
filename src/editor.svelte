@@ -99,9 +99,7 @@
     if (readonly) return;
     resume.positions.splice(index, 1);
     // If we were editing this card, stop editing
-    if (isEditing("experience", index)) {
-      stopEditing();
-    }
+    stopEditing();
   }
 
   function addEducation() {
@@ -119,9 +117,7 @@
   function removeEducation(index: number) {
     if (readonly) return;
     resume.education.splice(index, 1);
-    if (isEditing("education", index)) {
-      stopEditing();
-    }
+    stopEditing();
   }
 
   function addProject() {
@@ -138,9 +134,7 @@
   function removeProject(index: number) {
     if (readonly) return;
     resume.projects.splice(index, 1);
-    if (isEditing("projects", index)) {
-      stopEditing();
-    }
+    stopEditing();
   }
 
   const normalizeUrl = (url: string) => {

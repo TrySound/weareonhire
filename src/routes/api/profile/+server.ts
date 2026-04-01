@@ -105,7 +105,7 @@ export const POST = async ({ request, locals }) => {
         .values(
           resume.skills.map((skill) => ({
             did,
-            skill,
+            skill: skill.trim().toLowerCase(),
           })),
         )
         .execute();
@@ -117,7 +117,7 @@ export const POST = async ({ request, locals }) => {
         .values(
           resume.languages.map((language) => ({
             did,
-            language,
+            language: language.trim().toLowerCase(),
           })),
         )
         .execute();

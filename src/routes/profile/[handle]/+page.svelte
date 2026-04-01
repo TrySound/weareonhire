@@ -11,11 +11,16 @@
   let resume = $state<Resume>(data.resume);
   let isSaving = $state(false);
   let saveMessage = $state("");
-  let autofillText = $state("");
   let recommendationText = $state("");
 
   // Track which recommendation is currently targeted via URL hash
   let targetedId = $derived(page.url.hash.slice(1));
+
+  // File upload state
+  let selectedFile = $state<File | null>(null);
+  let uploadError = $state("");
+  let isUploading = $state(false);
+  let isDragOver = $state(false);
 
   async function handleSave() {
     if (!data.isOwnProfile) return;
@@ -41,14 +46,109 @@
     }
   }
 
-  function handleExtract() {
-    if (!autofillText.trim()) {
+  function handleFileSelect(event: Event) {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files[0]) {
+      selectedFile = input.files[0];
+      uploadError = "";
+      // Automatically trigger upload and parsing
+      handleFileUpload();
+    }
+  }
+
+  function handleFileUpload() {
+    if (!selectedFile) {
+      uploadError = "Please select a PDF file";
       return;
     }
-    resume = parseResume(autofillText);
-    autofillText = "";
-    handleSave();
-    // Dialog will auto-close due to method=dialog on the form
+
+    // Validate file type
+    if (selectedFile.type !== "application/pdf") {
+      uploadError = "Only PDF files are accepted";
+      return;
+    }
+
+    // Validate file size (500kB)
+    if (selectedFile.size > 500 * 1024) {
+      uploadError = "PDF must be under 500kB";
+      return;
+    }
+
+    uploadError = "";
+    isUploading = true;
+
+    const formData = new FormData();
+    formData.append("file", selectedFile);
+
+    fetch("/api/parse-pdf", {
+      method: "POST",
+      body: formData,
+    })
+      .then(async (response) => {
+        const result = await response.json();
+        isUploading = false;
+
+        if (!response.ok) {
+          uploadError = result.error || "Failed to parse resume";
+          return;
+        }
+
+        if (result.resume) {
+          resume = result.resume;
+          selectedFile = null;
+          handleSave();
+          // Close dialog
+          const dialog = document.getElementById(
+            "app-autofill-dialog",
+          ) as HTMLDialogElement;
+          dialog?.close();
+        }
+      })
+      .catch((error) => {
+        uploadError =
+          error instanceof Error
+            ? error.message
+            : "Network error. Please try again.";
+        isUploading = false;
+      });
+  }
+
+  function handleDragEnter(event: DragEvent) {
+    event.preventDefault();
+    event.stopPropagation();
+    isDragOver = true;
+  }
+
+  function handleDragOver(event: DragEvent) {
+    event.preventDefault();
+    event.stopPropagation();
+    isDragOver = true;
+  }
+
+  function handleDragLeave(event: DragEvent) {
+    event.preventDefault();
+    event.stopPropagation();
+    // Only set isDragOver to false if we're actually leaving the element (not entering a child)
+    const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
+    const x = event.clientX;
+    const y = event.clientY;
+    if (x < rect.left || x >= rect.right || y < rect.top || y >= rect.bottom) {
+      isDragOver = false;
+    }
+  }
+
+  function handleDrop(event: DragEvent) {
+    event.preventDefault();
+    event.stopPropagation();
+    isDragOver = false;
+
+    const files = event.dataTransfer?.files;
+    if (files && files[0]) {
+      selectedFile = files[0];
+      uploadError = "";
+      // Automatically trigger upload and parsing
+      handleFileUpload();
+    }
   }
 </script>
 
@@ -59,15 +159,25 @@
     {#if data.isOwnProfile}
       <button
         type="button"
-        class="button"
+        class="icon-button"
+        aria-label="Upload resume"
         commandfor="app-autofill-dialog"
         command="show-modal"
       >
-        Autofill
+        <svg width="20" height="20">
+          <use href="#icon-upload" />
+        </svg>
       </button>
     {/if}
-    <button type="button" class="button" onclick={() => window.print()}>
-      Print
+    <button
+      type="button"
+      class="icon-button"
+      aria-label="Print resume"
+      onclick={() => window.print()}
+    >
+      <svg width="20" height="20">
+        <use href="#icon-print" />
+      </svg>
     </button>
   </div>
 
@@ -162,7 +272,7 @@
 
 <dialog id="app-autofill-dialog" closedby="any" class="dialog">
   <header class="dialog-header">
-    <h2 class="dialog-title">Autofill from Resume Text</h2>
+    <h2 class="dialog-title">Upload Resume</h2>
     <button
       class="icon-button"
       aria-label="Close"
@@ -174,20 +284,53 @@
       </svg>
     </button>
   </header>
-  <form method="dialog" class="dialog-content" onsubmit={handleExtract}>
+
+  <div class="dialog-content">
+    {#if uploadError}
+      <div class="alert alert-error">{uploadError}</div>
+    {/if}
+
     <p class="dialog-description">
-      Paste your resume text below to extract and populate the editor
+      Upload your resume PDF (max 500kB) to automatically extract your
+      information
     </p>
-    <textarea
-      bind:value={autofillText}
-      placeholder="Paste your resume text here..."
-      rows="15"
-      class="form-input autofill-input"
-    ></textarea>
-    <div class="actions">
-      <button type="submit" class="button">Extract</button>
+    <!-- svelte-ignore a11y_no_static_element_interactions -->
+    <div
+      class="drop-zone"
+      class:drag-over={isDragOver}
+      ondragenter={handleDragEnter}
+      ondragover={handleDragOver}
+      ondragleave={handleDragLeave}
+      ondrop={handleDrop}
+    >
+      <input
+        type="file"
+        accept=".pdf"
+        onchange={handleFileSelect}
+        class="file-input"
+        id="resume-file"
+        disabled={isUploading}
+      />
+      {#if isUploading}
+        <div class="upload-loader">
+          <div class="spinner"></div>
+          <span>Parsing your resume...</span>
+        </div>
+      {:else}
+        <label for="resume-file" class="file-label">
+          <svg width="48" height="48">
+            <use href="#icon-upload" />
+          </svg>
+          <span>
+            {selectedFile
+              ? selectedFile.name
+              : "Drop your PDF here or click to browse"}
+          </span>
+          <span class="subtle">Maximum file size: 500KB</span>
+        </label>
+      {/if}
     </div>
-  </form>
+  </div>
 </dialog>
 
 <Print {resume} />
@@ -199,18 +342,83 @@
     }
   }
 
-  .autofill-input {
-    field-sizing: fixed;
-  }
-
   .save-message {
     text-align: center;
     margin-bottom: var(--space-4);
   }
 
+  .upload-loader {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-4);
+  }
+
+  .spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid var(--color-border);
+    border-top-color: var(--color-primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  .upload-loader span {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+  }
+
+  .drop-zone {
+    position: relative;
+    height: 240px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 2px dashed var(--color-border);
+    border-radius: var(--radius-md);
+    color: var(--color-text-secondary);
+    transition: all var(--transition-fast);
+  }
+
+  .drop-zone.drag-over {
+    border-color: var(--color-primary);
+  }
+
+  .drop-zone:hover,
+  .drop-zone.drag-over {
+    background: var(--color-bg-hover);
+    color: var(--color-text);
+  }
+
+  .file-input {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  .file-label {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-3);
+    padding: var(--space-2);
+    text-align: center;
+    pointer-events: none;
+  }
+
   .recommendations-section {
     display: grid;
-    gap: var(--space-6);
+    gap: var(--space-8);
   }
 
   .character-count {

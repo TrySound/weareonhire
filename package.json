@@ -36,6 +36,7 @@
     "@electric-sql/pglite": "^0.2.0",
     "cookie-signature": "^1.2.2",
     "keyux": "^0.11.3",
+    "@google/genai": "^1.47.0",
     "kysely": "^0.27.6",
     "kysely-pglite-dialect": "^1.2.0",
     "nanoid": "^5.1.7",
