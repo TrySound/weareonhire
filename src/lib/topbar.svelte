@@ -125,6 +125,17 @@
       with the same account.
     </p>
 
+    <details class="dialog-details">
+      <summary class="subtle">Troubleshooting</summary>
+      <p class="dialog-description">
+        Having trouble with Bluesky signup due to captcha? You can use
+        <strong>npmx.social</strong> as your personal data server (PDS) instead.
+        Enter <code>https://npmx.social</code> in the handle field above and press
+        Connect to create an account on the npmx server, then use it to access Bluesky
+        later.
+      </p>
+    </details>
+
     <form
       class="form-stack"
       method="get"
