@@ -25,29 +25,21 @@
 <footer class="footer">
   <h2 class="heading-1">Get Involved</h2>
   <div class="get-involved-grid">
-    <a
-      class="button"
-      target="_blank"
-      href="https://github.com/TrySound/weareonhire"
-    >
+    <a class="button" target="_blank" href="https://repo.weareonhire.com">
       <div class="involved-card">
         <h3 class="heading-2">Contribute</h3>
         <p class="subtle">Help us build weareonhire!</p>
         <p>View on GitHub</p>
       </div>
     </a>
-    <a class="button" target="_blank" href="https://discord.gg/Axdhf8x47F">
+    <a class="button" target="_blank" href="https://chat.weareonhire.com">
       <div class="involved-card">
         <h3 class="heading-2">Join the Community</h3>
         <p class="subtle">Chat, ask questions, and share ideas.</p>
         <p>Join Discord</p>
       </div>
     </a>
-    <a
-      class="button"
-      target="_blank"
-      href="https://bsky.app/profile/trysound.io"
-    >
+    <a class="button" target="_blank" href="https://social.weareonhire.com">
       <div class="involved-card">
         <h3 class="heading-2">Stay Updated</h3>
         <p class="subtle">Get the latest updates and announcements.</p>

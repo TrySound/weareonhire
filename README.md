@@ -1,10 +1,16 @@
 # weareonhire!
 
-Invite-only community for professionals
+weareonhire is a professional networking platform built on the AT Protocol. It combines decentralized identity with invite-only membership to create a trusted community where professionals can create, manage, and share their CV/resumes.
+
+## Shortcuts
+
+- [chat.weareonhire.com](https://chat.weareonhire.com) - Discord Server
+- [build.weareonhire.com](https://build.weareonhire.com) - Builders Discord Server
+- [social.weareonhire.com](https://social.weareonhire.com) - Bluesky Profile
+- [repo.weareonhire.com](https://repo.weareonhire.com) - GitHub Repository
+- [issues.weareonhire.com](https://issues.weareonhire.com) - GitHub Issues
 
 ## Overview
-
-weareonhire is a professional networking platform built on the AT Protocol (Bluesky's underlying protocol). It combines decentralized identity with invite-only membership to create a trusted community where professionals can create, manage, and share their CV/resumes.
 
 ## Contributing
 
