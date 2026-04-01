@@ -1,5 +1,6 @@
 <script lang="ts">
-  import { parseResume, type Resume } from "$lib/cv-parser";
+  import type { Resume } from "$lib/resume-schema";
+  import { parseResume } from "$lib/cv-parser";
   import { saveToStorage, loadFromStorage } from "$lib/storage";
   import Topbar from "$lib/topbar.svelte";
   import Print from "../../print.svelte";

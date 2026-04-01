@@ -2,7 +2,7 @@ import { redirect, error, fail } from "@sveltejs/kit";
 import type { HandleString } from "@atproto/lex";
 import { sql } from "kysely";
 import { getDB } from "$lib/db";
-import type { EmploymentType, Resume, WorkplaceType } from "$lib/cv-parser";
+import type { EmploymentType, Resume, WorkplaceType } from "$lib/resume-schema";
 
 export const load = async ({ params, locals }) => {
   const currentDid = locals.did;
@@ -179,9 +179,9 @@ export const load = async ({ params, locals }) => {
     })),
     inviter: inviter
       ? {
-          name: inviter.name,
-          handle: inviter.handle,
-        }
+        name: inviter.name,
+        handle: inviter.handle,
+      }
       : null,
     hasRecommended,
   };

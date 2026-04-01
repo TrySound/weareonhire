@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { Resume } from "$lib/cv-parser";
+  import type { Resume } from "$lib/resume-schema";
   import { SKILLS_TAXONOMY } from "$lib/cv-parser";
   import MultiSelectCombobox from "./multi-select-combobox.svelte";
 

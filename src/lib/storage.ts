@@ -1,4 +1,20 @@
-import { type Resume, createEmptyResume } from "$lib/cv-parser";
+import * as v from "valibot";
+import { type Resume, ResumeSchema } from "./resume-schema";
+
+// Create empty resume helper
+function createEmptyResume(): Resume {
+  return {
+    profile: {
+      name: "",
+    },
+    positions: [],
+    education: [],
+    projects: [],
+    preferredWorkplace: [],
+    skills: [],
+    languages: [],
+  };
+}
 
 const STORAGE_KEY = "weareonhire-cv";
 
@@ -20,7 +36,13 @@ export function loadFromStorage(): Resume {
   try {
     const data = localStorage.getItem(STORAGE_KEY);
     if (data) {
-      return JSON.parse(data) as Resume;
+      const parsed = JSON.parse(data);
+      // Validate using valibot schema
+      const result = v.safeParse(ResumeSchema, parsed);
+      if (result.success) {
+        return result.output;
+      }
+      console.warn("Stored resume data is invalid, returning empty resume");
     }
   } catch {
     console.error("Failed to load resume from localStorage");

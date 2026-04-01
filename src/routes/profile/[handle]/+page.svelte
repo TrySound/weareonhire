@@ -1,6 +1,7 @@
 <script lang="ts">
-  import { page } from "$app/stores";
-  import { parseResume, type Resume } from "$lib/cv-parser";
+  import { page } from "$app/state";
+  import { parseResume } from "$lib/cv-parser";
+  import type { Resume } from "$lib/resume-schema";
   import Topbar from "$lib/topbar.svelte";
   import Editor from "../../../editor.svelte";
   import Print from "../../../print.svelte";
@@ -14,7 +15,7 @@
   let recommendationText = $state("");
 
   // Track which recommendation is currently targeted via URL hash
-  let targetedId = $derived($page.url.hash.slice(1));
+  let targetedId = $derived(page.url.hash.slice(1));
 
   async function handleSave() {
     if (!data.isOwnProfile) return;

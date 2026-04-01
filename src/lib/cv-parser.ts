@@ -1,61 +1,13 @@
-export type EmploymentType =
-  | "fulltime"
-  | "parttime"
-  | "contract"
-  | "freelance"
-  | "internship";
+// Keep the original text-parsing function (different from schema validation)
+// It extracts Resume data from raw text
 
-export type WorkplaceType = "onsite" | "remote" | "hybrid";
-
-export interface Profile {
-  name: string;
-  email?: string;
-  linkedin?: string;
-  github?: string;
-  website?: string;
-  location?: string;
-  headline?: string;
-  summary?: string;
-  industry?: string;
-}
-
-export interface Position {
-  company: string;
-  title: string;
-  location?: string;
-  workplaceType?: WorkplaceType;
-  employmentType?: EmploymentType;
-  description?: string;
-  startedAt?: string;
-  endedAt?: string;
-}
-
-export interface Education {
-  institution: string;
-  degree: string;
-  field?: string;
-  description?: string;
-  startedAt?: string;
-  endedAt?: string;
-}
-
-export interface Project {
-  name: string;
-  description?: string;
-  url?: string;
-  startedAt?: string;
-  endedAt?: string;
-}
-
-export interface Resume {
-  profile: Profile;
-  positions: Position[];
-  education: Education[];
-  projects: Project[];
-  preferredWorkplace: WorkplaceType[];
-  skills: string[];
-  languages: string[];
-}
+import type {
+  Profile,
+  Position,
+  Education,
+  Project,
+  Resume,
+} from "./resume-schema";
 
 interface Section {
   type: SectionType;
@@ -572,20 +524,6 @@ export function groupSkillsByCategory(skills: string[]): {
   return grouped;
 }
 
-export function createEmptyResume(): Resume {
-  return {
-    profile: {
-      name: "",
-    },
-    positions: [],
-    education: [],
-    projects: [],
-    preferredWorkplace: [],
-    skills: [],
-    languages: [],
-  };
-}
-
 function extractPositions(sectionContent: string): Position[] {
   const blocks = splitIntoBlocks(sectionContent);
   return blocks.map(parseExperienceBlock);
@@ -976,6 +914,7 @@ function extractProjects(sectionContent: string): Project[] {
   return blocks.map(parseProjectBlock);
 }
 
+// Main function to parse resume from raw text
 export function parseResume(rawText: string): Resume {
   const normalized = normalizeText(rawText);
   const sections = detectSections(normalized);
@@ -997,6 +936,6 @@ export function parseResume(rawText: string): Resume {
     projects,
     skills,
     preferredWorkplace: [],
-    languages: []
+    languages: [],
   };
 }

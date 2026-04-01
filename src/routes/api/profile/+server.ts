@@ -1,6 +1,6 @@
 import { json } from "@sveltejs/kit";
 import { getDB } from "$lib/db";
-import type { Resume } from "$lib/cv-parser";
+import type { Resume } from "$lib/resume-schema";
 
 export const POST = async ({ request, locals }) => {
   const did = locals.did;
