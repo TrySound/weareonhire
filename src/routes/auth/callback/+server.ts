@@ -75,6 +75,8 @@ export const GET = async ({ url, cookies }) => {
     maxAge: 60 * 60 * 24 * 30,
   });
 
+  let isNewMember = false;
+
   // create member for hardcoded handle (founder)
   if (ALLOWED_HANDLES.includes(handle) && !existingMember) {
     await db
@@ -88,6 +90,7 @@ export const GET = async ({ url, cookies }) => {
         invited_by: session.did,
       })
       .execute();
+    isNewMember = true;
   }
 
   // New member joining via invitation
@@ -120,6 +123,7 @@ export const GET = async ({ url, cookies }) => {
         .where("id", "=", invitation.id)
         .execute();
     });
+    isNewMember = true;
   }
 
   // create recommendation for already added member
@@ -164,6 +168,11 @@ export const GET = async ({ url, cookies }) => {
 
   // Clean up invite code cookie
   cookies.delete("invite_code", { path: "/" });
+
+  // Redirect new members to getting-started page
+  if (isNewMember) {
+    redirect(302, "/getting-started");
+  }
 
   redirect(302, `/profile/${handle}`);
 };
