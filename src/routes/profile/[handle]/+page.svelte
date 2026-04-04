@@ -5,13 +5,26 @@
   import UploadResumeDialog from "$lib/upload-resume-dialog.svelte";
   import Editor from "../../../editor.svelte";
   import Print from "../../../print.svelte";
+  import {
+    getMemberRecommendations,
+    createRecommendation as createRecommendationRaw,
+  } from "$lib/recommendation.remote";
 
-  let { data, form } = $props();
+  let { data } = $props();
+
+  // reset the form instantly hidden after submission
+  const createRecommendation = $derived(
+    createRecommendationRaw.for(data.profileHandle),
+  );
 
   // svelte-ignore state_referenced_locally
   let resume = $state<Resume>(data.resume);
   let saveMessage = $state("");
-  let recommendationText = $state("");
+
+  // Load recommendations via remote query
+  const recommendations = $derived(
+    getMemberRecommendations({ handle: data.profileHandle }),
+  );
 
   // Track which recommendation is currently targeted via URL hash
   let targetedId = $derived(page.url.hash.slice(1));
@@ -92,72 +105,63 @@
     aria-label="Recommendations from other members"
   >
     <h2 class="heading-2 subtle">Recommendations</h2>
+
     <!-- Write Recommendation Form -->
-    {#if !data.isOwnProfile && !data.hasRecommended}
-      <form method="POST" action="?/recommend" class="form-stack">
-        {#if form?.error}
-          <div class="alert alert-error">{form.error}</div>
-        {/if}
-        {#if form?.success}
-          <div class="alert alert-success">
-            Recommendation posted successfully!
-          </div>
-        {:else}
-          <div class="form-group">
-            <label for="recommendation-input" class="form-label">
-              Write a recommendation
-              <span class="character-count">
-                {recommendationText.length} / 200 characters
-              </span>
-            </label>
-            <textarea
-              id="recommendation-input"
-              name="text"
-              bind:value={recommendationText}
-              placeholder="Write your recommendation here..."
-              rows="6"
-              class="form-input"
-              required
-              minlength="200"
-            ></textarea>
-          </div>
-          <div>
-            <button class="button">Post</button>
-          </div>
-        {/if}
+    {#if !data.isOwnProfile && !recommendations.current?.isRecommendedByMe}
+      <form {...createRecommendation} class="form-stack">
+        <input
+          {...createRecommendation.fields.handle.as("hidden", data.handle)}
+        />
+        <div class="form-group">
+          <label for="recommendation-input" class="form-label">
+            Write a recommendation
+            <span class="character-count">
+              {createRecommendation.fields.text.value()?.length ?? 0} / 200 characters
+            </span>
+          </label>
+          <textarea
+            id="recommendation-input"
+            rows="6"
+            class="form-input"
+            placeholder="Write your recommendation here..."
+            minlength="200"
+            {...createRecommendation.fields.text.as("text")}
+          ></textarea>
+        </div>
+        <div>
+          <button class="button" type="submit">Post</button>
+        </div>
       </form>
     {/if}
 
-    {#if data.recommendations.length > 0}
-      <div class="recommendations-list">
-        {#each data.recommendations as item}
-          <article
-            id="recommendation-{item.id}"
-            class="recommendation-item"
-            class:highlight={targetedId === `recommendation-${item.id}`}
-          >
-            <div class="subtle">
-              {#if item.isFromInvite}
-                Invited by
-              {:else}
-                Recommended by
-              {/if}
-              <a href="/profile/{item.authorHandle}" class="link">
-                {item.authorName || item.authorHandle}
-              </a>
-              <time datetime={item.createdAt}>
-                {new Date(item.createdAt ?? 0).toLocaleDateString()}
-              </time>
-            </div>
-            <div class="quote">
-              <p>{item.text}</p>
-            </div>
-          </article>
-        {/each}
-      </div>
-    {:else}
-      <p class="subtle">The member has not been recommended yet</p>
-    {/if}
+    <div class="recommendations-list">
+      {#each recommendations.current?.recommendations as item}
+        <article
+          id="recommendation-{item.id}"
+          class="recommendation-item"
+          class:highlight={targetedId === `recommendation-${item.id}`}
+        >
+          <div class="subtle">
+            {#if item.isFromInvite}
+              Invited by
+            {:else}
+              Recommended by
+            {/if}
+            <a href="/profile/{item.authorHandle}" class="link">
+              {item.authorName || item.authorHandle}
+            </a>
+            <time datetime={item.createdAt}>
+              {new Date(item.createdAt ?? 0).toLocaleDateString()}
+            </time>
+          </div>
+          <div class="quote">
+            <p>{item.text}</p>
+          </div>
+        </article>
+      {:else}
+        <p class="subtle">The member has not been recommended yet</p>
+      {/each}
+    </div>
   </section>
 </div>
 
