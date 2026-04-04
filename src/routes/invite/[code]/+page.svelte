@@ -1,5 +1,6 @@
 <script lang="ts">
   import { page } from "$app/state";
+  import { acceptInvitation } from "$lib/invitation.remote.js";
   import Topbar from "$lib/topbar.svelte";
 
   let { data } = $props();
@@ -84,11 +85,14 @@
         </a>
       </div>
     {:else}
-      <form method="POST" action="?/accept">
+      <form {...acceptInvitation}>
         <p class="subtle">
           You're already a community member. Accept this recommendation from {inviterDisplayName}.
         </p>
-        <button type="submit" class="button">Recommend Back</button>
+        <input
+          {...acceptInvitation.fields.code.as("hidden", data.invitation.code)}
+        />
+        <button class="button button-primary">Accept</button>
       </form>
     {/if}
   {:else}

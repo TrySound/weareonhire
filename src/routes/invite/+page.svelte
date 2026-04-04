@@ -1,16 +1,14 @@
 <script lang="ts">
   import { page } from "$app/state";
   import Topbar from "$lib/topbar.svelte";
+  import {
+    createInvitation,
+    getMyInvitations,
+  } from "$lib/invitation.remote.js";
 
   let { data, form } = $props();
 
-  let name = $state("");
-  let recommendationText = $state("");
-  let charCount = $derived(recommendationText.length);
-
-  function copyToClipboard(text: string) {
-    navigator.clipboard.writeText(text);
-  }
+  const invitations = getMyInvitations();
 </script>
 
 <div class="container">
@@ -21,19 +19,17 @@
     Invite someone to join the community with a personal recommendation.
   </p>
 
-  <form method="POST" class="form-stack" action="?/create">
+  <form class="form-stack" {...createInvitation}>
     <div class="form-group">
       <label for="invite-recommendation-name" class="form-label">
         Invitation Name
       </label>
       <input
-        type="text"
         id="invite-recommendation-name"
-        name="name"
-        bind:value={name}
         placeholder="e.g., My colleague from Meta"
         required
         class="form-input"
+        {...createInvitation.fields.name.as("text")}
       />
     </div>
 
@@ -41,17 +37,16 @@
       <label for="invite-recommendation-input" class="form-label">
         Recommendation
         <span class="char-count">
-          {charCount}/200
+          {createInvitation.fields.recommendation_text.value()?.length ?? 0}/200
         </span>
       </label>
       <textarea
         id="invite-recommendation-input"
-        name="recommendation_text"
-        bind:value={recommendationText}
         placeholder="Write a recommendation letter..."
         minlength="200"
         required
         class="form-input"
+        {...createInvitation.fields.recommendation_text.as("text")}
       ></textarea>
     </div>
 
@@ -64,35 +59,32 @@
     </div>
   </form>
 
-  {#if data.invitations.length > 0}
-    <div class="list">
-      {#each data.invitations as invitation}
-        <div class="invite">
-          <h3 class="heading-3 subtle invite-heading">
-            <a class="link" href="{page.url.origin}/invite/{invitation.code}">
-              {invitation.name}
-            </a>
-            <button
-              class="icon-button"
-              aria-label="Copy invite link"
-              onclick={() => {
-                copyToClipboard(`${page.url.origin}/invite/${invitation.code}`);
-              }}
-            >
-              <svg width="20" height="20">
-                <use href="#icon-copy" />
-              </svg>
-            </button>
-          </h3>
-          <div class="quote">
-            <p>
-              {invitation.recommendation_text}
-            </p>
-          </div>
+  <div class="list">
+    {#each invitations.current as invitation}
+      {@const inviteUrl = `${page.url.origin}/invite/${invitation.code}`}
+      <div class="invite">
+        <h3 class="heading-3 subtle invite-heading">
+          <a class="link" href={inviteUrl}>
+            {invitation.name}
+          </a>
+          <button
+            class="icon-button"
+            aria-label="Copy invite link"
+            onclick={() => navigator.clipboard.writeText(inviteUrl)}
+          >
+            <svg width="20" height="20">
+              <use href="#icon-copy" />
+            </svg>
+          </button>
+        </h3>
+        <div class="quote">
+          <p>
+            {invitation.recommendation_text}
+          </p>
         </div>
-      {/each}
-    </div>
-  {/if}
+      </div>
+    {/each}
+  </div>
 </div>
 
 <style>

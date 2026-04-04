@@ -6,32 +6,8 @@ export const load = async ({ locals }) => {
   if (!locals.did || !locals.handle) {
     redirect(302, "/");
   }
-
-  // Verify user is a member
-  const db = await getDB();
-  const member = await db
-    .selectFrom("members")
-    .selectAll()
-    .where("did", "=", locals.did)
-    .executeTakeFirst();
-
-  if (!member) {
-    redirect(302, "/unauthorized");
-  }
-
-  // Load user's existing invitations
-  const invitations = await db
-    .selectFrom("invitations")
-    .selectAll()
-    .where("created_by", "=", locals.did)
-    .whereRef("invitations.used_count", "<", "invitations.max_uses")
-    .orderBy("created_at", "desc")
-    .execute();
-
   return {
     handle: locals.handle,
-    member,
-    invitations,
   };
 };
 
