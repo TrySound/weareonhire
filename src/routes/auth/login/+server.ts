@@ -11,7 +11,7 @@ export const GET = async ({ url, cookies }) => {
   try {
     const oauthClient = await getOAuthClient();
     // use handle to resolve pds or fallback to bsky login
-    authUrl = await oauthClient.authorize(handle ?? "https://bsky.social", {
+    authUrl = await oauthClient.authorize(handle ?? "https://npmx.social", {
       scope: SCOPE.join(" "),
       prompt,
     });
