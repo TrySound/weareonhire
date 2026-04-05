@@ -9,41 +9,46 @@
     getMemberRecommendations,
     createRecommendation as createRecommendationRaw,
   } from "$lib/recommendation.remote";
+  import { getMemberProfile } from "$lib/profile.remote";
 
   let { data } = $props();
 
+  const isOwnProfile = $derived(data.handle === data.profile.handle);
+
   // reset the form instantly hidden after submission
   const createRecommendation = $derived(
-    createRecommendationRaw.for(data.profileHandle),
+    createRecommendationRaw.for(data.profile.handle),
   );
 
-  // svelte-ignore state_referenced_locally
-  let resume = $state<Resume>(data.resume);
   let saveMessage = $state("");
+
+  // Load resume via remote query
+  const profile = $derived(getMemberProfile({ handle: data.profile.handle }));
 
   // Load recommendations via remote query
   const recommendations = $derived(
-    getMemberRecommendations({ handle: data.profileHandle }),
+    getMemberRecommendations({ handle: data.profile.handle }),
   );
 
   // Track which recommendation is currently targeted via URL hash
   let targetedId = $derived(page.url.hash.slice(1));
 
   async function handleSave() {
-    if (!data.isOwnProfile) return;
-
     saveMessage = "";
 
     try {
       const response = await fetch("/api/profile", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ resume }),
+        body: JSON.stringify({ resume: profile.current }),
       });
 
       if (!response.ok) {
         const error = await response.json();
         saveMessage = error.error || "Failed to save profile";
+      } else {
+        // Refresh the query to sync with server
+        profile.refresh();
       }
     } catch (e) {
       saveMessage = "Failed to save profile";
@@ -51,7 +56,10 @@
   }
 
   function handleResumeUpload(uploadedResume: Resume) {
-    resume = uploadedResume;
+    // Update local state with uploaded resume
+    profile.set(uploadedResume);
+
+    // Trigger save
     handleSave();
   }
 </script>
@@ -60,7 +68,7 @@
   <Topbar handle={data.handle} />
 
   <div class="actions">
-    {#if data.isOwnProfile}
+    {#if isOwnProfile}
       <button
         type="button"
         class="icon-button"
@@ -97,7 +105,15 @@
     </div>
   {/if}
 
-  <Editor bind:resume onSave={handleSave} readonly={!data.isOwnProfile} />
+  <div class="editor-container">
+    {#if profile.current}
+      <Editor
+        resume={profile.current}
+        onSave={handleSave}
+        readonly={!isOwnProfile}
+      />
+    {/if}
+  </div>
 
   <!-- Recommendations Section -->
   <section
@@ -107,7 +123,7 @@
     <h2 class="heading-2 subtle">Recommendations</h2>
 
     <!-- Write Recommendation Form -->
-    {#if !data.isOwnProfile && !recommendations.current?.isRecommendedByMe}
+    {#if !isOwnProfile && !recommendations.current?.isRecommendedByMe}
       <form {...createRecommendation} class="form-stack">
         <input
           {...createRecommendation.fields.handle.as("hidden", data.handle)}
@@ -167,13 +183,19 @@
 
 <UploadResumeDialog onUpload={handleResumeUpload} />
 
-<Print {resume} />
+{#if profile.current}
+  <Print resume={profile.current} />
+{/if}
 
 <style>
   .container {
     @media print {
       display: none;
     }
+  }
+
+  .editor-container {
+    min-height: 100dvh;
   }
 
   .save-message {
