@@ -40,7 +40,13 @@
 
   <div style="height: var(--space-4)"></div>
 
-  <Editor bind:resume onSave={() => saveToStorage(resume)} />
+  <Editor
+    {resume}
+    onSave={(updatedResume) => {
+      resume = updatedResume;
+      saveToStorage(updatedResume);
+    }}
+  />
 </div>
 
 <dialog id="app-autofill-dialog" closedby="any" class="dialog">

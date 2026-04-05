@@ -4,10 +4,20 @@
   import MultiSelectCombobox from "./multi-select-combobox.svelte";
 
   let {
-    resume = $bindable(),
+    resume,
     onSave,
     readonly = false,
-  }: { resume: Resume; onSave?: () => void; readonly?: boolean } = $props();
+  }: {
+    resume: Resume;
+    onSave?: (resume: Resume) => void;
+    readonly?: boolean;
+  } = $props();
+
+  // Local state for editing - only populated while editing
+  let editingResume = $state<Resume | null>(null);
+
+  // Computed resume to display (either editing copy or original)
+  const displayResume = $derived(editingResume ?? resume);
 
   // Track which section/card is being edited
   // Format: 'contact', 'summary', 'experience-0', 'education-2', 'skills'
@@ -46,7 +56,7 @@
   // Group skills by category for display
   const skillsByCategory = $derived(() => {
     const grouped: Record<string, string[]> = {};
-    const profileSkills = resume.skills ?? [];
+    const profileSkills = displayResume.skills ?? [];
     for (const [category, skills] of Object.entries(SKILLS_TAXONOMY)) {
       const matched = skills.filter((skill) =>
         profileSkills.some((s) => s.toLowerCase() === skill.toLowerCase()),
@@ -73,18 +83,33 @@
 
   function startEditing(section: string, index?: number) {
     if (readonly) return;
+    // Create editing copy when starting to edit
+    editingResume ??= structuredClone(resume);
     const targetId = index !== undefined ? `${section}-${index}` : section;
     editingId = targetId;
   }
 
   function stopEditing() {
+    if (editingResume) {
+      // Clean up empty strings to undefined for optional enum fields
+      for (const position of editingResume.positions) {
+        if ((position as any).workplaceType === "") {
+          position.workplaceType = undefined;
+        }
+        if ((position as any).employmentType === "") {
+          position.employmentType = undefined;
+        }
+      }
+      onSave?.(editingResume);
+    }
     editingId = null;
-    onSave?.();
+    editingResume = null;
   }
 
   function addExperience() {
     if (readonly) return;
-    resume.positions.unshift({
+    editingResume ??= structuredClone(resume);
+    editingResume.positions.unshift({
       title: "",
       company: "",
       location: "",
@@ -92,48 +117,53 @@
       endedAt: "",
     });
     // Start editing the new entry (index 0 after unshift)
-    startEditing("experience", 0);
+    editingId = "experience-0";
   }
 
   function removeExperience(index: number) {
     if (readonly) return;
-    resume.positions.splice(index, 1);
+    editingResume ??= structuredClone(resume);
+    editingResume.positions.splice(index, 1);
     // If we were editing this card, stop editing
     stopEditing();
   }
 
   function addEducation() {
     if (readonly) return;
-    resume.education.unshift({
+    editingResume ??= structuredClone(resume);
+    editingResume.education.unshift({
       institution: "",
       degree: "",
       field: "",
       startedAt: "",
       endedAt: "",
     });
-    startEditing("education", 0);
+    editingId = "education-0";
   }
 
   function removeEducation(index: number) {
     if (readonly) return;
-    resume.education.splice(index, 1);
+    editingResume ??= structuredClone(resume);
+    editingResume.education.splice(index, 1);
     stopEditing();
   }
 
   function addProject() {
     if (readonly) return;
-    resume.projects.unshift({
+    editingResume ??= structuredClone(resume);
+    editingResume.projects.unshift({
       name: "",
       description: "",
       startedAt: "",
       endedAt: "",
     });
-    startEditing("projects", 0);
+    editingId = "projects-0";
   }
 
   function removeProject(index: number) {
     if (readonly) return;
-    resume.projects.splice(index, 1);
+    editingResume ??= structuredClone(resume);
+    editingResume.projects.splice(index, 1);
     stopEditing();
   }
 
@@ -147,7 +177,7 @@
 
 <!-- Contacts and summary -->
 <section class="cv-section" aria-label="Contacts and summary">
-  {#if isEditing("contact")}
+  {#if isEditing("contact") && editingResume}
     <!-- Editor -->
 
     <div class="cv-row">
@@ -173,7 +203,7 @@
             <input
               type="text"
               id="contact-name"
-              bind:value={resume.profile.name}
+              bind:value={editingResume.profile.name}
               placeholder="John Doe"
               class="form-input"
             />
@@ -183,7 +213,7 @@
             <input
               type="text"
               id="contact-website"
-              bind:value={resume.profile.website}
+              bind:value={editingResume.profile.website}
               placeholder="https://johndoe.com"
               class="form-input"
             />
@@ -193,7 +223,7 @@
             <input
               type="text"
               id="contact-location"
-              bind:value={resume.profile.location}
+              bind:value={editingResume.profile.location}
               placeholder="San Francisco, CA"
               class="form-input"
             />
@@ -203,7 +233,7 @@
             <input
               type="email"
               id="contact-email"
-              bind:value={resume.profile.email}
+              bind:value={editingResume.profile.email}
               placeholder="john@example.com"
               class="form-input"
             />
@@ -213,7 +243,7 @@
             <input
               type="text"
               id="contact-linkedin"
-              bind:value={resume.profile.linkedin}
+              bind:value={editingResume.profile.linkedin}
               placeholder="linkedin.com/in/johndoe"
               class="form-input"
             />
@@ -223,7 +253,7 @@
             <input
               type="text"
               id="contact-github"
-              bind:value={resume.profile.github}
+              bind:value={editingResume.profile.github}
               placeholder="github.com/johndoe"
               class="form-input"
             />
@@ -233,7 +263,7 @@
             <input
               type="text"
               id="contact-headline"
-              bind:value={resume.profile.headline}
+              bind:value={editingResume.profile.headline}
               placeholder="Senior Software Engineer at TechCorp"
               class="form-input"
             />
@@ -243,7 +273,7 @@
             <input
               type="text"
               id="contact-industry"
-              bind:value={resume.profile.industry}
+              bind:value={editingResume.profile.industry}
               placeholder="Software Development"
               class="form-input"
             />
@@ -253,7 +283,7 @@
           <label for="contact-summary" class="form-label">Bio / Summary</label>
           <textarea
             id="contact-summary"
-            bind:value={resume.profile.summary}
+            bind:value={editingResume.profile.summary}
             rows="4"
             placeholder="Brief professional summary..."
             class="form-input"
@@ -268,7 +298,9 @@
       <div><!-- skip column --></div>
       <div class="cv-row-heading">
         <div>
-          <h2 class="heading-1 subtle">{resume.profile.name || "Your Name"}</h2>
+          <h2 class="heading-1 subtle">
+            {displayResume.profile.name || "Your Name"}
+          </h2>
         </div>
         {#if !readonly}
           <button
@@ -285,21 +317,21 @@
     </div>
     <div class="cv-row">
       <div class="cv-row-side subtle">
-        {#if resume.profile.location}
+        {#if displayResume.profile.location}
           <div>
-            {resume.profile.location}
+            {displayResume.profile.location}
             <svg width="14" height="14"><use href="#icon-location" /></svg>
           </div>
         {/if}
-        {#if resume.profile.email}
-          <a href="mailto:{resume.profile.email}" class="link">
+        {#if displayResume.profile.email}
+          <a href="mailto:{displayResume.profile.email}" class="link">
             Email
             <svg width="14" height="14"><use href="#icon-email" /></svg>
           </a>
         {/if}
-        {#if resume.profile.linkedin}
+        {#if displayResume.profile.linkedin}
           <a
-            href={normalizeUrl(resume.profile.linkedin)}
+            href={normalizeUrl(displayResume.profile.linkedin)}
             target="_blank"
             class="link"
           >
@@ -307,9 +339,9 @@
             <svg width="14" height="14"><use href="#icon-linkedin" /></svg>
           </a>
         {/if}
-        {#if resume.profile.github}
+        {#if displayResume.profile.github}
           <a
-            href={normalizeUrl(resume.profile.github)}
+            href={normalizeUrl(displayResume.profile.github)}
             target="_blank"
             class="link"
           >
@@ -317,9 +349,9 @@
             <svg width="14" height="14"><use href="#icon-github" /></svg>
           </a>
         {/if}
-        {#if resume.profile.website}
+        {#if displayResume.profile.website}
           <a
-            href={normalizeUrl(resume.profile.website)}
+            href={normalizeUrl(displayResume.profile.website)}
             target="_blank"
             class="link"
           >
@@ -329,8 +361,8 @@
         {/if}
       </div>
       <div class="cv-row-main">
-        {#if resume.profile.summary}
-          <p>{resume.profile.summary}</p>
+        {#if displayResume.profile.summary}
+          <p>{displayResume.profile.summary}</p>
         {:else}
           <p class="subtle">
             Add a professional summary to describe your background and
@@ -362,8 +394,8 @@
     </heading>
   </div>
 
-  {#each resume.positions as job, index}
-    {#if isEditing("experience", index)}
+  {#each displayResume.positions as job, index}
+    {#if isEditing("experience", index) && editingResume}
       <!-- Editor -->
 
       <div class="cv-row">
@@ -391,7 +423,7 @@
               <input
                 type="text"
                 id="job-start-{index}"
-                bind:value={job.startedAt}
+                bind:value={editingResume.positions[index].startedAt}
                 placeholder="Jan 2020"
                 class="form-input"
               />
@@ -401,7 +433,7 @@
               <input
                 type="text"
                 id="job-end-{index}"
-                bind:value={job.endedAt}
+                bind:value={editingResume.positions[index].endedAt}
                 placeholder="Present"
                 class="form-input"
               />
@@ -413,7 +445,7 @@
               <input
                 type="text"
                 id="job-title-{index}"
-                bind:value={job.title}
+                bind:value={editingResume.positions[index].title}
                 placeholder="Software Engineer"
                 class="form-input"
               />
@@ -423,7 +455,7 @@
               <input
                 type="text"
                 id="company-{index}"
-                bind:value={job.company}
+                bind:value={editingResume.positions[index].company}
                 placeholder="TechCorp Inc."
                 class="form-input"
               />
@@ -435,7 +467,7 @@
               <input
                 type="text"
                 id="job-location-{index}"
-                bind:value={job.location}
+                bind:value={editingResume.positions[index].location}
                 placeholder="San Francisco, CA (or Remote)"
                 class="form-input"
               />
@@ -446,7 +478,7 @@
               </label>
               <select
                 id="job-workplace-type-{index}"
-                bind:value={job.workplaceType}
+                bind:value={editingResume.positions[index].workplaceType}
                 class="form-input"
               >
                 <option value="">Select...</option>
@@ -461,7 +493,7 @@
               </label>
               <select
                 id="job-employment-type-{index}"
-                bind:value={job.employmentType}
+                bind:value={editingResume.positions[index].employmentType}
                 class="form-input"
               >
                 <option value="">Select...</option>
@@ -477,7 +509,7 @@
             <label for="job-desc-{index}" class="form-label">Description</label>
             <textarea
               id="job-desc-{index}"
-              bind:value={job.description}
+              bind:value={editingResume.positions[index].description}
               rows="6"
               placeholder="Describe your role, responsibilities, and achievements..."
               class="form-input"
@@ -566,8 +598,8 @@
     </heading>
   </div>
 
-  {#each resume.education as edu, index}
-    {#if isEditing("education", index)}
+  {#each displayResume.education as edu, index}
+    {#if isEditing("education", index) && editingResume}
       <!-- Editor -->
 
       <div class="cv-row">
@@ -595,7 +627,7 @@
               <input
                 type="text"
                 id="edu-start-{index}"
-                bind:value={edu.startedAt}
+                bind:value={editingResume.education[index].startedAt}
                 placeholder="Sep 2016"
                 class="form-input"
               />
@@ -605,7 +637,7 @@
               <input
                 type="text"
                 id="edu-end-{index}"
-                bind:value={edu.endedAt}
+                bind:value={editingResume.education[index].endedAt}
                 placeholder="May 2020"
                 class="form-input"
               />
@@ -617,7 +649,7 @@
               <input
                 type="text"
                 id="edu-institution-{index}"
-                bind:value={edu.institution}
+                bind:value={editingResume.education[index].institution}
                 placeholder="University of Example"
                 class="form-input"
               />
@@ -627,7 +659,7 @@
               <input
                 type="text"
                 id="edu-degree-{index}"
-                bind:value={edu.degree}
+                bind:value={editingResume.education[index].degree}
                 placeholder="Bachelor of Science"
                 class="form-input"
               />
@@ -639,7 +671,7 @@
               <input
                 type="text"
                 id="edu-field-{index}"
-                bind:value={edu.field}
+                bind:value={editingResume.education[index].field}
                 placeholder="Computer Science"
                 class="form-input"
               />
@@ -649,7 +681,7 @@
             <label for="edu-desc-{index}" class="form-label">Description</label>
             <textarea
               id="edu-desc-{index}"
-              bind:value={edu.description}
+              bind:value={editingResume.education[index].description}
               rows="4"
               placeholder="Honors, awards, achievements, relevant coursework..."
               class="form-input"
@@ -732,8 +764,8 @@
     </header>
   </div>
 
-  {#each resume.projects as project, index}
-    {#if isEditing("projects", index)}
+  {#each displayResume.projects as project, index}
+    {#if isEditing("projects", index) && editingResume}
       <!-- Editor -->
 
       <div class="cv-row">
@@ -761,7 +793,7 @@
               <input
                 type="text"
                 id="project-start-{index}"
-                bind:value={project.startedAt}
+                bind:value={editingResume.projects[index].startedAt}
                 placeholder="Jan 2023"
                 class="form-input"
               />
@@ -773,7 +805,7 @@
               <input
                 type="text"
                 id="project-end-{index}"
-                bind:value={project.endedAt}
+                bind:value={editingResume.projects[index].endedAt}
                 placeholder="Present"
                 class="form-input"
               />
@@ -785,7 +817,7 @@
               <input
                 type="text"
                 id="project-name-{index}"
-                bind:value={project.name}
+                bind:value={editingResume.projects[index].name}
                 placeholder="E-commerce Platform"
                 class="form-input"
               />
@@ -797,7 +829,7 @@
               <input
                 type="url"
                 id="project-url-{index}"
-                bind:value={project.url}
+                bind:value={editingResume.projects[index].url}
                 placeholder="https://github.com/username/project"
                 class="form-input"
               />
@@ -809,7 +841,7 @@
             </label>
             <textarea
               id="project-desc-{index}"
-              bind:value={project.description}
+              bind:value={editingResume.projects[index].description}
               rows="3"
               placeholder="Brief description of the project..."
               class="form-input"
@@ -902,19 +934,19 @@
     </header>
   </div>
 
-  {#if isEditing("skills")}
+  {#if isEditing("skills") && editingResume}
     <div class="cv-row">
       <div><!-- skip column --></div>
       <div class="cv-row-main">
         <MultiSelectCombobox
           options={allSkills}
-          bind:selected={resume.skills}
+          bind:selected={editingResume.skills}
           placeholder="e.g., TypeScript"
           id="skills-combobox"
         />
       </div>
     </div>
-  {:else if resume.skills.length > 0}
+  {:else if displayResume.skills.length > 0}
     <div>
       {#each Object.entries(skillsByCategory()) as [category, skills]}
         <div class="cv-row">
@@ -965,23 +997,23 @@
     </header>
   </div>
 
-  {#if isEditing("workplace")}
+  {#if isEditing("workplace") && editingResume}
     <div class="cv-row">
       <div><!-- skip column --></div>
       <div class="cv-row-main">
         <MultiSelectCombobox
           id="workplace-combobox"
           options={workplaceOptions}
-          bind:selected={resume.preferredWorkplace}
+          bind:selected={editingResume.preferredWorkplace}
           placeholder="Select workplace preferences"
         />
       </div>
     </div>
-  {:else if resume.preferredWorkplace.length > 0}
+  {:else if displayResume.preferredWorkplace.length > 0}
     <div class="cv-row">
       <span><!-- skip column --></span>
       <span class="cv-row-main">
-        {resume.preferredWorkplace.join(", ")}
+        {displayResume.preferredWorkplace.join(", ")}
       </span>
     </div>
   {:else}
@@ -1026,23 +1058,23 @@
     </header>
   </div>
 
-  {#if isEditing("languages")}
+  {#if isEditing("languages") && editingResume}
     <div class="cv-row">
       <div><!-- skip column --></div>
       <div class="cv-row-main">
         <MultiSelectCombobox
           id="languages-combobox"
           options={languageOptions}
-          bind:selected={resume.languages}
+          bind:selected={editingResume.languages}
           placeholder="Select or add languages"
         />
       </div>
     </div>
-  {:else if resume.languages.length > 0}
+  {:else if displayResume.languages.length > 0}
     <div class="cv-row">
       <span><!-- skip column --></span>
       <span class="cv-row-main">
-        {resume.languages.join(", ")}
+        {displayResume.languages.join(", ")}
       </span>
     </div>
   {:else}

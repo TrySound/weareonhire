@@ -9,7 +9,7 @@
     getMemberRecommendations,
     createRecommendation as createRecommendationRaw,
   } from "$lib/recommendation.remote";
-  import { getMemberProfile } from "$lib/profile.remote";
+  import { getMemberProfile, updateMemberProfile } from "$lib/profile.remote";
 
   let { data } = $props();
 
@@ -20,8 +20,6 @@
     createRecommendationRaw.for(data.profile.handle),
   );
 
-  let saveMessage = $state("");
-
   // Load resume via remote query
   const profile = $derived(getMemberProfile({ handle: data.profile.handle }));
 
@@ -31,36 +29,19 @@
   );
 
   // Track which recommendation is currently targeted via URL hash
-  let targetedId = $derived(page.url.hash.slice(1));
+  const targetedId = $derived(page.url.hash.slice(1));
 
-  async function handleSave() {
+  let saveMessage = $state("");
+
+  async function handleSave(resume: Resume) {
     saveMessage = "";
 
     try {
-      const response = await fetch("/api/profile", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ resume: profile.current }),
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        saveMessage = error.error || "Failed to save profile";
-      } else {
-        // Refresh the query to sync with server
-        profile.refresh();
-      }
-    } catch (e) {
-      saveMessage = "Failed to save profile";
+      await updateMemberProfile(resume);
+      // Query will be refreshed automatically by the command
+    } catch (e: any) {
+      saveMessage = e.message || "Failed to save profile";
     }
-  }
-
-  function handleResumeUpload(uploadedResume: Resume) {
-    // Update local state with uploaded resume
-    profile.set(uploadedResume);
-
-    // Trigger save
-    handleSave();
   }
 </script>
 
@@ -181,7 +162,7 @@
   </section>
 </div>
 
-<UploadResumeDialog onUpload={handleResumeUpload} />
+<UploadResumeDialog onUpload={handleSave} />
 
 {#if profile.current}
   <Print resume={profile.current} />

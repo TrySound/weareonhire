@@ -2,10 +2,11 @@
   import Topbar from "$lib/topbar.svelte";
   import UploadResumeDialog from "$lib/upload-resume-dialog.svelte";
   import type { Resume } from "$lib/resume-schema";
+  import { updateMemberProfile } from "$lib/profile.remote";
   import { createRecommendation as createRecommendationRaw } from "$lib/recommendation.remote";
   import { getChecks } from "./checks.remote";
 
-  let { data } = $props();
+  const { data } = $props();
 
   const checks = getChecks();
 
@@ -16,25 +17,17 @@
   let recommendationDialog: undefined | HTMLDialogElement;
 
   // Track completion status
-  // svelte-ignore state_referenced_locally
-  let hasResume = $state(checks.current?.hasResume ?? false);
-  let hasRecommendedBack = $derived(
+  const hasResume = $derived(checks.current?.hasResume ?? false);
+  const hasRecommendedBack = $derived(
     checks.current?.hasRecommendedBack ?? false,
   );
-  let hasInvited = $derived(checks.current?.hasInvited ?? false);
+  const hasInvited = $derived(checks.current?.hasInvited ?? false);
 
   async function handleResumeUpload(resume: Resume) {
     // Save the resume to the profile
     try {
-      const response = await fetch("/api/profile", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ resume }),
-      });
-
-      if (response.ok) {
-        hasResume = true;
-      }
+      await updateMemberProfile(resume);
+      await checks.refresh();
     } catch (e) {
       console.error("Failed to save profile:", e);
     }
@@ -152,7 +145,6 @@
   </main>
 </div>
 
-<!-- Upload Resume Dialog -->
 <UploadResumeDialog onUpload={handleResumeUpload} />
 
 <!-- Recommendation Dialog -->
