@@ -35,7 +35,8 @@
 
   async function handleSave(resume: Resume) {
     saveMessage = "";
-
+    // optimistically update resume before mutation
+    profile.set(resume);
     try {
       await updateMemberProfile(resume);
       // Query will be refreshed automatically by the command
