@@ -156,6 +156,7 @@
         event.key === " "
       ) {
         event.preventDefault();
+        inputValue = value;
         isOpen = true;
         scrollMatchingYearIntoView("instant");
         return;
@@ -209,6 +210,9 @@
     // Small delay to allow click on dropdown items to fire first
     blurTimeout = setTimeout(() => {
       if (isOpen) {
+        if (isValidDate(inputValue)) {
+          value = inputValue;
+        }
         resetPicker();
       }
     }, 150);
@@ -217,6 +221,9 @@
   function handleClickOutside(event: MouseEvent) {
     const target = event.target as HTMLElement;
     if (!target.closest(`.date-combobox-${id}`)) {
+      if (isValidDate(inputValue)) {
+        value = inputValue;
+      }
       resetPicker();
     }
   }

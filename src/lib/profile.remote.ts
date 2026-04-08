@@ -46,16 +46,22 @@ export const getMemberProfile = query(
         .selectFrom("member_positions")
         .selectAll()
         .where("did", "=", targetMember.did)
+        .orderBy("started_at", "desc")
+        .orderBy("ended_at", "desc")
         .execute(),
       db
         .selectFrom("member_education")
         .selectAll()
         .where("did", "=", targetMember.did)
+        .orderBy("started_at", "desc")
+        .orderBy("ended_at", "desc")
         .execute(),
       db
         .selectFrom("member_projects")
         .selectAll()
         .where("did", "=", targetMember.did)
+        .orderBy("started_at", "desc")
+        .orderBy("ended_at", "desc")
         .execute(),
       db
         .selectFrom("member_skills")

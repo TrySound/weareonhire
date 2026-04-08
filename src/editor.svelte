@@ -17,8 +17,28 @@
   // Local state for editing - only populated while editing
   let editingResume = $state<Resume | null>(null);
 
-  // Computed resume to display (either editing copy or original)
   const displayResume = $derived(editingResume ?? resume);
+
+  function sortByDate<T extends { startedAt?: string; endedAt?: string }>(
+    items: T[] | undefined,
+  ): T[] {
+    if (!items) return [];
+    return [...items].sort((a, b) => {
+      // Primary: started_at descending (ISO strings compare correctly)
+      if (a.startedAt !== b.startedAt) {
+        return (b.startedAt ?? "") > (a.startedAt ?? "") ? 1 : -1;
+      }
+      // Secondary: ended_at descending, null = present/current (treated as latest)
+      const aEnd = a.endedAt ?? "9999-12-31"; // Far future date for current items
+      const bEnd = b.endedAt ?? "9999-12-31";
+      return bEnd > aEnd ? 1 : -1;
+    });
+  }
+
+  // Sorted arrays for display
+  const positions = $derived(sortByDate(displayResume.positions));
+  const education = $derived(sortByDate(displayResume.education));
+  const projects = $derived(sortByDate(displayResume.projects));
 
   // Track which section/card is being edited
   // Format: 'contact', 'summary', 'experience-0', 'education-2', 'skills'
@@ -430,7 +450,7 @@
     </heading>
   </div>
 
-  {#each displayResume.positions as job, index}
+  {#each positions as job, index}
     {#if isEditing("experience", index) && editingResume}
       <!-- Editor -->
 
@@ -630,7 +650,7 @@
     </heading>
   </div>
 
-  {#each displayResume.education as edu, index}
+  {#each education as edu, index}
     {#if isEditing("education", index) && editingResume}
       <!-- Editor -->
 
@@ -792,7 +812,7 @@
     </header>
   </div>
 
-  {#each displayResume.projects as project, index}
+  {#each projects as project, index}
     {#if isEditing("projects", index) && editingResume}
       <!-- Editor -->
 
