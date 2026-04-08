@@ -29,11 +29,18 @@ export const WorkplaceTypeSchema = v.union([
 
 export type WorkplaceType = v.InferOutput<typeof WorkplaceTypeSchema>;
 
+export const JsonResumeProfileSchema = v.object({
+  network: v.optional(v.string()),
+  username: v.optional(v.string()),
+  url: v.string(),
+});
+
+export type JsonResumeProfile = v.InferOutput<typeof JsonResumeProfileSchema>;
+
 export const ProfileSchema = v.object({
   name: v.string(),
   email: v.optional(v.string()),
-  linkedin: v.optional(v.string()),
-  github: v.optional(v.string()),
+  profiles: v.optional(v.array(JsonResumeProfileSchema)),
   website: v.optional(v.string()),
   location: v.optional(v.string()),
   headline: v.optional(v.string()),
@@ -114,7 +121,10 @@ EXAMPLE VALID OUTPUT:
   "profile": {
     "name": "John Doe",
     "email": "john@example.com",
-    "linkedin": "https://linkedin.com/in/johndoe"
+    "profiles": [
+      { "url": "https://linkedin.com/in/johndoe" },
+      { "url": "https://github.com/johndoe" }
+    ]
   },
   "positions": [
     {
@@ -225,11 +235,14 @@ export const parsePdf = async ({
   db: Kysely<DatabaseSchema>;
   GEMINI_API_KEY: undefined | string;
 }) => {
+  let jobId: string | null = null;
+
   try {
-    const { jobId, pdfBase64 } = (await request.json()) as {
+    const { jobId: extractedJobId, pdfBase64 } = (await request.json()) as {
       jobId: string;
       pdfBase64: string;
     };
+    jobId = extractedJobId;
 
     if (!jobId || !pdfBase64) {
       console.error(
@@ -329,22 +342,17 @@ export const parsePdf = async ({
       error instanceof Error ? error.message : "Unknown error";
     console.error("Background function error:", errorMessage);
 
-    // Try to update job status if we have a jobId
-    try {
-      const { jobId } = (await request.json()) as { jobId: string };
-      if (jobId) {
-        await db
-          .updateTable("pdf_jobs")
-          .set({
-            status: "failed",
-            error: errorMessage,
-            updated_at: new Date().toISOString(),
-          })
-          .where("id", "=", jobId)
-          .execute();
-      }
-    } catch {
-      // Ignore errors in error handling
+    // Update job status if we have a jobId
+    if (jobId) {
+      await db
+        .updateTable("pdf_jobs")
+        .set({
+          status: "failed",
+          error: errorMessage,
+          updated_at: new Date().toISOString(),
+        })
+        .where("id", "=", jobId)
+        .execute();
     }
 
     // Return error to trigger Netlify retry
