@@ -2,8 +2,8 @@ import * as v from "valibot";
 import { error } from "@sveltejs/kit";
 import { query, command, getRequestEvent } from "$app/server";
 import { getDB } from "./db";
-import { ResumeSchema, type Resume } from "./resume-schema";
-import type { EmploymentType, WorkplaceType } from "./jsonresume";
+import { ResumeSchema } from "./resume-schema";
+import { loadResume } from "./resume.server";
 
 const normalizeUrl = (url: string) => {
   if (url.startsWith("https://")) {
@@ -20,119 +20,12 @@ export const getMemberProfile = query(
       error(401);
     }
 
-    const db = await getDB();
-
-    // Get target member
-    const targetMember = await db
-      .selectFrom("members")
-      .selectAll()
-      .where("handle", "=", handle)
-      .executeTakeFirst();
-    if (!targetMember) {
+    const resume = await loadResume(handle);
+    if (!resume) {
       error(404, "Member not found");
     }
 
-    // Load all related data
-    const [
-      positions,
-      education,
-      projects,
-      skills,
-      languages,
-      workplaces,
-      profiles,
-    ] = await Promise.all([
-      db
-        .selectFrom("member_positions")
-        .selectAll()
-        .where("did", "=", targetMember.did)
-        .orderBy("started_at", "desc")
-        .orderBy("ended_at", "desc")
-        .execute(),
-      db
-        .selectFrom("member_education")
-        .selectAll()
-        .where("did", "=", targetMember.did)
-        .orderBy("started_at", "desc")
-        .orderBy("ended_at", "desc")
-        .execute(),
-      db
-        .selectFrom("member_projects")
-        .selectAll()
-        .where("did", "=", targetMember.did)
-        .orderBy("started_at", "desc")
-        .orderBy("ended_at", "desc")
-        .execute(),
-      db
-        .selectFrom("member_skills")
-        .select("skill")
-        .where("did", "=", targetMember.did)
-        .execute(),
-      db
-        .selectFrom("member_languages")
-        .select("language")
-        .where("did", "=", targetMember.did)
-        .execute(),
-      db
-        .selectFrom("member_preferred_workplaces")
-        .select("workplace_type")
-        .where("did", "=", targetMember.did)
-        .execute(),
-      db
-        .selectFrom("member_profiles")
-        .select("url")
-        .where("did", "=", targetMember.did)
-        .execute(),
-    ]);
-
-    const profile: Resume = {
-      profile: {
-        name: targetMember.name ?? "",
-        email: targetMember.email ?? undefined,
-        location: targetMember.location ?? undefined,
-        headline: targetMember.headline ?? undefined,
-        summary: targetMember.summary ?? undefined,
-        industry: targetMember.industry ?? undefined,
-        profiles: profiles.map((p) => ({ url: p.url })),
-        website: targetMember.website ?? undefined,
-      },
-      positions: positions.map((p) => ({
-        company: p.company,
-        title: p.title,
-        location: p.location ?? undefined,
-        workplaceType: (p.workplace_type ?? undefined) as
-          | WorkplaceType
-          | undefined,
-        employmentType: (p.employment_type ?? undefined) as
-          | EmploymentType
-          | undefined,
-        description: p.description ?? undefined,
-        startedAt: p.started_at ?? undefined,
-        endedAt: p.ended_at ?? undefined,
-      })),
-      education: education.map((e) => ({
-        institution: e.institution,
-        degree: e.degree,
-        field: e.field ?? undefined,
-        description: e.description ?? undefined,
-        startedAt: e.started_at ?? undefined,
-        endedAt: e.ended_at ?? undefined,
-      })),
-      projects: projects.map((p) => ({
-        name: p.name,
-        description: p.description ?? undefined,
-        url: p.url ?? undefined,
-        startedAt: p.started_at ?? undefined,
-        endedAt: p.ended_at ?? undefined,
-      })),
-      preferredWorkplace: workplaces.map(
-        (w) => w.workplace_type as WorkplaceType,
-      ),
-      skills: skills.map((s) => s.skill),
-      languages: languages.map((l) => l.language),
-    };
-
-    return profile;
+    return resume;
   },
 );
 
@@ -174,7 +67,7 @@ export const updateMemberProfile = command(ResumeSchema, async (resume) => {
       .execute();
     await trx.deleteFrom("member_profiles").where("did", "=", did).execute();
 
-    if (resume.positions?.length > 0) {
+    if (resume.positions.length > 0) {
       await trx
         .insertInto("member_positions")
         .values(
@@ -193,7 +86,7 @@ export const updateMemberProfile = command(ResumeSchema, async (resume) => {
         .execute();
     }
 
-    if (resume.education?.length > 0) {
+    if (resume.education.length > 0) {
       await trx
         .insertInto("member_education")
         .values(
@@ -210,7 +103,7 @@ export const updateMemberProfile = command(ResumeSchema, async (resume) => {
         .execute();
     }
 
-    if (resume.projects?.length > 0) {
+    if (resume.projects.length > 0) {
       await trx
         .insertInto("member_projects")
         .values(
@@ -226,7 +119,7 @@ export const updateMemberProfile = command(ResumeSchema, async (resume) => {
         .execute();
     }
 
-    if (resume.skills?.length > 0) {
+    if (resume.skills.length > 0) {
       await trx
         .insertInto("member_skills")
         .values(
@@ -238,7 +131,7 @@ export const updateMemberProfile = command(ResumeSchema, async (resume) => {
         .execute();
     }
 
-    if (resume.languages?.length > 0) {
+    if (resume.languages.length > 0) {
       await trx
         .insertInto("member_languages")
         .values(
@@ -250,7 +143,7 @@ export const updateMemberProfile = command(ResumeSchema, async (resume) => {
         .execute();
     }
 
-    if (resume.preferredWorkplace?.length > 0) {
+    if (resume.preferredWorkplace.length > 0) {
       await trx
         .insertInto("member_preferred_workplaces")
         .values(

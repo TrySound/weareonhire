@@ -1,6 +1,10 @@
 <script lang="ts">
   import { page } from "$app/state";
-  import type { Resume } from "$lib/resume-schema";
+  import {
+    fromInternalResume,
+    toInternalResume,
+    type Resume,
+  } from "$lib/resume-schema";
   import Topbar from "$lib/topbar.svelte";
   import UploadResumeDialog from "$lib/upload-resume-dialog.svelte";
   import Editor from "../../../editor.svelte";
@@ -22,6 +26,9 @@
 
   // Load resume via remote query
   const profile = $derived(getMemberProfile({ handle: data.profile.handle }));
+  const legacyProfile = $derived(
+    profile.current ? toInternalResume(profile.current) : undefined,
+  );
 
   // Load recommendations via remote query
   const recommendations = $derived(
@@ -36,7 +43,7 @@
   async function handleSave(resume: Resume) {
     saveMessage = "";
     // optimistically update resume before mutation
-    profile.set(resume);
+    profile.set(fromInternalResume(resume));
     try {
       await updateMemberProfile(resume);
       // Query will be refreshed automatically by the command
@@ -88,9 +95,9 @@
   {/if}
 
   <div class="editor-container">
-    {#if profile.current}
+    {#if legacyProfile}
       <Editor
-        resume={profile.current}
+        resume={legacyProfile}
         onSave={handleSave}
         readonly={!isOwnProfile}
       />
@@ -168,8 +175,8 @@
 
 <UploadResumeDialog onUpload={handleSave} />
 
-{#if profile.current}
-  <Print resume={profile.current} />
+{#if legacyProfile}
+  <Print resume={legacyProfile} />
 {/if}
 
 <style>
