@@ -1,7 +1,7 @@
 <script lang="ts">
   import Topbar from "$lib/topbar.svelte";
   import UploadResumeDialog from "$lib/upload-resume-dialog.svelte";
-  import type { Resume } from "$lib/resume-schema";
+  import type { Resume } from "$lib/jsonresume";
   import { updateMemberProfile } from "$lib/profile.remote";
   import { createRecommendation as createRecommendationRaw } from "$lib/recommendation.remote";
   import { getChecks } from "./checks.remote";

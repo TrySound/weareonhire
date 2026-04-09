@@ -1,10 +1,7 @@
 <script lang="ts">
   import { page } from "$app/state";
-  import {
-    fromInternalResume,
-    toInternalResume,
-    type Resume,
-  } from "$lib/resume-schema";
+  import { fromInternalResume, toInternalResume } from "$lib/resume-schema";
+  import type { Resume } from "$lib/jsonresume";
   import Topbar from "$lib/topbar.svelte";
   import UploadResumeDialog from "$lib/upload-resume-dialog.svelte";
   import Editor from "../../../editor.svelte";
@@ -43,7 +40,7 @@
   async function handleSave(resume: Resume) {
     saveMessage = "";
     // optimistically update resume before mutation
-    profile.set(fromInternalResume(resume));
+    profile.set(resume);
     try {
       await updateMemberProfile(resume);
       // Query will be refreshed automatically by the command
@@ -98,7 +95,7 @@
     {#if legacyProfile}
       <Editor
         resume={legacyProfile}
-        onSave={handleSave}
+        onSave={(resume) => handleSave(fromInternalResume(resume))}
         readonly={!isOwnProfile}
       />
     {/if}

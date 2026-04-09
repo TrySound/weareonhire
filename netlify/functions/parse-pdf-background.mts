@@ -2,144 +2,183 @@ import * as v from "valibot";
 import { GoogleGenAI } from "@google/genai";
 import { Kysely, PostgresDialect } from "kysely";
 import { Pool } from "pg";
-import { type Resume, ResumeSchema } from "../../src/lib/resume-schema";
+import { type Resume, ResumeSchema } from "../../src/lib/jsonresume";
 import type { DatabaseSchema } from "../../src/lib/db";
 
 let ai: undefined | GoogleGenAI;
 
-const SYSTEM_PROMPT = `You are a resume parser. Extract structured information from the provided PDF resume and return JSON matching these TypeScript interfaces:
+const SYSTEM_PROMPT = `You are a resume parser. Extract structured information from the provided PDF resume and return JSON matching the JSON Resume schema (https://jsonresume.org).
 
-import * as v from "valibot";
+TypeScript interfaces:
 
-export const EmploymentTypeSchema = v.union([
-  v.literal("fulltime"),
-  v.literal("parttime"),
-  v.literal("contract"),
-  v.literal("freelance"),
-  v.literal("internship"),
-]);
+export type ISO8601 = string; // YYYY or YYYY-MM or YYYY-MM-DD
 
-export type EmploymentType = v.InferOutput<typeof EmploymentTypeSchema>;
+export type EmploymentType = "fulltime" | "parttime" | "contract" | "freelance" | "internship";
 
-export const WorkplaceTypeSchema = v.union([
-  v.literal("onsite"),
-  v.literal("remote"),
-  v.literal("hybrid"),
-]);
+export type WorkplaceType = "onsite" | "remote" | "hybrid";
 
-export type WorkplaceType = v.InferOutput<typeof WorkplaceTypeSchema>;
+export interface Profile {
+  network?: string;
+  username?: string;
+  url: string;
+}
 
-export const JsonResumeProfileSchema = v.object({
-  network: v.optional(v.string()),
-  username: v.optional(v.string()),
-  url: v.string(),
-});
+export interface Location {
+  address?: string;
+  postalCode?: string;
+  city?: string;
+  countryCode?: string;
+  region?: string;
+}
 
-export type JsonResumeProfile = v.InferOutput<typeof JsonResumeProfileSchema>;
+export interface Basics {
+  name?: string;
+  label?: string; // headline
+  image?: string;
+  email?: string;
+  phone?: string;
+  url?: string; // website
+  summary?: string;
+  location?: Location;
+  profiles?: Profile[];
+}
 
-export const ProfileSchema = v.object({
-  name: v.string(),
-  email: v.optional(v.string()),
-  profiles: v.optional(v.array(JsonResumeProfileSchema)),
-  website: v.optional(v.string()),
-  location: v.optional(v.string()),
-  headline: v.optional(v.string()),
-  summary: v.optional(v.string()),
-  industry: v.optional(v.string()),
-});
+export interface Work {
+  name?: string; // company
+  location?: string;
+  description?: string;
+  position?: string; // title
+  url?: string;
+  startDate?: ISO8601;
+  endDate?: ISO8601;
+  summary?: string;
+  highlights?: string[];
+  extension?: {
+    employmentType?: EmploymentType;
+    workplaceType?: WorkplaceType;
+  };
+}
 
-export type Profile = v.InferOutput<typeof ProfileSchema>;
+export interface Education {
+  institution?: string;
+  url?: string;
+  area?: string; // field of study
+  studyType?: string; // degree
+  startDate?: ISO8601;
+  endDate?: ISO8601;
+  score?: string;
+  courses?: string[];
+  extension?: {
+    description?: string;
+  };
+}
 
-export const PositionSchema = v.object({
-  company: v.string(),
-  title: v.string(),
-  location: v.optional(v.string()),
-  workplaceType: v.optional(WorkplaceTypeSchema),
-  employmentType: v.optional(EmploymentTypeSchema),
-  description: v.optional(v.string()),
-  startedAt: v.optional(v.string()),
-  endedAt: v.optional(v.string()),
-});
+export interface Project {
+  name?: string;
+  description?: string;
+  highlights?: string[];
+  keywords?: string[];
+  startDate?: ISO8601;
+  endDate?: ISO8601;
+  url?: string;
+  roles?: string[];
+  entity?: string;
+  type?: string;
+}
 
-export type Position = v.InferOutput<typeof PositionSchema>;
+export interface Skill {
+  name?: string;
+  level?: string;
+  keywords?: string[];
+}
 
-export const EducationSchema = v.object({
-  institution: v.string(),
-  degree: v.string(),
-  field: v.optional(v.string()),
-  description: v.optional(v.string()),
-  startedAt: v.optional(v.string()),
-  endedAt: v.optional(v.string()),
-});
+export interface Language {
+  language?: string;
+  fluency?: string;
+}
 
-export type Education = v.InferOutput<typeof EducationSchema>;
-
-export const ProjectSchema = v.object({
-  name: v.string(),
-  description: v.optional(v.string()),
-  url: v.optional(v.string()),
-  startedAt: v.optional(v.string()),
-  endedAt: v.optional(v.string()),
-});
-
-export type Project = v.InferOutput<typeof ProjectSchema>;
-
-export const ResumeSchema = v.object({
-  profile: ProfileSchema,
-  positions: v.array(PositionSchema),
-  education: v.array(EducationSchema),
-  projects: v.array(ProjectSchema),
-  preferredWorkplace: v.array(WorkplaceTypeSchema),
-  skills: v.array(v.string()),
-  languages: v.array(v.string()),
-});
-
-export type Resume = v.InferOutput<typeof ResumeSchema>;
+export interface Resume {
+  $schema?: string;
+  basics?: Basics;
+  work?: Work[];
+  education?: Education[];
+  projects?: Project[];
+  skills?: Skill[];
+  languages?: Language[];
+  extension?: {
+    industry?: string;
+    preferredWorkplaces?: WorkplaceType[];
+  };
+  meta?: {
+    lastModified?: string;
+  };
+}
 
 CRITICAL RULES:
-1. Return ONLY valid JSON matching these TypeScript interfaces - no markdown, no code blocks
+1. Return ONLY valid JSON matching JSON Resume schema - no markdown, no code blocks
 2. Preserve formatting of paragraphs using newlines
 3. Preserve formatting of lists using "-"
-4. Fields marked with ? are optional - either include the value or OMIT the field entirely
-5. NEVER use null values - if data is missing, simply omit the field from the JSON
-6. NEVER include trailing commas in arrays or objects - this will break JSON parsing
-7. Use empty arrays [] for positions, education, projects, skills, languages if none found
-8. Use empty array [] for preferredWorkplace if not specified
-9. For current positions, omit endedAt field entirely (never set to null)
-10. Dates: Always use partial ISO8601 format WITHOUT the day component:
+4. Optional fields should be omitted entirely if data is missing - NEVER use null
+5. NEVER include trailing commas in arrays or objects
+6. Use empty arrays [] for work, education, projects, skills, languages if none found
+7. For current positions, omit endDate field entirely (never set to null)
+8. Dates: Always use partial ISO8601 format WITHOUT the day component:
     - YYYY format when only year is known (e.g., "2020")
     - YYYY-MM format when month is known (e.g., "2020-06")
     - IMPORTANT: If a resume shows a full date like "2020-01-15", trim the day and return "2020-01"
     - Never include the day component in date fields
-11. Ensure all quotes, brackets, and braces are properly closed
-12. Extract all available information from the resume
-13. Infer workplaceType and employmentType from job descriptions when possible
-14. headline is a short description like "Senior full-stack engineer". Can be extracted from summary.
+9. Ensure all quotes, brackets, and braces are properly closed
+10. Extract all available information from the resume
+11. Infer workplaceType and employmentType from job descriptions when possible
+12. label field in basics is for title like "Senior full-stack engineer"
+13. Use extension.preferredWorkplaces for workplace preferences (onsite/remote/hybrid)
+14. Use extension.industry for industry field
+15. Store work description as "description" string. Avoid using highlights array.
 
 EXAMPLE VALID OUTPUT:
 {
-  "profile": {
+  "basics": {
     "name": "John Doe",
+    "label": "Senior Software Engineer",
     "email": "john@example.com",
+    "url": "https://johndoe.com",
+    "summary": "Experienced software engineer with 5+ years...",
+    "location": {
+      "address": "Mountain View, CA"
+    },
     "profiles": [
-      { "url": "https://linkedin.com/in/johndoe" },
-      { "url": "https://github.com/johndoe" }
+      { "network": "LinkedIn", "url": "https://linkedin.com/in/johndoe" },
+      { "network": "GitHub", "url": "https://github.com/johndoe" }
     ]
   },
-  "positions": [
+  "work": [
     {
-      "company": "Google",
-      "title": "Software Engineer",
+      "name": "Google",
+      "position": "Software Engineer",
       "location": "Mountain View, CA",
-      "startedAt": "2020-01",
-      "endedAt": "2023-06"
+      "startDate": "2020-01",
+      "endDate": "2023-06",
+      "summary": "Developed scalable web applications",
+      "extension": {
+        "employmentType": "fulltime",
+        "workplaceType": "hybrid"
+      }
     }
   ],
   "education": [],
   "projects": [],
-  "preferredWorkplace": ["hybrid", "remote"],
-  "skills": ["TypeScript", "React", "Node.js"],
-  "languages": ["English"]
+  "skills": [
+    { "name": "TypeScript" },
+    { "name": "React" },
+    { "name": "Node.js" }
+  ],
+  "languages": [
+    { "language": "English" }
+  ],
+  "extension": {
+    "industry": "Technology",
+    "preferredWorkplaces": ["hybrid", "remote"]
+  }
 }
 
 Parse the attached PDF and return valid JSON only.`;
@@ -220,6 +259,7 @@ async function parseResumeFromPDF(
   }
 
   const result = v.safeParse(ResumeSchema, parsedData);
+  console.dir(result, { depth: null });
   if (result.success) {
     return { success: true, data: result.output };
   }

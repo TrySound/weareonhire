@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { Resume } from "$lib/resume-schema";
+  import type { Resume } from "$lib/jsonresume";
 
   let {
     onUpload,

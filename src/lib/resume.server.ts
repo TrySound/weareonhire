@@ -5,7 +5,10 @@ import type {
   Education,
   WorkplaceType,
   EmploymentType,
+  Profile,
 } from "./jsonresume";
+import type { Kysely } from "kysely";
+import type { DatabaseSchema } from "./db";
 
 export async function loadResume(handle: string): Promise<Resume | undefined> {
   const db = await getDB();
@@ -179,4 +182,165 @@ export async function loadResume(handle: string): Promise<Resume | undefined> {
   };
 
   return resume;
+}
+
+const normalizeUrl = (url: string) => {
+  if (url.startsWith("https://")) {
+    return url;
+  }
+  return `https://${url}`;
+};
+
+async function updateResumeData(
+  db: Kysely<DatabaseSchema>,
+  did: string,
+  resume: Resume,
+) {
+  // Update member profile
+  await db
+    .updateTable("members")
+    .set({
+      name: resume.basics?.name || null,
+      email: resume.basics?.email || null,
+      location: resume.basics?.location?.address || null,
+      headline: resume.basics?.label || null,
+      summary: resume.basics?.summary || null,
+      industry: resume.extension?.industry || null,
+      website: resume.basics?.url || null,
+      updated_at: new Date().toISOString(),
+    })
+    .where("did", "=", did)
+    .execute();
+
+  // Delete existing related records
+  await db.deleteFrom("member_positions").where("did", "=", did).execute();
+  await db.deleteFrom("member_education").where("did", "=", did).execute();
+  await db.deleteFrom("member_projects").where("did", "=", did).execute();
+  await db.deleteFrom("member_skills").where("did", "=", did).execute();
+  await db.deleteFrom("member_languages").where("did", "=", did).execute();
+  await db
+    .deleteFrom("member_preferred_workplaces")
+    .where("did", "=", did)
+    .execute();
+  await db.deleteFrom("member_profiles").where("did", "=", did).execute();
+
+  // Insert positions
+  if (resume.work && resume.work.length > 0) {
+    await db
+      .insertInto("member_positions")
+      .values(
+        resume.work.map((w) => ({
+          did,
+          company: w.name ?? "",
+          title: w.position ?? "",
+          location: w.location || null,
+          workplace_type: (w.extension?.workplaceType ||
+            null) as WorkplaceType | null,
+          employment_type: (w.extension?.employmentType ||
+            null) as EmploymentType | null,
+          started_at: w.startDate || null,
+          ended_at: w.endDate || null,
+          description: w.summary || null,
+        })),
+      )
+      .execute();
+  }
+
+  // Insert education
+  if (resume.education && resume.education.length > 0) {
+    await db
+      .insertInto("member_education")
+      .values(
+        resume.education.map((e) => ({
+          did,
+          institution: e.institution ?? "",
+          degree: e.studyType ?? "",
+          field: e.area || null,
+          started_at: e.startDate || null,
+          ended_at: e.endDate || null,
+          description: e.extension?.description || null,
+        })),
+      )
+      .execute();
+  }
+
+  // Insert projects
+  if (resume.projects && resume.projects.length > 0) {
+    await db
+      .insertInto("member_projects")
+      .values(
+        resume.projects.map((p) => ({
+          did,
+          name: p.name ?? "",
+          description: p.description || null,
+          url: p.url || null,
+          started_at: p.startDate || null,
+          ended_at: p.endDate || null,
+        })),
+      )
+      .execute();
+  }
+
+  // Insert skills
+  if (resume.skills && resume.skills.length > 0) {
+    await db
+      .insertInto("member_skills")
+      .values(
+        resume.skills.map((skill) => ({
+          did,
+          skill: skill.name?.trim().toLowerCase() ?? "",
+        })),
+      )
+      .execute();
+  }
+
+  // Insert languages
+  if (resume.languages && resume.languages.length > 0) {
+    await db
+      .insertInto("member_languages")
+      .values(
+        resume.languages.map((language) => ({
+          did,
+          language: language.language?.trim().toLowerCase() ?? "",
+        })),
+      )
+      .execute();
+  }
+
+  // Insert preferred workplaces
+  if (
+    resume.extension?.preferredWorkplaces &&
+    resume.extension.preferredWorkplaces.length > 0
+  ) {
+    await db
+      .insertInto("member_preferred_workplaces")
+      .values(
+        resume.extension.preferredWorkplaces.map((workplace_type) => ({
+          did,
+          workplace_type,
+        })),
+      )
+      .execute();
+  }
+
+  // Insert profiles
+  if (resume.basics?.profiles && resume.basics.profiles.length > 0) {
+    await db
+      .insertInto("member_profiles")
+      .values(
+        resume.basics.profiles.map((profile) => ({
+          did,
+          url: normalizeUrl(profile.url),
+        })),
+      )
+      .execute();
+  }
+}
+
+export async function updateResume(did: string, resume: Resume): Promise<void> {
+  const db = await getDB();
+
+  await db.transaction().execute(async (trx) => {
+    await updateResumeData(trx, did, resume);
+  });
 }
