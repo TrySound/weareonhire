@@ -1,6 +1,5 @@
 <script lang="ts">
   import { page } from "$app/state";
-  import { fromInternalResume, toInternalResume } from "$lib/resume-schema";
   import type { Resume } from "$lib/jsonresume";
   import Topbar from "$lib/topbar.svelte";
   import UploadResumeDialog from "$lib/upload-resume-dialog.svelte";
@@ -23,9 +22,6 @@
 
   // Load resume via remote query
   const profile = $derived(getMemberProfile({ handle: data.profile.handle }));
-  const legacyProfile = $derived(
-    profile.current ? toInternalResume(profile.current) : undefined,
-  );
 
   // Load recommendations via remote query
   const recommendations = $derived(
@@ -92,10 +88,10 @@
   {/if}
 
   <div class="editor-container">
-    {#if legacyProfile}
+    {#if profile.current}
       <Editor
-        resume={legacyProfile}
-        onSave={(resume) => handleSave(fromInternalResume(resume))}
+        resume={profile.current}
+        onSave={handleSave}
         readonly={!isOwnProfile}
       />
     {/if}

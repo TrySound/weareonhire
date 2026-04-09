@@ -47,7 +47,7 @@
       selected.length > 0 &&
       selected.some((s) => s.toLowerCase() === trimmed.toLowerCase());
     if (!exists) {
-      selected.push(trimmed);
+      selected = selected.concat([trimmed]);
     }
     inputValue = "";
     isOpen = false;
@@ -60,7 +60,7 @@
       (s) => s.toLowerCase() === option.toLowerCase(),
     );
     if (index !== -1) {
-      selected.splice(index, 1);
+      selected = selected.toSpliced(index, 1);
     }
   }
 
