@@ -94,6 +94,11 @@
         onSave={handleSave}
         readonly={!isOwnProfile}
       />
+    {:else}
+      <div class="spinner-container">
+        <div class="spinner"></div>
+        <span class="subtle">Loading profile...</span>
+      </div>
     {/if}
   </div>
 
