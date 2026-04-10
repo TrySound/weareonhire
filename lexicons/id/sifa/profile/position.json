@@ -53,7 +53,11 @@
           "workplaceType": {
             "type": "string",
             "description": "Workplace arrangement (on-site, remote, hybrid).",
-            "knownValues": ["id.sifa.defs#onSite", "id.sifa.defs#remote", "id.sifa.defs#hybrid"]
+            "knownValues": [
+              "id.sifa.defs#onSite",
+              "id.sifa.defs#remote",
+              "id.sifa.defs#hybrid"
+            ]
           },
           "location": {
             "type": "ref",
@@ -62,13 +66,11 @@
           },
           "startedAt": {
             "type": "string",
-            "format": "datetime",
-            "description": "Start date of the position. For month-precision imports, use first day of month at midnight UTC."
+            "description": "Start date of the position in YYYY-MM or YYYY-MM-DD format."
           },
           "endedAt": {
             "type": "string",
-            "format": "datetime",
-            "description": "End date of the position. Omit if this is a current position."
+            "description": "End date of the position in YYYY-MM or YYYY-MM-DD format. Omit if this is a current position."
           },
           "skills": {
             "type": "array",

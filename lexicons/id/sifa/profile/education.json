@@ -60,13 +60,11 @@
           },
           "startedAt": {
             "type": "string",
-            "format": "datetime",
-            "description": "Start date. For month-precision imports, use first day of month at midnight UTC."
+            "description": "Start date in YYYY-MM or YYYY-MM-DD format."
           },
           "endedAt": {
             "type": "string",
-            "format": "datetime",
-            "description": "End date (graduation or expected graduation). Omit if currently enrolled."
+            "description": "End date (graduation or expected graduation) in YYYY-MM or YYYY-MM-DD format. Omit if currently enrolled."
           },
           "labels": {
             "type": "union",

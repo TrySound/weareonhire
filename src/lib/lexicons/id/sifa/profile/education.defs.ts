@@ -55,14 +55,14 @@ type Main = {
   location?: SifaDefs.LocationAddress
 
   /**
-   * Start date. For month-precision imports, use first day of month at midnight UTC.
+   * Start date in YYYY-MM or YYYY-MM-DD format.
    */
-  startedAt?: l.DatetimeString
+  startedAt?: string
 
   /**
-   * End date (graduation or expected graduation). Omit if currently enrolled.
+   * End date (graduation or expected graduation) in YYYY-MM or YYYY-MM-DD format. Omit if currently enrolled.
    */
-  endedAt?: l.DatetimeString
+  endedAt?: string
 
   /**
    * Self-label values for this education record.
@@ -92,8 +92,8 @@ const main = l.record<'tid', Main>(
     location: l.optional(
       l.ref<SifaDefs.LocationAddress>((() => SifaDefs.locationAddress) as any),
     ),
-    startedAt: l.optional(l.string({ format: 'datetime' })),
-    endedAt: l.optional(l.string({ format: 'datetime' })),
+    startedAt: l.optional(l.string()),
+    endedAt: l.optional(l.string()),
     labels: l.optional(
       l.typedUnion(
         [l.typedRef<LabelDefs.SelfLabels>((() => LabelDefs.selfLabels) as any)],

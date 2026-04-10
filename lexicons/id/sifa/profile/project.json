@@ -41,13 +41,11 @@
           },
           "startedAt": {
             "type": "string",
-            "format": "datetime",
-            "description": "Project start date."
+            "description": "Project start date in YYYY-MM or YYYY-MM-DD format."
           },
           "endedAt": {
             "type": "string",
-            "format": "datetime",
-            "description": "Project end date. Omit if ongoing."
+            "description": "Project end date in YYYY-MM or YYYY-MM-DD format. Omit if ongoing."
           },
           "labels": {
             "type": "union",

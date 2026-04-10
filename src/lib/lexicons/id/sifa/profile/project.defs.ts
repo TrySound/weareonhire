@@ -40,14 +40,14 @@ type Main = {
   position?: RepoStrongRef.Main
 
   /**
-   * Project start date.
+   * Project start date in YYYY-MM or YYYY-MM-DD format.
    */
-  startedAt?: l.DatetimeString
+  startedAt?: string
 
   /**
-   * Project end date. Omit if ongoing.
+   * Project end date in YYYY-MM or YYYY-MM-DD format. Omit if ongoing.
    */
-  endedAt?: l.DatetimeString
+  endedAt?: string
 
   /**
    * Self-label values for this project record.
@@ -76,8 +76,8 @@ const main = l.record<'tid', Main>(
     position: l.optional(
       l.ref<RepoStrongRef.Main>((() => RepoStrongRef.main) as any),
     ),
-    startedAt: l.optional(l.string({ format: 'datetime' })),
-    endedAt: l.optional(l.string({ format: 'datetime' })),
+    startedAt: l.optional(l.string()),
+    endedAt: l.optional(l.string()),
     labels: l.optional(
       l.typedUnion(
         [l.typedRef<LabelDefs.SelfLabels>((() => LabelDefs.selfLabels) as any)],
