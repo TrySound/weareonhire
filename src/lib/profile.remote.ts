@@ -18,9 +18,6 @@ export const getMemberProfile = query(
     if (!resume) {
       resume = await loadSifaResume(handle);
     }
-    if (!resume) {
-      error(404, "Profile not found");
-    }
     return resume;
   },
 );

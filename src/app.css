@@ -89,9 +89,6 @@
 
 body {
   margin: 0;
-  display: grid;
-  min-width: 320px;
-  min-height: 100vh;
   background-color: var(--color-bg);
 }
 
@@ -159,6 +156,11 @@ body {
 
 .button-primary:hover {
   background: #ffffff;
+}
+
+.button-lg {
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--font-size-lg);
 }
 
 .separator {
@@ -281,15 +283,18 @@ body {
   background: var(--color-bg-elevated);
   color: var(--color-text);
   transition: border-color var(--transition-base);
+  &:hover {
+    border-color: var(--color-primary);
+  }
+}
+
+.form-input-lg {
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--font-size-lg);
 }
 
 .form-input::placeholder {
   color: var(--color-text-placeholder);
-}
-
-.form-input:focus {
-  outline: none;
-  border-color: var(--color-primary);
 }
 
 .form-input:where(textarea) {

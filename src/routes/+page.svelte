@@ -1,23 +1,89 @@
 <script lang="ts">
+  import { goto } from "$app/navigation";
+  import { page } from "$app/state";
   import Topbar from "$lib/topbar.svelte";
 
   let { data } = $props();
+
+  let query = $state(page.url.searchParams.get("q") ?? "");
+  // svelte-ignore state_referenced_locally
+  let mode: "hero" | "search" = $state(query.length === 0 ? "hero" : "search");
 </script>
 
 <div class="container">
-  <Topbar handle={data.handle} hideLogo />
+  <Topbar handle={data.handle} hideLogo={mode === "hero"} />
 
-  <main class="hero">
-    <div>
-      <h1 class="hero-title">weareonhire!</h1>
-      <p>An invite-only community for professionals</p>
+  <main class="hero" data-mode={mode}>
+    <div class="hero-base">
+      <h1 class="hero-title" hidden={mode === "search"}>weareonhire!</h1>
+      <!--
+      <p>An community for professionals</p>
       <p class="subtle">Population: {data.memberCount}, and counting</p>
       <div class="hero-actions">
         <a href="mailto:hire@weareonhire.com" class="button button-primary">
           Hire an expert
         </a>
       </div>
+      -->
+      <form method="GET" class="search-form">
+        <input
+          type="text"
+          name="q"
+          autocomplete="off"
+          placeholder="Search for professionals..."
+          class="form-input form-input-lg"
+          bind:value={
+            () => query,
+            (newValue) => {
+              query = newValue;
+              if (mode === "hero") {
+                document.startViewTransition(() => {
+                  mode = "search";
+                });
+              }
+              const newUrl = new URL(page.url);
+              newUrl.searchParams.set("q", newValue);
+              goto(newUrl);
+            }
+          }
+          onblur={() => {
+            if (query.length === 0 && mode === "search") {
+              document.startViewTransition(() => {
+                mode = "hero";
+              });
+            }
+          }}
+        />
+        <button class="button button-lg">Search</button>
+      </form>
     </div>
+
+    {#if data.searchResults}
+      <div class="results-list">
+        {#each data.searchResults.results as result (result.handle)}
+          <a href="/profile/{result.handle}" class="button result-item">
+            {#if result.avatar}
+              <img src={result.avatar} alt="" class="result-avatar" />
+            {:else}
+              <div class="result-avatar-placeholder"></div>
+            {/if}
+            <div class="result-item-content">
+              <div class="result-handle">@{result.handle}</div>
+              {#if result.displayName}
+                <div class="subtle">
+                  {result.displayName}
+                </div>
+              {/if}
+            </div>
+          </a>
+        {:else}
+          <p class="subtle">
+            No users found with SIFA profiles matching "{data.searchResults
+              .query}"
+          </p>
+        {/each}
+      </div>
+    {/if}
   </main>
 </div>
 
@@ -50,9 +116,9 @@
 
 <style>
   .container {
-    display: flex;
-    flex-direction: column;
     min-height: 100dvh;
+    display: grid;
+    grid-template-rows: max-content 1fr;
   }
 
   .heading-1 {
@@ -61,11 +127,22 @@
   }
 
   .hero {
-    flex: 1;
-    display: flex;
+    display: grid;
+    justify-self: center;
     align-items: center;
-    justify-content: center;
+    gap: var(--space-8);
     text-align: center;
+    max-width: 480px;
+    width: 100%;
+    padding: var(--space-8) 0;
+    &[data-mode="search"] {
+      grid-auto-rows: max-content;
+      align-items: start;
+    }
+  }
+
+  .hero-base {
+    view-transition-name: match-element;
   }
 
   .hero-title {
@@ -74,8 +151,10 @@
     color: var(--color-text);
     margin: 0 0 var(--space-8);
     letter-spacing: -0.02em;
+    view-transition-name: logo;
   }
 
+  /*
   .hero-actions {
     display: flex;
     gap: var(--space-3);
@@ -83,6 +162,7 @@
     flex-wrap: wrap;
     margin-top: var(--space-8);
   }
+*/
 
   .footer {
     padding: var(--space-12) var(--space-8);
@@ -106,11 +186,52 @@
     .get-involved-grid {
       grid-template-columns: 1fr;
     }
-  }
 
-  @media (max-width: 640px) {
     .hero-title {
       font-size: var(--font-size-3xl);
     }
+  }
+
+  .search-form {
+    display: grid;
+    align-items: center;
+    grid-template-columns: 1fr max-content;
+    gap: var(--space-3);
+  }
+
+  .results-list {
+    display: grid;
+    gap: var(--space-3);
+  }
+
+  .result-item {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    gap: var(--space-3);
+    text-align: left;
+  }
+
+  .result-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+
+  .result-avatar-placeholder {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background-color: var(--color-border);
+  }
+
+  .result-item-content {
+    overflow: hidden;
+  }
+
+  .result-handle {
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
   }
 </style>

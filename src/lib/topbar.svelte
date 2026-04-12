@@ -184,6 +184,7 @@
 
   .topbar-logo {
     text-decoration: none;
+    view-transition-name: logo;
   }
 
   .nav {
