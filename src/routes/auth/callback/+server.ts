@@ -63,19 +63,21 @@ export const GET = async ({ url, cookies }) => {
     }
   }
 
-  // If not a member and no invite code, check whitelist
-  if (!existingMember && !invitation && !ALLOWED_HANDLES.includes(handle)) {
+  // Determine role: member if in members table or has valid invite, otherwise visitor
+  const role: "member" | "visitor" =
+    existingMember || invitation || ALLOWED_HANDLES.includes(handle)
+      ? "member"
+      : "visitor";
+
+  // If not a member/visitor and no invite code, show error
+  if (role === "visitor" && inviteCode) {
     cookies.delete("session", { path: "/" });
-    // Redirect back to invite page with error if invite code exists
-    if (inviteCode) {
-      const errorParam = inviteExpired ? "invite_expired" : "not_invited";
-      redirect(302, `/invite/${inviteCode}?error=${errorParam}`);
-    }
-    redirect(302, "/unauthorized");
+    const errorParam = inviteExpired ? "invite_expired" : "not_invited";
+    redirect(302, `/invite/${inviteCode}?error=${errorParam}`);
   }
 
-  // Store session cookie
-  const sessionData = JSON.stringify({ did: session.did, handle });
+  // Store session cookie with role
+  const sessionData = JSON.stringify({ did: session.did, handle, role });
   const signedSession = sign(sessionData, env.SESSION_PASSWORD);
   cookies.set("session", signedSession, {
     path: "/",

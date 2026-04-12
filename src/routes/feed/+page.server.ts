@@ -6,18 +6,12 @@ export const load = async ({ locals }) => {
     redirect(302, "/");
   }
 
-  const db = await getDB();
-
-  // Verify current user is a member
-  const currentMember = await db
-    .selectFrom("members")
-    .select("did")
-    .where("did", "=", locals.did)
-    .executeTakeFirst();
-
-  if (!currentMember) {
+  // Only members can access this page
+  if (locals.role !== "member") {
     redirect(302, "/unauthorized");
   }
+
+  const db = await getDB();
 
   // Load all recommendations with author and subject info
   const recommendations = await db
@@ -38,6 +32,7 @@ export const load = async ({ locals }) => {
 
   return {
     handle: locals.handle,
+    role: locals.role,
     recommendations,
   };
 };

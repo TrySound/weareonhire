@@ -43,6 +43,7 @@ export const load = async ({ params, locals, url }) => {
 
   return {
     handle: locals.handle,
+    role: locals.role,
     inviteCode: code,
     errorType,
     invitation: {

@@ -47,10 +47,10 @@
 </script>
 
 <div class="container">
-  <Topbar handle={data.handle} />
+  <Topbar handle={data.handle} role={data.role} />
 
   <div class="actions">
-    {#if isOwnProfile}
+    {#if isOwnProfile && data.role === "member"}
       <button
         type="button"
         class="icon-button"
@@ -92,7 +92,8 @@
       <Editor
         resume={profile.current}
         onSave={handleSave}
-        readonly={!isOwnProfile}
+        // for now only member can edit their profiles
+        readonly={!isOwnProfile || data.role !== "member"}
       />
     {:else}
       <div class="spinner-container">
@@ -110,7 +111,7 @@
     <h2 class="heading-2 subtle">Recommendations</h2>
 
     <!-- Write Recommendation Form -->
-    {#if !isOwnProfile && !recommendations.current?.isRecommendedByMe && data.profile.role === "member"}
+    {#if !isOwnProfile && !recommendations.current?.isRecommendedByMe && data.profile.role === "member" && data.role === "member"}
       <form {...createRecommendation} class="form-stack">
         <input
           {...createRecommendation.fields.handle.as(

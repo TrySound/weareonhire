@@ -11,7 +11,7 @@
 </script>
 
 <div class="container">
-  <Topbar handle={data.handle} hideLogo={mode === "hero"} />
+  <Topbar handle={data.handle} role={data.role} hideLogo={mode === "hero"} />
 
   <main class="hero" data-mode={mode}>
     <div class="hero-base">

@@ -10,10 +10,11 @@ export const handle = async ({ event, resolve }) => {
     if (unsigned) {
       try {
         const sessionData = JSON.parse(unsigned);
-        const { did, handle } = sessionData;
+        const { did, handle, role } = sessionData;
 
         event.locals.did = did;
         event.locals.handle = handle;
+        event.locals.role = role ?? 'member';
       } catch {
         event.cookies.delete("session", { path: "/" });
       }

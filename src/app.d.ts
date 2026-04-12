@@ -9,6 +9,7 @@ declare global {
     interface Locals {
       did?: string;
       handle?: string;
+      role?: "member" | "visitor";
     }
     // interface PageData {}
     // interface Platform {}

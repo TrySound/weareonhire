@@ -15,7 +15,7 @@
 </script>
 
 <div class="container">
-  <Topbar handle={data.handle} />
+  <Topbar handle={data.handle} role={data.role} />
 
   <div class="recommendations-list">
     {#each data.recommendations as rec}

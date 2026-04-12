@@ -76,6 +76,11 @@ export const createRecommendation = form(
       error(401);
     }
 
+    // Only members can write recommendations
+    if (event.locals.role !== "member") {
+      error(403, "Only community members can write recommendations");
+    }
+
     const db = await getDB();
 
     // Verify target is a member

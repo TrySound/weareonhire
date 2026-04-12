@@ -17,6 +17,7 @@ export const load = async ({ locals, url }) => {
 
   return {
     handle: locals.handle,
+    role: locals.role,
     memberCount: Number(result?.count || 0),
     query,
     searchResults,

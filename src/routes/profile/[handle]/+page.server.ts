@@ -13,6 +13,7 @@ export const load = async ({ params, locals }) => {
 
   return {
     handle: locals.handle,
+    role: locals.role,
     profile: {
       role: profileMember ? ("member" as const) : ("public" as const),
       handle: profileHandle,

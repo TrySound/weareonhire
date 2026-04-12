@@ -3,10 +3,12 @@
 
   let {
     handle,
+    role,
     inviteCode,
     hideLogo = false,
   }: {
     handle: undefined | string;
+    role?: "member" | "visitor";
     inviteCode?: string;
     hideLogo?: boolean;
   } = $props();
@@ -36,8 +38,10 @@
 
   <nav class="nav">
     {#if handle}
-      <a href="/feed" class="link">Feed</a>
-      <a href="/invite" class="link">Invite</a>
+      {#if role === "member"}
+        <a href="/feed" class="link">Feed</a>
+        <a href="/invite" class="link">Invite</a>
+      {/if}
       <a href="/profile/{handle}" class="link">Profile</a>
       <form method="POST" action="/auth/logout">
         <button class="link">Logout</button>
@@ -74,9 +78,11 @@
 >
   <div class="menu" role="menu">
     {#if handle}
-      <!-- svelte-ignore a11y_autofocus -->
-      <a href="/feed" role="menuitem" class="menuitem" autofocus>Feed</a>
-      <a href="/invite" role="menuitem" class="menuitem">Invite</a>
+      {#if role === "member"}
+        <!-- svelte-ignore a11y_autofocus -->
+        <a href="/feed" role="menuitem" class="menuitem" autofocus>Feed</a>
+        <a href="/invite" role="menuitem" class="menuitem">Invite</a>
+      {/if}
       <a href="/profile/{handle}" role="menuitem" class="menuitem">Profile</a>
       <form method="POST" action="/auth/logout">
         <button role="menuitem" class="menuitem">Logout</button>
