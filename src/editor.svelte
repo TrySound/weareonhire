@@ -159,13 +159,7 @@
   function addExperience() {
     if (readonly) return;
     editingResume ??= getEditableResume(resume);
-    editingResume.work.unshift({
-      position: "",
-      name: "",
-      location: "",
-      startDate: "",
-      endDate: "",
-    });
+    editingResume.work.unshift({});
     // Start editing the new entry (index 0 after unshift)
     editingId = "experience-0";
   }
@@ -181,13 +175,7 @@
   function addEducation() {
     if (readonly) return;
     editingResume ??= getEditableResume(resume);
-    editingResume.education.unshift({
-      institution: "",
-      studyType: "",
-      area: "",
-      startDate: "",
-      endDate: "",
-    });
+    editingResume.education.unshift({});
     editingId = "education-0";
   }
 
@@ -201,12 +189,7 @@
   function addProject() {
     if (readonly) return;
     editingResume ??= getEditableResume(resume);
-    editingResume.projects.unshift({
-      name: "",
-      description: "",
-      startDate: "",
-      endDate: "",
-    });
+    editingResume.projects.unshift({});
     editingId = "projects-0";
   }
 

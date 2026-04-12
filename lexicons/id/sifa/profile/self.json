@@ -56,7 +56,11 @@
             "maxLength": 3,
             "items": {
               "type": "string",
-              "knownValues": ["id.sifa.defs#onSite", "id.sifa.defs#remote", "id.sifa.defs#hybrid"]
+              "knownValues": [
+                "id.sifa.defs#onSite",
+                "id.sifa.defs#remote",
+                "id.sifa.defs#hybrid"
+              ]
             },
             "description": "Preferred workplace arrangements. Orthogonal to openTo. Empty array or omitted means no preference."
           },

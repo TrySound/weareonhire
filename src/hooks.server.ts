@@ -14,7 +14,7 @@ export const handle = async ({ event, resolve }) => {
 
         event.locals.did = did;
         event.locals.handle = handle;
-        event.locals.role = role ?? 'member';
+        event.locals.role = role ?? "member";
       } catch {
         event.cookies.delete("session", { path: "/" });
       }

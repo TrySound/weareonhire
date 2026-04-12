@@ -50,7 +50,7 @@
   <Topbar handle={data.handle} role={data.role} />
 
   <div class="actions">
-    {#if isOwnProfile && data.role === "member"}
+    {#if isOwnProfile}
       <button
         type="button"
         class="icon-button"
@@ -92,8 +92,7 @@
       <Editor
         resume={profile.current}
         onSave={handleSave}
-        // for now only member can edit their profiles
-        readonly={!isOwnProfile || data.role !== "member"}
+        readonly={!isOwnProfile}
       />
     {:else}
       <div class="spinner-container">

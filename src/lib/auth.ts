@@ -22,6 +22,14 @@ export const didResolver = createDidResolver({});
 export const SCOPE = [
   "atproto",
   "rpc:app.bsky.actor.getProfile?aud=did:web:api.bsky.app#bsky_appview",
+  // Sifa profile records
+  "repo:id.sifa.profile.self",
+  "repo:id.sifa.profile.position",
+  "repo:id.sifa.profile.education",
+  "repo:id.sifa.profile.project",
+  "repo:id.sifa.profile.skill",
+  "repo:id.sifa.profile.language",
+  "repo:id.sifa.profile.externalAccount",
 ];
 
 export const getClientMetadata = (): OAuthClientMetadataInput => {

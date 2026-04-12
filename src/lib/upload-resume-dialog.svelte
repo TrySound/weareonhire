@@ -116,6 +116,7 @@
 
     fetch("/api/parse-pdf", {
       method: "POST",
+      credentials: "include",
       body: formData,
     })
       .then(async (response) => {

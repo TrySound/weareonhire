@@ -1,8 +1,13 @@
-import { Client } from "@atproto/lex";
+import {
+  Client,
+  type DatetimeString,
+  type RecordKeyString,
+} from "@atproto/lex";
+import { Agent } from "@atproto/api";
 import { extractPdsUrl } from "@atproto/oauth-client-node";
 import * as sifa from "$lib/lexicons/id/sifa";
 import * as bsky from "$lib/lexicons/app/bsky";
-import { handleResolver, didResolver } from "./auth";
+import { handleResolver, didResolver, getOAuthClient } from "./auth";
 import type {
   Resume,
   Work,
@@ -15,20 +20,17 @@ import type {
 function getEmploymentType(
   type: sifa.profile.position.Main["employmentType"] | undefined,
 ): EmploymentType | undefined {
-  if (type === "id.sifa.defs#fullTime") {
-    return "fulltime";
-  }
-  if (type === "id.sifa.defs#partTime") {
-    return "parttime";
-  }
-  if (type === "id.sifa.defs#contract") {
-    return "contract";
-  }
-  if (type === "id.sifa.defs#freelance") {
-    return "freelance";
-  }
-  if (type === "id.sifa.defs#internship") {
-    return "internship";
+  switch (type) {
+    case "id.sifa.defs#fullTime":
+      return "fulltime";
+    case "id.sifa.defs#partTime":
+      return "parttime";
+    case "id.sifa.defs#contract":
+      return "contract";
+    case "id.sifa.defs#freelance":
+      return "freelance";
+    case "id.sifa.defs#internship":
+      return "internship";
   }
 }
 
@@ -36,14 +38,13 @@ function getEmploymentType(
 function getWorkplaceType(
   type: sifa.profile.position.Main["workplaceType"],
 ): WorkplaceType | undefined {
-  if (type === "id.sifa.defs#onSite") {
-    return "onsite";
-  }
-  if (type === "id.sifa.defs#remote") {
-    return "remote";
-  }
-  if (type === "id.sifa.defs#hybrid") {
-    return "hybrid";
+  switch (type) {
+    case "id.sifa.defs#onSite":
+      return "onsite";
+    case "id.sifa.defs#remote":
+      return "remote";
+    case "id.sifa.defs#hybrid":
+      return "hybrid";
   }
 }
 
@@ -130,7 +131,7 @@ export async function loadSifaResume(
         rkey: "self",
         repo: did,
       })
-      .catch((error) => console.error(error)),
+      .catch(() => undefined),
     // Other records are listed
     client
       .list(sifa.profile.position.main, {
@@ -312,4 +313,199 @@ export async function loadSifaResume(
   };
 
   return resume;
+}
+
+// Reverse mapping: jsonresume employment type to sifa employment type
+function getSifaEmploymentType(
+  type: EmploymentType | undefined,
+): sifa.profile.position.Main["employmentType"] | undefined {
+  switch (type) {
+    case "fulltime":
+      return "id.sifa.defs#fullTime";
+    case "parttime":
+      return "id.sifa.defs#partTime";
+    case "contract":
+      return "id.sifa.defs#contract";
+    case "freelance":
+      return "id.sifa.defs#freelance";
+    case "internship":
+      return "id.sifa.defs#internship";
+  }
+}
+
+// Reverse mapping: jsonresume workplace type to sifa workplace type
+function getSifaWorkplaceType(
+  type: WorkplaceType | undefined,
+): sifa.profile.position.Main["workplaceType"] | undefined {
+  switch (type) {
+    case "onsite":
+      return "id.sifa.defs#onSite";
+    case "remote":
+      return "id.sifa.defs#remote";
+    case "hybrid":
+      return "id.sifa.defs#hybrid";
+  }
+}
+
+// Parse location string into sifa location format
+function parseLocation(
+  address: string | undefined,
+): sifa.profile.self.Main["location"] {
+  if (!address) {
+    return undefined;
+  }
+  const parts = address.split(",").map((p) => p.trim());
+  // Try to guess: city, region, countryCode
+  if (parts.length >= 3) {
+    return {
+      city: parts[0],
+      region: parts[1],
+      countryCode: parts[2].toUpperCase(),
+    };
+  }
+  if (parts.length === 2) {
+    return {
+      city: parts[0],
+      region: parts[1],
+    };
+  }
+  return {
+    city: address,
+  };
+}
+
+// Helper to extract rkey from at:// URI
+const getRkey = (uri: string) =>
+  (uri.split("/").pop() ?? "") as RecordKeyString;
+
+export async function updateSifaResume(
+  did: string,
+  resume: Resume,
+): Promise<void> {
+  // Restore OAuth session from database
+  const oauthClient = await getOAuthClient();
+  const session = await oauthClient.restore(did);
+
+  // Create typed client with authenticated session
+  const client = new Client(new Agent(session));
+
+  const now = new Date().toISOString() as DatetimeString;
+
+  await client.put(bsky.actor.profile.main, {
+    displayName: resume.basics?.name,
+  });
+
+  // Update profile
+  await client.put(sifa.profile.self.main, {
+    createdAt: now,
+    headline: resume.basics?.label,
+    about: resume.basics?.summary,
+    industry: resume.extension?.industry,
+    location: parseLocation(resume.basics?.location?.address),
+    preferredWorkplace:
+      resume.extension?.preferredWorkplaces
+        ?.map(getSifaWorkplaceType)
+        .filter((w) => w !== undefined) ?? [],
+  });
+
+  // Recreate positions
+  const existingPositions = await client.list(sifa.profile.position.main);
+  for (const record of existingPositions.records) {
+    await client.delete(sifa.profile.position, {
+      rkey: getRkey(record.uri),
+    });
+  }
+  for (const work of resume.work ?? []) {
+    await client.create(sifa.profile.position.main, {
+      createdAt: now,
+      company: work.name ?? "",
+      title: work.position ?? "",
+      startedAt: work.startDate ?? now,
+      endedAt: work.endDate,
+      description: work.summary,
+      location: work.location ? parseLocation(work.location) : undefined,
+      employmentType: getSifaEmploymentType(work.extension?.employmentType),
+      workplaceType: getSifaWorkplaceType(work.extension?.workplaceType),
+    });
+  }
+
+  // Recreate education
+  const existingEducation = await client.list(sifa.profile.education.main);
+  for (const record of existingEducation.records) {
+    await client.delete(sifa.profile.education, {
+      rkey: getRkey(record.uri),
+    });
+  }
+  for (const edu of resume.education ?? []) {
+    await client.create(sifa.profile.education.main, {
+      createdAt: now,
+      institution: edu.institution ?? "",
+      degree: edu.studyType ?? "",
+      fieldOfStudy: edu.area,
+      startedAt: edu.startDate ?? now,
+      endedAt: edu.endDate,
+      description: edu.extension?.description,
+    });
+  }
+
+  // Recreate projects
+  const existingProjects = await client.list(sifa.profile.project.main);
+  for (const record of existingProjects.records) {
+    await client.delete(sifa.profile.project, {
+      rkey: getRkey(record.uri),
+    });
+  }
+  for (const project of resume.projects ?? []) {
+    await client.create(sifa.profile.project.main, {
+      createdAt: now,
+      name: project.name ?? "",
+      description: project.description,
+      url: project.url as `${string}:${string}` | undefined,
+      startedAt: project.startDate ?? now,
+      endedAt: project.endDate,
+    });
+  }
+
+  // Recreate skills
+  const existingSkills = await client.list(sifa.profile.skill.main);
+  for (const record of existingSkills.records) {
+    await client.delete(sifa.profile.skill, {
+      rkey: getRkey(record.uri),
+    });
+  }
+  for (const skill of resume.skills ?? []) {
+    await client.create(sifa.profile.skill.main, {
+      createdAt: now,
+      name: skill.name ?? "",
+    });
+  }
+
+  // Recreate languages
+  const existingLanguages = await client.list(sifa.profile.language.main);
+  for (const record of existingLanguages.records) {
+    await client.delete(sifa.profile.language, {
+      rkey: getRkey(record.uri),
+    });
+  }
+  for (const language of resume.languages ?? []) {
+    await client.create(sifa.profile.language.main, {
+      createdAt: now,
+      name: language.language ?? "",
+    });
+  }
+
+  // Recreate external accounts
+  const existingAccounts = await client.list(sifa.profile.externalAccount.main);
+  for (const record of existingAccounts.records) {
+    await client.delete(sifa.profile.externalAccount, {
+      rkey: getRkey(record.uri),
+    });
+  }
+  for (const profile of resume.basics?.profiles ?? []) {
+    await client.create(sifa.profile.externalAccount.main, {
+      createdAt: now,
+      url: profile.url as `${string}:${string}`,
+      platform: "id.sifa.defs#platformOther",
+    });
+  }
 }

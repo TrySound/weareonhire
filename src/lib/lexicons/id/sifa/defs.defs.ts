@@ -629,7 +629,7 @@ type LocationAddress = {
   /**
    * ISO 3166-1 alpha-2 country code (e.g. 'NL', 'US').
    */
-  countryCode?: string;
+  countryCode: string;
 
   /**
    * Administrative region (state, province, etc.). Free text — AppViews display as-is.
@@ -649,7 +649,7 @@ const locationAddress = l.typedObject<LocationAddress>(
   $nsid,
   "locationAddress",
   l.object({
-    countryCode: l.optional(l.string({ minLength: 2, maxLength: 2 })),
+    countryCode: l.string({ minLength: 2, maxLength: 2 }),
     region: l.optional(l.string({ maxGraphemes: 100, maxLength: 1000 })),
     city: l.optional(l.string({ maxGraphemes: 100, maxLength: 1000 })),
   }),

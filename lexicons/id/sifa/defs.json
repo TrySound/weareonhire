@@ -19,10 +19,19 @@
     },
     "fullTime": { "type": "token", "description": "Full-time employment." },
     "partTime": { "type": "token", "description": "Part-time employment." },
-    "contract": { "type": "token", "description": "Contract/temporary employment." },
-    "freelance": { "type": "token", "description": "Freelance/independent work." },
+    "contract": {
+      "type": "token",
+      "description": "Contract/temporary employment."
+    },
+    "freelance": {
+      "type": "token",
+      "description": "Freelance/independent work."
+    },
     "internship": { "type": "token", "description": "Internship position." },
-    "apprenticeship": { "type": "token", "description": "Apprenticeship position." },
+    "apprenticeship": {
+      "type": "token",
+      "description": "Apprenticeship position."
+    },
     "volunteer": {
       "type": "token",
       "description": "Volunteer work (when used as employment type)."
@@ -32,11 +41,18 @@
     "workplaceType": {
       "type": "string",
       "description": "The workplace arrangement.",
-      "knownValues": ["id.sifa.defs#onSite", "id.sifa.defs#remote", "id.sifa.defs#hybrid"]
+      "knownValues": [
+        "id.sifa.defs#onSite",
+        "id.sifa.defs#remote",
+        "id.sifa.defs#hybrid"
+      ]
     },
     "onSite": { "type": "token", "description": "On-site/in-office work." },
     "remote": { "type": "token", "description": "Fully remote work." },
-    "hybrid": { "type": "token", "description": "Hybrid on-site and remote work." },
+    "hybrid": {
+      "type": "token",
+      "description": "Hybrid on-site and remote work."
+    },
 
     "proficiency": {
       "type": "string",
@@ -50,10 +66,22 @@
       ]
     },
     "elementary": { "type": "token", "description": "Elementary proficiency." },
-    "limitedWorking": { "type": "token", "description": "Limited working proficiency." },
-    "professionalWorking": { "type": "token", "description": "Professional working proficiency." },
-    "fullProfessional": { "type": "token", "description": "Full professional proficiency." },
-    "native": { "type": "token", "description": "Native or bilingual proficiency." },
+    "limitedWorking": {
+      "type": "token",
+      "description": "Limited working proficiency."
+    },
+    "professionalWorking": {
+      "type": "token",
+      "description": "Professional working proficiency."
+    },
+    "fullProfessional": {
+      "type": "token",
+      "description": "Full professional proficiency."
+    },
+    "native": {
+      "type": "token",
+      "description": "Native or bilingual proficiency."
+    },
 
     "skillCategory": {
       "type": "string",
@@ -67,12 +95,30 @@
         "id.sifa.defs#industry"
       ]
     },
-    "technical": { "type": "token", "description": "Technical/engineering skills." },
-    "business": { "type": "token", "description": "Business and management skills." },
-    "creative": { "type": "token", "description": "Creative and design skills." },
-    "interpersonal": { "type": "token", "description": "Interpersonal and communication skills." },
-    "language": { "type": "token", "description": "Language and linguistic skills." },
-    "industry": { "type": "token", "description": "Industry-specific domain knowledge." },
+    "technical": {
+      "type": "token",
+      "description": "Technical/engineering skills."
+    },
+    "business": {
+      "type": "token",
+      "description": "Business and management skills."
+    },
+    "creative": {
+      "type": "token",
+      "description": "Creative and design skills."
+    },
+    "interpersonal": {
+      "type": "token",
+      "description": "Interpersonal and communication skills."
+    },
+    "language": {
+      "type": "token",
+      "description": "Language and linguistic skills."
+    },
+    "industry": {
+      "type": "token",
+      "description": "Industry-specific domain knowledge."
+    },
 
     "openToWorkStatus": {
       "type": "string",
@@ -95,11 +141,26 @@
       "type": "token",
       "description": "Open to part-time employment opportunities."
     },
-    "contractRoles": { "type": "token", "description": "Open to contract or freelance work." },
-    "boardPositions": { "type": "token", "description": "Open to advisory or board positions." },
-    "mentoringOthers": { "type": "token", "description": "Open to mentoring others." },
-    "beingMentored": { "type": "token", "description": "Open to being mentored." },
-    "collaborations": { "type": "token", "description": "Open to project collaborations." },
+    "contractRoles": {
+      "type": "token",
+      "description": "Open to contract or freelance work."
+    },
+    "boardPositions": {
+      "type": "token",
+      "description": "Open to advisory or board positions."
+    },
+    "mentoringOthers": {
+      "type": "token",
+      "description": "Open to mentoring others."
+    },
+    "beingMentored": {
+      "type": "token",
+      "description": "Open to being mentored."
+    },
+    "collaborations": {
+      "type": "token",
+      "description": "Open to project collaborations."
+    },
 
     "externalPlatform": {
       "type": "string",
@@ -127,13 +188,25 @@
       "description": "Fediverse account (Mastodon, Misskey, Pleroma, etc.)."
     },
     "platformTwitter": { "type": "token", "description": "Twitter/X account." },
-    "platformInstagram": { "type": "token", "description": "Instagram account." },
+    "platformInstagram": {
+      "type": "token",
+      "description": "Instagram account."
+    },
     "platformGithub": { "type": "token", "description": "GitHub account." },
     "platformYoutube": { "type": "token", "description": "YouTube channel." },
     "platformLinkedin": { "type": "token", "description": "LinkedIn profile." },
-    "platformSubstack": { "type": "token", "description": "Substack newsletter." },
-    "platformWebsite": { "type": "token", "description": "Personal or professional website." },
-    "platformOrcid": { "type": "token", "description": "ORCID researcher identifier." },
+    "platformSubstack": {
+      "type": "token",
+      "description": "Substack newsletter."
+    },
+    "platformWebsite": {
+      "type": "token",
+      "description": "Personal or professional website."
+    },
+    "platformOrcid": {
+      "type": "token",
+      "description": "ORCID researcher identifier."
+    },
     "platformOther": {
       "type": "token",
       "description": "Other platform not covered by specific tokens."
