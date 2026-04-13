@@ -42,10 +42,29 @@
         <a href="/feed" class="link">Feed</a>
         <a href="/invite" class="link">Invite</a>
       {/if}
-      <a href="/profile/{handle}" class="link">Profile</a>
-      <form method="POST" action="/auth/logout">
-        <button class="link">Logout</button>
-      </form>
+      <button
+        class="link"
+        commandfor="desktop-auth-menu"
+        command="toggle-popover"
+      >
+        Account
+      </button>
+      <div id="desktop-auth-menu" popover class="menu-popover">
+        <div class="menu" role="menu">
+          <!-- svelte-ignore a11y_autofocus -->
+          <a
+            href="/profile/{handle}"
+            role="menuitem"
+            class="menuitem"
+            autofocus
+          >
+            @{handle}
+          </a>
+          <form method="POST" action="/auth/logout">
+            <button role="menuitem" class="menuitem">Disconnect</button>
+          </form>
+        </div>
+      </div>
     {:else}
       <button
         class="link"
@@ -58,8 +77,9 @@
   </nav>
 
   <button
-    class="icon-button menu-trigger"
-    popovertarget="topbar-menu"
+    class="icon-button mobile-menu-trigger"
+    commandfor="topbar-menu"
+    command="toggle-popover"
     aria-label="Menu"
   >
     <svg width="24" height="24">
@@ -78,14 +98,14 @@
 >
   <div class="menu" role="menu">
     {#if handle}
+      <a href="/profile/{handle}" role="menuitem" class="menuitem">@{handle}</a>
       {#if role === "member"}
         <!-- svelte-ignore a11y_autofocus -->
         <a href="/feed" role="menuitem" class="menuitem" autofocus>Feed</a>
         <a href="/invite" role="menuitem" class="menuitem">Invite</a>
       {/if}
-      <a href="/profile/{handle}" role="menuitem" class="menuitem">Profile</a>
       <form method="POST" action="/auth/logout">
-        <button role="menuitem" class="menuitem">Logout</button>
+        <button role="menuitem" class="menuitem">Disconnect</button>
       </form>
     {:else}
       <!-- svelte-ignore a11y_autofocus -->
@@ -198,19 +218,21 @@
   .nav {
     display: flex;
     gap: var(--space-8);
+    align-items: center;
   }
 
-  .menu-trigger {
+  .mobile-menu-trigger {
     display: none;
   }
 
   .menu-popover {
     position-area: bottom span-left;
     padding: 0;
-    margin: var(--space-2) 0;
+    margin: var(--space-3) 0;
     background: transparent;
     border: 0;
-    min-width: 80px;
+    min-width: 120px;
+    color: inherit;
   }
 
   form {
@@ -221,7 +243,7 @@
     .nav {
       display: none;
     }
-    .menu-trigger {
+    .mobile-menu-trigger {
       display: block;
     }
   }
