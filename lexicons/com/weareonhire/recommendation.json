@@ -1,0 +1,31 @@
+{
+  "lexicon": 1,
+  "id": "com.weareonhire.recommendation",
+  "defs": {
+    "main": {
+      "type": "record",
+      "description": "A professional recommendation from one user to another.",
+      "key": "literal:subject_did",
+      "record": {
+        "type": "object",
+        "required": ["subject", "reason", "createdAt"],
+        "properties": {
+          "subject": {
+            "type": "string",
+            "format": "did"
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 200,
+            "maxLength": 3000,
+            "description": "Free-form recommendation text."
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "datetime"
+          }
+        }
+      }
+    }
+  }
+}

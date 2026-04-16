@@ -30,6 +30,7 @@
     "node": "24"
   },
   "dependencies": {
+    "@atcute/jetstream": "^1.1.2",
     "@atproto/api": "^0.19.8",
     "@atproto/lex": "^0.0.24",
     "@atproto/oauth-client-node": "^0.3.17",

@@ -4,3 +4,7 @@
 
 [build.environment]
   NODE_VERSION = "24"
+
+[[scheduled_functions]]
+  name = "sync"
+  schedule = "*/15 * * * *"

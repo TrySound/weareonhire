@@ -6,7 +6,7 @@
   import Editor from "../../../editor.svelte";
   import Print from "../../../print.svelte";
   import {
-    getMemberRecommendations,
+    getProfileRecommendations,
     createRecommendation as createRecommendationRaw,
   } from "$lib/recommendation.remote";
   import { getMemberProfile, updateMemberProfile } from "$lib/profile.remote";
@@ -25,7 +25,7 @@
 
   // Load recommendations via remote query
   const recommendations = $derived(
-    getMemberRecommendations({ handle: data.profile.handle }),
+    getProfileRecommendations({ handle: data.profile.handle }),
   );
 
   // Track which recommendation is currently targeted via URL hash
@@ -110,7 +110,7 @@
     <h2 class="heading-2 subtle">Recommendations</h2>
 
     <!-- Write Recommendation Form -->
-    {#if !isOwnProfile && !recommendations.current?.isRecommendedByMe && data.profile.role === "member" && data.role === "member"}
+    {#if !isOwnProfile && !recommendations.current?.isRecommendedByMe && data.handle}
       <form {...createRecommendation} class="form-stack">
         <input
           {...createRecommendation.fields.handle.as(
@@ -122,7 +122,7 @@
           <label for="recommendation-input" class="form-label">
             Write a recommendation
             <span class="character-count">
-              {createRecommendation.fields.text.value()?.length ?? 0} / 200 characters
+              {createRecommendation.fields.reason.value()?.length ?? 0} / 200 characters
             </span>
           </label>
           <textarea
@@ -131,7 +131,7 @@
             class="form-input"
             placeholder="Write your recommendation here..."
             minlength="200"
-            {...createRecommendation.fields.text.as("text")}
+            {...createRecommendation.fields.reason.as("text")}
           ></textarea>
         </div>
         <div>
@@ -148,20 +148,16 @@
           class:highlight={targetedId === `recommendation-${item.id}`}
         >
           <div class="subtle">
-            {#if item.isFromInvite}
-              Invited by
-            {:else}
-              Recommended by
-            {/if}
+            Recommended by
             <a href="/profile/{item.authorHandle}" class="link">
-              {item.authorName || item.authorHandle}
+              {item.authorHandle}
             </a>
             <time datetime={item.createdAt}>
               {new Date(item.createdAt ?? 0).toLocaleDateString()}
             </time>
           </div>
           <div class="quote">
-            <p>{item.text}</p>
+            <p>{item.reason}</p>
           </div>
         </article>
       {:else}

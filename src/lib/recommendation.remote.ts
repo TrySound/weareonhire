@@ -1,60 +1,43 @@
 import * as v from "valibot";
 import { error } from "@sveltejs/kit";
+import { Client, type DatetimeString, type DidString } from "@atproto/lex";
+import { Agent } from "@atproto/api";
 import { query, form, getRequestEvent } from "$app/server";
-import { sql } from "kysely";
+import * as weareonhire from "$lib/lexicons/com/weareonhire/recommendation";
 import { getDB } from "./db";
+import { didResolver, getOAuthClient, handleResolver } from "./auth";
 
-export const getMemberRecommendations = query(
+export const getProfileRecommendations = query(
   v.object({ handle: v.string() }),
   async ({ handle }) => {
     const event = getRequestEvent();
-    if (!event.locals.did) {
-      error(401);
-    }
-
     const db = await getDB();
 
-    // Get target member
-    const targetMember = await db
-      .selectFrom("members")
-      .select("did")
-      .where("handle", "=", handle)
-      .executeTakeFirst();
-    if (!targetMember) {
-      error(404, "Member not found");
-    }
+    const profileDid = await handleResolver.resolve(handle);
 
-    // Load recommendations with author info
     const recommendations = await db
-      .selectFrom("recommendations")
-      .innerJoin("members", "recommendations.author_did", "members.did")
-      .where("recommendations.subject_did", "=", targetMember.did)
-      .orderBy(
-        sql`CASE WHEN recommendations.invitation_id IS NOT NULL THEN 0 ELSE 1 END`,
-        "asc",
-      )
-      .orderBy("recommendations.created_at", "desc")
-      .select([
-        "recommendations.id",
-        "recommendations.text",
-        "recommendations.invitation_id",
-        "recommendations.created_at",
-        "recommendations.author_did",
-        "members.name as author_name",
-        "members.handle as author_handle",
-      ])
+      .selectFrom("recommendation_index")
+      .where("recommendation_index.subject_did", "=", profileDid)
+      .orderBy("recommendation_index.created_at", "desc")
+      .selectAll()
       .execute();
 
+    const recommendationsWithHandles = await Promise.all(
+      recommendations.map(async (item) => {
+        const didDoc = await didResolver.resolve(item.author_did as DidString);
+        const authorHandle =
+          didDoc.alsoKnownAs?.at(0)?.slice("at://".length) ?? item.author_did;
+        return {
+          id: item.uri,
+          reason: item.reason,
+          authorHandle: authorHandle,
+          createdAt: item.created_at,
+        };
+      }),
+    );
+
     return {
-      recommendations: recommendations.map((rec) => ({
-        id: rec.id,
-        text: rec.text,
-        authorName: rec.author_name,
-        authorHandle: rec.author_handle,
-        authorDid: rec.author_did,
-        createdAt: rec.created_at,
-        isFromInvite: rec.invitation_id !== null,
-      })),
+      recommendations: recommendationsWithHandles,
       isRecommendedByMe: recommendations.some(
         (rec) => rec.author_did === event.locals.did,
       ),
@@ -65,59 +48,57 @@ export const getMemberRecommendations = query(
 export const createRecommendation = form(
   v.object({
     handle: v.pipe(v.string(), v.nonEmpty()),
-    text: v.pipe(
+    reason: v.pipe(
       v.string(),
       v.minLength(200, "Recommendation should be at least 200 characters long"),
     ),
   }),
-  async ({ handle, text }) => {
+  async ({ handle, reason }) => {
     const event = getRequestEvent();
     if (!event.locals.did) {
       error(401);
     }
 
-    // Only members can write recommendations
-    if (event.locals.role !== "member") {
-      error(403, "Only community members can write recommendations");
+    const targetDid = await handleResolver.resolve(handle);
+    if (!targetDid) {
+      error(404, "Handle not found");
     }
-
-    const db = await getDB();
-
-    // Verify target is a member
-    const targetMember = await db
-      .selectFrom("members")
-      .select(["handle", "did"])
-      .where("handle", "=", handle)
-      .executeTakeFirst();
-    if (!targetMember) {
-      error(404, "Member not found");
-    }
-    // Prevent self-recommendations
-    if (event.locals.did === targetMember.did) {
+    if (event.locals.did === targetDid) {
       error(400, "Cannot recommend yourself");
     }
 
-    // Check if already recommended
+    const db = await getDB();
     const existingRecommendation = await db
-      .selectFrom("recommendations")
-      .select("id")
+      .selectFrom("recommendation_index")
+      .select("uri")
       .where("author_did", "=", event.locals.did)
-      .where("subject_did", "=", targetMember.did)
+      .where("subject_did", "=", targetDid)
       .executeTakeFirst();
     if (existingRecommendation) {
-      error(400, "Already recommended this member");
+      error(400, "Already recommended this person");
     }
 
-    // Create the recommendation
+    const createdAt = new Date().toISOString() as DatetimeString;
+
+    const oauthClient = await getOAuthClient();
+    const session = await oauthClient.restore(event.locals.did);
+    const client = new Client(new Agent(session));
+    const createdRecommendation = await client.create(weareonhire.main, {
+      subject: targetDid,
+      reason,
+      createdAt,
+    });
     await db
-      .insertInto("recommendations")
+      .insertInto("recommendation_index")
       .values({
+        uri: createdRecommendation.uri,
         author_did: event.locals.did,
-        subject_did: targetMember.did,
-        text,
+        subject_did: targetDid,
+        reason,
+        created_at: createdAt,
       })
       .execute();
 
-    getMemberRecommendations({ handle }).refresh();
+    getProfileRecommendations({ handle }).refresh();
   },
 );
