@@ -193,7 +193,7 @@
         <label for="recommendation-text" class="form-label">
           Your recommendation
           <span class="character-count">
-            {createRecommendation.fields.text.value()?.length ?? 0} / 200 characters
+            {createRecommendation.fields.reason.value()?.length ?? 0} / 200 characters
           </span>
         </label>
         <textarea
@@ -202,7 +202,7 @@
           class="form-input"
           placeholder="Write your recommendation here..."
           minlength="200"
-          {...createRecommendation.fields.text.as("text")}
+          {...createRecommendation.fields.reason.as("text")}
         ></textarea>
       </div>
       <div>

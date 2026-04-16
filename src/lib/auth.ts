@@ -23,6 +23,8 @@ export const SCOPE = [
   "atproto",
   "rpc:app.bsky.actor.getProfile?aud=did:web:api.bsky.app#bsky_appview",
   "repo:app.bsky.actor.profile",
+  // weareonhire records
+  "repo:com.weareonhire.recommendation",
   // Sifa profile records
   "repo:id.sifa.profile.self",
   "repo:id.sifa.profile.position",

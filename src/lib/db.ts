@@ -106,6 +106,18 @@ export interface DatabaseSchema {
     created_at?: string;
     updated_at?: string;
   };
+  recommendation_index: {
+    uri: string;
+    author_did: string;
+    subject_did: string;
+    reason: string;
+    created_at: string;
+  };
+  jetstream_cursor: {
+    id: string;
+    time_us: number;
+    updated_at: string;
+  };
 }
 
 let db: Kysely<DatabaseSchema> | null = null;
