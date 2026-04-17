@@ -122,7 +122,6 @@ body {
   border: 0;
   border-radius: 50%;
   color: var(--color-text-secondary);
-  transition: all 0.2s ease;
   transition: background-color var(--transition-fast);
   &:hover {
     background: var(--color-bg-hover);
