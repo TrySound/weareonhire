@@ -451,767 +451,782 @@
   {/if}
 </section>
 
-<!-- Work Experience -->
-<section class="cv-section">
-  <div class="cv-row">
-    <div><!-- skip column --></div>
-    <heading class="cv-row-heading">
-      <h2 class="heading-2 subtle">Work Experience</h2>
-      {#if !readonly}
-        <button
-          class="icon-button"
-          onclick={addExperience}
-          aria-label="Add Experience"
-        >
-          <svg width="20" height="20">
-            <use href="#icon-plus" />
-          </svg>
-        </button>
-      {/if}
-    </heading>
-  </div>
-
-  {#each work as job, index}
-    {#if isEditing("experience", index) && editingResume}
-      <!-- Editor -->
-
-      <div class="cv-row">
-        <div><!-- skip column --></div>
-        <div class="cv-row-heading">
-          <h3 class="heading-3 subtle">Edit Experience</h3>
+<details class="experience-container">
+  <!-- Work Experience -->
+  <section class="cv-section">
+    <div class="cv-row">
+      <div><!-- skip column --></div>
+      <heading class="cv-row-heading">
+        <h2 class="heading-2 subtle">Work Experience</h2>
+        {#if !readonly}
           <button
             class="icon-button"
-            aria-label="Save"
-            onclick={() => stopEditing()}
+            onclick={addExperience}
+            aria-label="Add Experience"
           >
             <svg width="20" height="20">
-              <use href="#icon-check" />
-            </svg>
-          </button>
-        </div>
-        <div><!-- skip column --></div>
-
-        <div class="form-stack">
-          <div class="form-grid">
-            <div class="form-group">
-              <label for="job-start-{index}" class="form-label">
-                Start Date
-              </label>
-              <DatePicker
-                id="job-start-{index}"
-                bind:value={editingResume.work[index].startDate}
-                placeholder="YYYY or YYYY-MM"
-              />
-            </div>
-            <div class="form-group">
-              <label for="job-end-{index}" class="form-label">End Date</label>
-              <DatePicker
-                id="job-end-{index}"
-                bind:value={editingResume.work[index].endDate}
-                placeholder="YYYY or YYYY-MM"
-              />
-            </div>
-            <div class="form-group">
-              <label for="job-title-{index}" class="form-label">
-                Job Title
-              </label>
-              <input
-                type="text"
-                id="job-title-{index}"
-                bind:value={editingResume.work[index].position}
-                placeholder="Software Engineer"
-                class="form-input"
-              />
-            </div>
-            <div class="form-group">
-              <label for="company-{index}" class="form-label">Company</label>
-              <input
-                type="text"
-                id="company-{index}"
-                bind:value={editingResume.work[index].name}
-                placeholder="TechCorp Inc."
-                class="form-input"
-              />
-            </div>
-            <div class="form-group">
-              <label for="job-location-{index}" class="form-label">
-                Location
-              </label>
-              <input
-                type="text"
-                id="job-location-{index}"
-                bind:value={editingResume.work[index].location}
-                placeholder="San Francisco, CA (or Remote)"
-                class="form-input"
-              />
-            </div>
-            <div class="form-group">
-              <label for="job-workplace-type-{index}" class="form-label">
-                Workplace Type
-              </label>
-              <select
-                id="job-workplace-type-{index}"
-                class="form-input"
-                bind:value={
-                  () =>
-                    editingResume?.work[index].extension?.workplaceType ?? "",
-                  (newValue) => {
-                    if (editingResume) {
-                      editingResume.work[index].extension ??= {};
-                      editingResume.work[index].extension.workplaceType =
-                        newValue || undefined;
-                    }
-                  }
-                }
-              >
-                <option value="">Select...</option>
-                <option value="onsite">On-site</option>
-                <option value="remote">Remote</option>
-                <option value="hybrid">Hybrid</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label for="job-employment-type-{index}" class="form-label">
-                Employment Type
-              </label>
-              <select
-                id="job-employment-type-{index}"
-                class="form-input"
-                bind:value={
-                  () =>
-                    editingResume?.work[index].extension?.employmentType ?? "",
-                  (newValue) => {
-                    if (editingResume) {
-                      editingResume.work[index].extension ??= {};
-                      editingResume.work[index].extension.employmentType =
-                        newValue || undefined;
-                    }
-                  }
-                }
-              >
-                <option value="">Select...</option>
-                <option value="fulltime">Full-time</option>
-                <option value="parttime">Part-time</option>
-                <option value="contract">Contract</option>
-                <option value="freelance">Freelance</option>
-                <option value="internship">Internship</option>
-              </select>
-            </div>
-          </div>
-          <div class="form-group">
-            <label for="job-desc-{index}" class="form-label">Description</label>
-            <textarea
-              id="job-desc-{index}"
-              bind:value={editingResume.work[index].summary}
-              rows="6"
-              placeholder="Describe your role, responsibilities, and achievements..."
-              class="form-input"
-            ></textarea>
-          </div>
-        </div>
-      </div>
-    {:else}
-      <!-- Preview -->
-
-      <div class="cv-row">
-        <div class="cv-row-side subtle">
-          {#if job.startDate || job.endDate}
-            <div>
-              {job.startDate || ""} — {job.endDate || "Present"}
-            </div>
-          {/if}
-          {#if job.location}
-            <div>{job.location}</div>
-          {/if}
-          {#if job.extension?.employmentType}
-            <div>{job.extension.employmentType}</div>
-          {/if}
-          {#if job.extension?.workplaceType}
-            <div>{job.extension.workplaceType}</div>
-          {/if}
-        </div>
-        <div class="cv-row-heading">
-          <div>
-            <h4 class="heading-3">{job.position || "Untitled Position"}</h4>
-            {#if job.name}
-              <p class="subtle">at {job.name}</p>
-            {/if}
-          </div>
-          <div class="actions">
-            {#if !readonly}
-              <button
-                class="icon-button"
-                aria-label="Edit experience"
-                onclick={() => startEditing("experience", index)}
-              >
-                <svg width="20" height="20">
-                  <use href="#icon-pencil" />
-                </svg>
-              </button>
-              <button
-                class="icon-button"
-                aria-label="Delete experience"
-                onclick={() => removeExperience(index)}
-              >
-                <svg width="20" height="20">
-                  <use href="#icon-minus-circle" />
-                </svg>
-              </button>
-            {/if}
-          </div>
-        </div>
-        <div><!-- skip column --></div>
-        <div class="cv-row-main">
-          {#if job.summary}
-            <p>{job.summary}</p>
-          {/if}
-        </div>
-      </div>
-    {/if}
-  {/each}
-</section>
-
-<!-- Education -->
-<section class="cv-section">
-  <div class="cv-row">
-    <div><!-- skip column --></div>
-    <heading class="cv-row-heading">
-      <h2 class="heading-2 subtle">Education</h2>
-      {#if !readonly}
-        <button
-          class="icon-button"
-          aria-label="Add Education"
-          onclick={addEducation}
-        >
-          <svg width="20" height="20">
-            <use href="#icon-plus" />
-          </svg>
-        </button>
-      {/if}
-    </heading>
-  </div>
-
-  {#each education as edu, index}
-    {#if isEditing("education", index) && editingResume}
-      <!-- Editor -->
-
-      <div class="cv-row">
-        <div><!-- skip column --></div>
-        <heading class="cv-row-heading">
-          <h3 class="heading-3 subtle">Edit Education</h3>
-          <button
-            class="icon-button"
-            aria-label="Save"
-            onclick={() => stopEditing()}
-          >
-            <svg width="20" height="20">
-              <use href="#icon-check" />
-            </svg>
-          </button>
-        </heading>
-        <div><!-- skip column --></div>
-
-        <div class="form-stack">
-          <div class="form-grid">
-            <div class="form-group">
-              <label for="edu-start-{index}" class="form-label">
-                Start Date
-              </label>
-              <DatePicker
-                id="edu-start-{index}"
-                bind:value={editingResume.education[index].startDate}
-                placeholder="YYYY or YYYY-MM"
-              />
-            </div>
-            <div class="form-group">
-              <label for="edu-end-{index}" class="form-label">End Date</label>
-              <DatePicker
-                id="edu-end-{index}"
-                bind:value={editingResume.education[index].endDate}
-                placeholder="YYYY or YYYY-MM"
-              />
-            </div>
-            <div class="form-group">
-              <label for="edu-institution-{index}" class="form-label">
-                Institution
-              </label>
-              <input
-                type="text"
-                id="edu-institution-{index}"
-                bind:value={editingResume.education[index].institution}
-                placeholder="University of Example"
-                class="form-input"
-              />
-            </div>
-            <div class="form-group">
-              <label for="edu-degree-{index}" class="form-label">Degree</label>
-              <input
-                type="text"
-                id="edu-degree-{index}"
-                bind:value={editingResume.education[index].studyType}
-                placeholder="Bachelor of Science"
-                class="form-input"
-              />
-            </div>
-            <div class="form-group">
-              <label for="edu-field-{index}" class="form-label">
-                Field of Study
-              </label>
-              <input
-                type="text"
-                id="edu-field-{index}"
-                bind:value={editingResume.education[index].area}
-                placeholder="Computer Science"
-                class="form-input"
-              />
-            </div>
-          </div>
-          <div class="form-group">
-            <label for="edu-desc-{index}" class="form-label">Description</label>
-            <textarea
-              id="edu-desc-{index}"
-              rows="4"
-              placeholder="Honors, awards, achievements, relevant coursework..."
-              class="form-input"
-              bind:value={
-                () =>
-                  editingResume?.education[index].extension?.description ?? "",
-                (newValue) => {
-                  if (editingResume) {
-                    editingResume.education[index].extension ??= {};
-                    editingResume.education[index].extension.description =
-                      newValue;
-                  }
-                }
-              }
-            ></textarea>
-          </div>
-        </div>
-      </div>
-    {:else}
-      <!-- Preview -->
-
-      <div class="cv-row">
-        <div class="cv-row-side subtle">
-          {#if edu.startDate || edu.endDate}
-            <div>
-              {edu.startDate || ""} — {edu.endDate || "Present"}
-            </div>
-          {/if}
-          {#if edu.area}
-            <div>{edu.area}</div>
-          {/if}
-        </div>
-        <div class="cv-row-heading">
-          <div>
-            {#if edu.institution}
-              <h4 class="heading-3">{edu.institution}</h4>
-            {/if}
-            {#if edu.studyType}
-              <p class="subtle">at {edu.studyType}</p>
-            {/if}
-          </div>
-          <div class="actions">
-            {#if !readonly}
-              <button
-                class="icon-button"
-                aria-label="Edit education"
-                onclick={() => startEditing("education", index)}
-              >
-                <svg width="20" height="20">
-                  <use href="#icon-pencil" />
-                </svg>
-              </button>
-              <button
-                class="icon-button"
-                aria-label="Delete education"
-                onclick={() => removeEducation(index)}
-              >
-                <svg width="20" height="20">
-                  <use href="#icon-minus-circle" />
-                </svg>
-              </button>
-            {/if}
-          </div>
-        </div>
-        <div><!-- skip column --></div>
-        <div class="cv-row-main">
-          {#if edu.extension?.description}
-            <p>{edu.extension.description}</p>
-          {/if}
-        </div>
-      </div>
-    {/if}
-  {/each}
-</section>
-
-<!-- Projects -->
-<section class="cv-section">
-  <div class="cv-row">
-    <div><!-- skip column --></div>
-    <header class="cv-row-heading">
-      <h2 class="heading-2 subtle">Projects</h2>
-      {#if !readonly}
-        <button
-          class="icon-button"
-          aria-label="Add Project"
-          onclick={addProject}
-        >
-          <svg width="20" height="20">
-            <use href="#icon-plus" />
-          </svg>
-        </button>
-      {/if}
-    </header>
-  </div>
-
-  {#each projects as project, index}
-    {#if isEditing("projects", index) && editingResume}
-      <!-- Editor -->
-
-      <div class="cv-row">
-        <div><!-- skip column --></div>
-        <div class="cv-row-heading">
-          <h3 class="heading-3">Edit Project</h3>
-          <button
-            class="icon-button"
-            aria-label="Save"
-            onclick={() => stopEditing()}
-          >
-            <svg width="20" height="20">
-              <use href="#icon-check" />
-            </svg>
-          </button>
-        </div>
-        <div><!-- skip column --></div>
-
-        <div class="form-stack">
-          <div class="form-grid">
-            <div class="form-group">
-              <label for="project-start-{index}" class="form-label">
-                Start Date
-              </label>
-              <DatePicker
-                id="project-start-{index}"
-                bind:value={editingResume.projects[index].startDate}
-                placeholder="YYYY or YYYY-MM"
-              />
-            </div>
-            <div class="form-group">
-              <label for="project-end-{index}" class="form-label">
-                End Date
-              </label>
-              <DatePicker
-                id="project-end-{index}"
-                bind:value={editingResume.projects[index].endDate}
-                placeholder="YYYY or YYYY-MM"
-              />
-            </div>
-            <div class="form-group">
-              <label for="project-name-{index}" class="form-label">
-                Project Name
-              </label>
-              <input
-                type="text"
-                id="project-name-{index}"
-                bind:value={editingResume.projects[index].name}
-                placeholder="E-commerce Platform"
-                class="form-input"
-              />
-            </div>
-            <div class="form-group">
-              <label for="project-url-{index}" class="form-label">
-                Project URL
-              </label>
-              <input
-                type="url"
-                id="project-url-{index}"
-                bind:value={editingResume.projects[index].url}
-                placeholder="https://github.com/username/project"
-                class="form-input"
-              />
-            </div>
-          </div>
-          <div class="form-group">
-            <label for="project-desc-{index}" class="form-label">
-              Description
-            </label>
-            <textarea
-              id="project-desc-{index}"
-              bind:value={editingResume.projects[index].description}
-              rows="3"
-              placeholder="Brief description of the project..."
-              class="form-input"
-            ></textarea>
-          </div>
-        </div>
-      </div>
-    {:else}
-      <!-- Preview -->
-
-      <div class="cv-row">
-        <div class="cv-row-side subtle">
-          {#if project.startDate || project.endDate}
-            <div>
-              {project.startDate || ""} — {project.endDate || "Present"}
-            </div>
-          {/if}
-        </div>
-        <div class="cv-row-heading">
-          {#if project.url}
-            <a href={project.url} target="_blank" class="heading-3 link">
-              {project.name || "Untitled Project"}
-            </a>
-          {:else}
-            <h4 class="heading-3">{project.name || "Untitled Project"}</h4>
-          {/if}
-          <div class="actions">
-            {#if !readonly}
-              <button
-                class="icon-button"
-                aria-label="Edit project"
-                onclick={() => startEditing("projects", index)}
-              >
-                <svg width="20" height="20">
-                  <use href="#icon-pencil" />
-                </svg>
-              </button>
-              <button
-                class="icon-button"
-                aria-label="Delete project"
-                onclick={() => removeProject(index)}
-              >
-                <svg width="20" height="20">
-                  <use href="#icon-minus-circle" />
-                </svg>
-              </button>
-            {/if}
-          </div>
-        </div>
-        <div><!-- skip column --></div>
-        <div class="cv-row-main">
-          {#if project.description}
-            <p>{project.description}</p>
-          {/if}
-        </div>
-      </div>
-    {/if}
-  {/each}
-</section>
-
-<!-- Skills -->
-<section class="cv-section">
-  <div class="cv-row">
-    <div><!-- skip column --></div>
-    <header class="cv-row-heading">
-      <h2 class="heading-2 subtle">Technical Skills</h2>
-      {#if !readonly}
-        {#if isEditing("skills")}
-          <button
-            class="icon-button"
-            aria-label="Save skills"
-            onclick={() => stopEditing()}
-          >
-            <svg width="20" height="20">
-              <use href="#icon-check" />
-            </svg>
-          </button>
-        {:else}
-          <button
-            class="icon-button"
-            aria-label="Edit skills"
-            onclick={() => startEditing("skills")}
-          >
-            <svg width="20" height="20">
-              <use href="#icon-pencil" />
+              <use href="#icon-plus" />
             </svg>
           </button>
         {/if}
-      {/if}
-    </header>
-  </div>
-
-  {#if isEditing("skills") && editingResume}
-    <div class="cv-row">
-      <div><!-- skip column --></div>
-      <div class="cv-row-main">
-        <MultiSelectCombobox
-          options={allSkills}
-          placeholder="e.g., TypeScript"
-          id="skills-combobox"
-          bind:selected={
-            () => editingResume?.skills.map((item) => item.name ?? "") ?? [],
-            (newSkills) => {
-              if (editingResume) {
-                editingResume.skills = newSkills.map((name) => ({ name }));
-              }
-            }
-          }
-        />
-      </div>
+      </heading>
     </div>
-  {:else if (displayResume.skills?.length ?? 0) > 0}
-    <div>
-      {#each Object.entries(skillsByCategory()) as [category, skills]}
+
+    {#each work as job, index}
+      {#if isEditing("experience", index) && editingResume}
+        <!-- Editor -->
+
         <div class="cv-row">
-          <div class="cv-row-side subtle">{category}</div>
-          <div class="cv-row-main">{skills.join(", ")}</div>
+          <div><!-- skip column --></div>
+          <div class="cv-row-heading">
+            <h3 class="heading-3 subtle">Edit Experience</h3>
+            <button
+              class="icon-button"
+              aria-label="Save"
+              onclick={() => stopEditing()}
+            >
+              <svg width="20" height="20">
+                <use href="#icon-check" />
+              </svg>
+            </button>
+          </div>
+          <div><!-- skip column --></div>
+
+          <div class="form-stack">
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="job-start-{index}" class="form-label">
+                  Start Date
+                </label>
+                <DatePicker
+                  id="job-start-{index}"
+                  bind:value={editingResume.work[index].startDate}
+                  placeholder="YYYY or YYYY-MM"
+                />
+              </div>
+              <div class="form-group">
+                <label for="job-end-{index}" class="form-label">End Date</label>
+                <DatePicker
+                  id="job-end-{index}"
+                  bind:value={editingResume.work[index].endDate}
+                  placeholder="YYYY or YYYY-MM"
+                />
+              </div>
+              <div class="form-group">
+                <label for="job-title-{index}" class="form-label">
+                  Job Title
+                </label>
+                <input
+                  type="text"
+                  id="job-title-{index}"
+                  bind:value={editingResume.work[index].position}
+                  placeholder="Software Engineer"
+                  class="form-input"
+                />
+              </div>
+              <div class="form-group">
+                <label for="company-{index}" class="form-label">Company</label>
+                <input
+                  type="text"
+                  id="company-{index}"
+                  bind:value={editingResume.work[index].name}
+                  placeholder="TechCorp Inc."
+                  class="form-input"
+                />
+              </div>
+              <div class="form-group">
+                <label for="job-location-{index}" class="form-label">
+                  Location
+                </label>
+                <input
+                  type="text"
+                  id="job-location-{index}"
+                  bind:value={editingResume.work[index].location}
+                  placeholder="San Francisco, CA (or Remote)"
+                  class="form-input"
+                />
+              </div>
+              <div class="form-group">
+                <label for="job-workplace-type-{index}" class="form-label">
+                  Workplace Type
+                </label>
+                <select
+                  id="job-workplace-type-{index}"
+                  class="form-input"
+                  bind:value={
+                    () =>
+                      editingResume?.work[index].extension?.workplaceType ?? "",
+                    (newValue) => {
+                      if (editingResume) {
+                        editingResume.work[index].extension ??= {};
+                        editingResume.work[index].extension.workplaceType =
+                          newValue || undefined;
+                      }
+                    }
+                  }
+                >
+                  <option value="">Select...</option>
+                  <option value="onsite">On-site</option>
+                  <option value="remote">Remote</option>
+                  <option value="hybrid">Hybrid</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="job-employment-type-{index}" class="form-label">
+                  Employment Type
+                </label>
+                <select
+                  id="job-employment-type-{index}"
+                  class="form-input"
+                  bind:value={
+                    () =>
+                      editingResume?.work[index].extension?.employmentType ??
+                      "",
+                    (newValue) => {
+                      if (editingResume) {
+                        editingResume.work[index].extension ??= {};
+                        editingResume.work[index].extension.employmentType =
+                          newValue || undefined;
+                      }
+                    }
+                  }
+                >
+                  <option value="">Select...</option>
+                  <option value="fulltime">Full-time</option>
+                  <option value="parttime">Part-time</option>
+                  <option value="contract">Contract</option>
+                  <option value="freelance">Freelance</option>
+                  <option value="internship">Internship</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="job-desc-{index}" class="form-label"
+                >Description</label
+              >
+              <textarea
+                id="job-desc-{index}"
+                bind:value={editingResume.work[index].summary}
+                rows="6"
+                placeholder="Describe your role, responsibilities, and achievements..."
+                class="form-input"
+              ></textarea>
+            </div>
+          </div>
         </div>
-      {/each}
-    </div>
-  {:else}
-    <div class="cv-row">
-      <span><!-- skip columns --></span>
-      <span class="cv-row-main">
-        <p class="subtle">No skills added yet. Click Edit to add skills.</p>
-      </span>
-    </div>
-  {/if}
-</section>
+      {:else}
+        <!-- Preview -->
 
-<!-- Workplace Preferences -->
-<section class="cv-section">
-  <div class="cv-row">
-    <div><!-- skip column --></div>
-    <header class="cv-row-heading">
-      <h2 class="heading-2 subtle">Workplace Preferences</h2>
-      {#if !readonly}
-        {#if isEditing("workplace")}
+        <div class="cv-row">
+          <div class="cv-row-side subtle">
+            {#if job.startDate || job.endDate}
+              <div>
+                {job.startDate || ""} — {job.endDate || "Present"}
+              </div>
+            {/if}
+            {#if job.location}
+              <div>{job.location}</div>
+            {/if}
+            {#if job.extension?.employmentType}
+              <div>{job.extension.employmentType}</div>
+            {/if}
+            {#if job.extension?.workplaceType}
+              <div>{job.extension.workplaceType}</div>
+            {/if}
+          </div>
+          <div class="cv-row-heading">
+            <div>
+              <h4 class="heading-3">{job.position || "Untitled Position"}</h4>
+              {#if job.name}
+                <p class="subtle">at {job.name}</p>
+              {/if}
+            </div>
+            <div class="actions">
+              {#if !readonly}
+                <button
+                  class="icon-button"
+                  aria-label="Edit experience"
+                  onclick={() => startEditing("experience", index)}
+                >
+                  <svg width="20" height="20">
+                    <use href="#icon-pencil" />
+                  </svg>
+                </button>
+                <button
+                  class="icon-button"
+                  aria-label="Delete experience"
+                  onclick={() => removeExperience(index)}
+                >
+                  <svg width="20" height="20">
+                    <use href="#icon-minus-circle" />
+                  </svg>
+                </button>
+              {/if}
+            </div>
+          </div>
+          <div><!-- skip column --></div>
+          <div class="cv-row-main">
+            {#if job.summary}
+              <p>{job.summary}</p>
+            {/if}
+          </div>
+        </div>
+      {/if}
+    {/each}
+  </section>
+
+  <!-- Education -->
+  <section class="cv-section">
+    <div class="cv-row">
+      <div><!-- skip column --></div>
+      <heading class="cv-row-heading">
+        <h2 class="heading-2 subtle">Education</h2>
+        {#if !readonly}
           <button
             class="icon-button"
-            aria-label="Save workplace preferences"
-            onclick={() => stopEditing()}
+            aria-label="Add Education"
+            onclick={addEducation}
           >
             <svg width="20" height="20">
-              <use href="#icon-check" />
-            </svg>
-          </button>
-        {:else}
-          <button
-            class="icon-button"
-            aria-label="Edit workplace preferences"
-            onclick={() => startEditing("workplace")}
-          >
-            <svg width="20" height="20">
-              <use href="#icon-pencil" />
+              <use href="#icon-plus" />
             </svg>
           </button>
         {/if}
-      {/if}
-    </header>
-  </div>
+      </heading>
+    </div>
 
-  {#if isEditing("workplace") && editingResume}
+    {#each education as edu, index}
+      {#if isEditing("education", index) && editingResume}
+        <!-- Editor -->
+
+        <div class="cv-row">
+          <div><!-- skip column --></div>
+          <heading class="cv-row-heading">
+            <h3 class="heading-3 subtle">Edit Education</h3>
+            <button
+              class="icon-button"
+              aria-label="Save"
+              onclick={() => stopEditing()}
+            >
+              <svg width="20" height="20">
+                <use href="#icon-check" />
+              </svg>
+            </button>
+          </heading>
+          <div><!-- skip column --></div>
+
+          <div class="form-stack">
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="edu-start-{index}" class="form-label">
+                  Start Date
+                </label>
+                <DatePicker
+                  id="edu-start-{index}"
+                  bind:value={editingResume.education[index].startDate}
+                  placeholder="YYYY or YYYY-MM"
+                />
+              </div>
+              <div class="form-group">
+                <label for="edu-end-{index}" class="form-label">End Date</label>
+                <DatePicker
+                  id="edu-end-{index}"
+                  bind:value={editingResume.education[index].endDate}
+                  placeholder="YYYY or YYYY-MM"
+                />
+              </div>
+              <div class="form-group">
+                <label for="edu-institution-{index}" class="form-label">
+                  Institution
+                </label>
+                <input
+                  type="text"
+                  id="edu-institution-{index}"
+                  bind:value={editingResume.education[index].institution}
+                  placeholder="University of Example"
+                  class="form-input"
+                />
+              </div>
+              <div class="form-group">
+                <label for="edu-degree-{index}" class="form-label">Degree</label
+                >
+                <input
+                  type="text"
+                  id="edu-degree-{index}"
+                  bind:value={editingResume.education[index].studyType}
+                  placeholder="Bachelor of Science"
+                  class="form-input"
+                />
+              </div>
+              <div class="form-group">
+                <label for="edu-field-{index}" class="form-label">
+                  Field of Study
+                </label>
+                <input
+                  type="text"
+                  id="edu-field-{index}"
+                  bind:value={editingResume.education[index].area}
+                  placeholder="Computer Science"
+                  class="form-input"
+                />
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="edu-desc-{index}" class="form-label"
+                >Description</label
+              >
+              <textarea
+                id="edu-desc-{index}"
+                rows="4"
+                placeholder="Honors, awards, achievements, relevant coursework..."
+                class="form-input"
+                bind:value={
+                  () =>
+                    editingResume?.education[index].extension?.description ??
+                    "",
+                  (newValue) => {
+                    if (editingResume) {
+                      editingResume.education[index].extension ??= {};
+                      editingResume.education[index].extension.description =
+                        newValue;
+                    }
+                  }
+                }
+              ></textarea>
+            </div>
+          </div>
+        </div>
+      {:else}
+        <!-- Preview -->
+
+        <div class="cv-row">
+          <div class="cv-row-side subtle">
+            {#if edu.startDate || edu.endDate}
+              <div>
+                {edu.startDate || ""} — {edu.endDate || "Present"}
+              </div>
+            {/if}
+            {#if edu.area}
+              <div>{edu.area}</div>
+            {/if}
+          </div>
+          <div class="cv-row-heading">
+            <div>
+              {#if edu.institution}
+                <h4 class="heading-3">{edu.institution}</h4>
+              {/if}
+              {#if edu.studyType}
+                <p class="subtle">at {edu.studyType}</p>
+              {/if}
+            </div>
+            <div class="actions">
+              {#if !readonly}
+                <button
+                  class="icon-button"
+                  aria-label="Edit education"
+                  onclick={() => startEditing("education", index)}
+                >
+                  <svg width="20" height="20">
+                    <use href="#icon-pencil" />
+                  </svg>
+                </button>
+                <button
+                  class="icon-button"
+                  aria-label="Delete education"
+                  onclick={() => removeEducation(index)}
+                >
+                  <svg width="20" height="20">
+                    <use href="#icon-minus-circle" />
+                  </svg>
+                </button>
+              {/if}
+            </div>
+          </div>
+          <div><!-- skip column --></div>
+          <div class="cv-row-main">
+            {#if edu.extension?.description}
+              <p>{edu.extension.description}</p>
+            {/if}
+          </div>
+        </div>
+      {/if}
+    {/each}
+  </section>
+
+  <!-- Projects -->
+  <section class="cv-section">
     <div class="cv-row">
       <div><!-- skip column --></div>
-      <div class="cv-row-main">
-        <MultiSelectCombobox
-          id="workplace-combobox"
-          options={workplaceOptions}
-          placeholder="Select workplace preferences"
-          bind:selected={
-            () => editingResume?.extension?.preferredWorkplaces ?? [],
-            (newWorkplaces) => {
-              if (editingResume) {
-                editingResume.extension.preferredWorkplaces = newWorkplaces;
-              }
-            }
-          }
-        />
-      </div>
-    </div>
-  {:else if (displayResume.extension?.preferredWorkplaces?.length ?? 0) > 0}
-    <div class="cv-row">
-      <span><!-- skip column --></span>
-      <span class="cv-row-main">
-        {displayResume.extension?.preferredWorkplaces?.join(", ")}
-      </span>
-    </div>
-  {:else}
-    <div class="cv-row">
-      <span><!-- skip column --></span>
-      <span class="cv-row-main">
-        <p class="subtle">No workplace preferences set. Click Edit to add.</p>
-      </span>
-    </div>
-  {/if}
-</section>
-
-<!-- Languages -->
-<section class="cv-section">
-  <div class="cv-row">
-    <div><!-- skip column --></div>
-    <header class="cv-row-heading">
-      <h2 class="heading-2 subtle">Languages</h2>
-      {#if !readonly}
-        {#if isEditing("languages")}
+      <header class="cv-row-heading">
+        <h2 class="heading-2 subtle">Projects</h2>
+        {#if !readonly}
           <button
             class="icon-button"
-            aria-label="Save languages"
-            onclick={() => stopEditing()}
+            aria-label="Add Project"
+            onclick={addProject}
           >
             <svg width="20" height="20">
-              <use href="#icon-check" />
-            </svg>
-          </button>
-        {:else}
-          <button
-            class="icon-button"
-            aria-label="Edit languages"
-            onclick={() => startEditing("languages")}
-          >
-            <svg width="20" height="20">
-              <use href="#icon-pencil" />
+              <use href="#icon-plus" />
             </svg>
           </button>
         {/if}
-      {/if}
-    </header>
-  </div>
+      </header>
+    </div>
 
-  {#if isEditing("languages") && editingResume}
+    {#each projects as project, index}
+      {#if isEditing("projects", index) && editingResume}
+        <!-- Editor -->
+
+        <div class="cv-row">
+          <div><!-- skip column --></div>
+          <div class="cv-row-heading">
+            <h3 class="heading-3">Edit Project</h3>
+            <button
+              class="icon-button"
+              aria-label="Save"
+              onclick={() => stopEditing()}
+            >
+              <svg width="20" height="20">
+                <use href="#icon-check" />
+              </svg>
+            </button>
+          </div>
+          <div><!-- skip column --></div>
+
+          <div class="form-stack">
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="project-start-{index}" class="form-label">
+                  Start Date
+                </label>
+                <DatePicker
+                  id="project-start-{index}"
+                  bind:value={editingResume.projects[index].startDate}
+                  placeholder="YYYY or YYYY-MM"
+                />
+              </div>
+              <div class="form-group">
+                <label for="project-end-{index}" class="form-label">
+                  End Date
+                </label>
+                <DatePicker
+                  id="project-end-{index}"
+                  bind:value={editingResume.projects[index].endDate}
+                  placeholder="YYYY or YYYY-MM"
+                />
+              </div>
+              <div class="form-group">
+                <label for="project-name-{index}" class="form-label">
+                  Project Name
+                </label>
+                <input
+                  type="text"
+                  id="project-name-{index}"
+                  bind:value={editingResume.projects[index].name}
+                  placeholder="E-commerce Platform"
+                  class="form-input"
+                />
+              </div>
+              <div class="form-group">
+                <label for="project-url-{index}" class="form-label">
+                  Project URL
+                </label>
+                <input
+                  type="url"
+                  id="project-url-{index}"
+                  bind:value={editingResume.projects[index].url}
+                  placeholder="https://github.com/username/project"
+                  class="form-input"
+                />
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="project-desc-{index}" class="form-label">
+                Description
+              </label>
+              <textarea
+                id="project-desc-{index}"
+                bind:value={editingResume.projects[index].description}
+                rows="3"
+                placeholder="Brief description of the project..."
+                class="form-input"
+              ></textarea>
+            </div>
+          </div>
+        </div>
+      {:else}
+        <!-- Preview -->
+
+        <div class="cv-row">
+          <div class="cv-row-side subtle">
+            {#if project.startDate || project.endDate}
+              <div>
+                {project.startDate || ""} — {project.endDate || "Present"}
+              </div>
+            {/if}
+          </div>
+          <div class="cv-row-heading">
+            {#if project.url}
+              <a href={project.url} target="_blank" class="heading-3 link">
+                {project.name || "Untitled Project"}
+              </a>
+            {:else}
+              <h4 class="heading-3">{project.name || "Untitled Project"}</h4>
+            {/if}
+            <div class="actions">
+              {#if !readonly}
+                <button
+                  class="icon-button"
+                  aria-label="Edit project"
+                  onclick={() => startEditing("projects", index)}
+                >
+                  <svg width="20" height="20">
+                    <use href="#icon-pencil" />
+                  </svg>
+                </button>
+                <button
+                  class="icon-button"
+                  aria-label="Delete project"
+                  onclick={() => removeProject(index)}
+                >
+                  <svg width="20" height="20">
+                    <use href="#icon-minus-circle" />
+                  </svg>
+                </button>
+              {/if}
+            </div>
+          </div>
+          <div><!-- skip column --></div>
+          <div class="cv-row-main">
+            {#if project.description}
+              <p>{project.description}</p>
+            {/if}
+          </div>
+        </div>
+      {/if}
+    {/each}
+  </section>
+
+  <!-- Skills -->
+  <section class="cv-section">
     <div class="cv-row">
       <div><!-- skip column --></div>
-      <div class="cv-row-main">
-        <MultiSelectCombobox
-          id="languages-combobox"
-          options={languageOptions}
-          placeholder="Select or add languages"
-          bind:selected={
-            () =>
-              (editingResume?.languages ?? []).map(
-                (item) => item.language ?? "",
-              ),
-            (newLanguages) => {
-              if (editingResume) {
-                editingResume.languages = newLanguages.map((language) => ({
-                  language,
-                }));
+      <header class="cv-row-heading">
+        <h2 class="heading-2 subtle">Technical Skills</h2>
+        {#if !readonly}
+          {#if isEditing("skills")}
+            <button
+              class="icon-button"
+              aria-label="Save skills"
+              onclick={() => stopEditing()}
+            >
+              <svg width="20" height="20">
+                <use href="#icon-check" />
+              </svg>
+            </button>
+          {:else}
+            <button
+              class="icon-button"
+              aria-label="Edit skills"
+              onclick={() => startEditing("skills")}
+            >
+              <svg width="20" height="20">
+                <use href="#icon-pencil" />
+              </svg>
+            </button>
+          {/if}
+        {/if}
+      </header>
+    </div>
+
+    {#if isEditing("skills") && editingResume}
+      <div class="cv-row">
+        <div><!-- skip column --></div>
+        <div class="cv-row-main">
+          <MultiSelectCombobox
+            options={allSkills}
+            placeholder="e.g., TypeScript"
+            id="skills-combobox"
+            bind:selected={
+              () => editingResume?.skills.map((item) => item.name ?? "") ?? [],
+              (newSkills) => {
+                if (editingResume) {
+                  editingResume.skills = newSkills.map((name) => ({ name }));
+                }
               }
             }
-          }
-        />
+          />
+        </div>
       </div>
-    </div>
-  {:else if (displayResume.languages?.length ?? 0) > 0}
+    {:else if (displayResume.skills?.length ?? 0) > 0}
+      <div>
+        {#each Object.entries(skillsByCategory()) as [category, skills]}
+          <div class="cv-row">
+            <div class="cv-row-side subtle">{category}</div>
+            <div class="cv-row-main">{skills.join(", ")}</div>
+          </div>
+        {/each}
+      </div>
+    {:else}
+      <div class="cv-row">
+        <span><!-- skip columns --></span>
+        <span class="cv-row-main">
+          <p class="subtle">No skills added yet. Click Edit to add skills.</p>
+        </span>
+      </div>
+    {/if}
+  </section>
+
+  <!-- Workplace Preferences -->
+  <section class="cv-section">
     <div class="cv-row">
-      <span><!-- skip column --></span>
-      <span class="cv-row-main">
-        {displayResume.languages
-          ?.map((l) => l.language)
-          .filter(Boolean)
-          .join(", ")}
-      </span>
+      <div><!-- skip column --></div>
+      <header class="cv-row-heading">
+        <h2 class="heading-2 subtle">Workplace Preferences</h2>
+        {#if !readonly}
+          {#if isEditing("workplace")}
+            <button
+              class="icon-button"
+              aria-label="Save workplace preferences"
+              onclick={() => stopEditing()}
+            >
+              <svg width="20" height="20">
+                <use href="#icon-check" />
+              </svg>
+            </button>
+          {:else}
+            <button
+              class="icon-button"
+              aria-label="Edit workplace preferences"
+              onclick={() => startEditing("workplace")}
+            >
+              <svg width="20" height="20">
+                <use href="#icon-pencil" />
+              </svg>
+            </button>
+          {/if}
+        {/if}
+      </header>
     </div>
-  {:else}
+
+    {#if isEditing("workplace") && editingResume}
+      <div class="cv-row">
+        <div><!-- skip column --></div>
+        <div class="cv-row-main">
+          <MultiSelectCombobox
+            id="workplace-combobox"
+            options={workplaceOptions}
+            placeholder="Select workplace preferences"
+            bind:selected={
+              () => editingResume?.extension?.preferredWorkplaces ?? [],
+              (newWorkplaces) => {
+                if (editingResume) {
+                  editingResume.extension.preferredWorkplaces = newWorkplaces;
+                }
+              }
+            }
+          />
+        </div>
+      </div>
+    {:else if (displayResume.extension?.preferredWorkplaces?.length ?? 0) > 0}
+      <div class="cv-row">
+        <span><!-- skip column --></span>
+        <span class="cv-row-main">
+          {displayResume.extension?.preferredWorkplaces?.join(", ")}
+        </span>
+      </div>
+    {:else}
+      <div class="cv-row">
+        <span><!-- skip column --></span>
+        <span class="cv-row-main">
+          <p class="subtle">No workplace preferences set. Click Edit to add.</p>
+        </span>
+      </div>
+    {/if}
+  </section>
+
+  <!-- Languages -->
+  <section class="cv-section">
     <div class="cv-row">
-      <span><!-- skip column --></span>
-      <span class="cv-row-main">
-        <p class="subtle">No languages added yet. Click Edit to add.</p>
-      </span>
+      <div><!-- skip column --></div>
+      <header class="cv-row-heading">
+        <h2 class="heading-2 subtle">Languages</h2>
+        {#if !readonly}
+          {#if isEditing("languages")}
+            <button
+              class="icon-button"
+              aria-label="Save languages"
+              onclick={() => stopEditing()}
+            >
+              <svg width="20" height="20">
+                <use href="#icon-check" />
+              </svg>
+            </button>
+          {:else}
+            <button
+              class="icon-button"
+              aria-label="Edit languages"
+              onclick={() => startEditing("languages")}
+            >
+              <svg width="20" height="20">
+                <use href="#icon-pencil" />
+              </svg>
+            </button>
+          {/if}
+        {/if}
+      </header>
     </div>
-  {/if}
-</section>
+
+    {#if isEditing("languages") && editingResume}
+      <div class="cv-row">
+        <div><!-- skip column --></div>
+        <div class="cv-row-main">
+          <MultiSelectCombobox
+            id="languages-combobox"
+            options={languageOptions}
+            placeholder="Select or add languages"
+            bind:selected={
+              () =>
+                (editingResume?.languages ?? []).map(
+                  (item) => item.language ?? "",
+                ),
+              (newLanguages) => {
+                if (editingResume) {
+                  editingResume.languages = newLanguages.map((language) => ({
+                    language,
+                  }));
+                }
+              }
+            }
+          />
+        </div>
+      </div>
+    {:else if (displayResume.languages?.length ?? 0) > 0}
+      <div class="cv-row">
+        <span><!-- skip column --></span>
+        <span class="cv-row-main">
+          {displayResume.languages
+            ?.map((l) => l.language)
+            .filter(Boolean)
+            .join(", ")}
+        </span>
+      </div>
+    {:else}
+      <div class="cv-row">
+        <span><!-- skip column --></span>
+        <span class="cv-row-main">
+          <p class="subtle">No languages added yet. Click Edit to add.</p>
+        </span>
+      </div>
+    {/if}
+  </section>
+
+  <summary class="icon-button expand-more">
+    <svg width="20" height="20">
+      <use href="#icon-chevron-down" />
+    </svg>
+  </summary>
+</details>
 
 <style>
   .heading-2 {
@@ -1263,6 +1278,43 @@
 
   .full-row {
     grid-column: 1 / -1;
+  }
+
+  .experience-container {
+    display: grid;
+    position: relative;
+
+    @media (prefers-reduced-motion: no-preference) {
+      interpolate-size: allow-keywords;
+    }
+
+    &::details-content {
+      opacity: 0;
+      block-size: 0;
+      overflow-y: clip;
+      transition:
+        content-visibility var(--transition-base) allow-discrete,
+        opacity var(--transition-base),
+        block-size var(--transition-base);
+    }
+
+    &[open]::details-content {
+      opacity: 1;
+      block-size: auto;
+    }
+  }
+
+  .expand-more {
+    position: absolute;
+    bottom: 0;
+    /* 50% - half icon button size */
+    left: calc(50% - 18px);
+    display: inline-flex;
+    margin: auto;
+
+    .experience-container[open] & svg {
+      rotate: 180deg;
+    }
   }
 
   @media (max-width: 640px) {

@@ -186,7 +186,7 @@
   }
 
   .editor-container {
-    min-height: 100dvh;
+    margin-bottom: var(--space-8);
   }
 
   .save-message {

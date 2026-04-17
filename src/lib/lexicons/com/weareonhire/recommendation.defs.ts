@@ -23,8 +23,8 @@ type Main = {
 export type { Main };
 
 /** A professional recommendation from one user to another. */
-const main = l.record<"literal:subject_did", Main>(
-  "literal:subject_did",
+const main = l.record<"tid", Main>(
+  "tid",
   $nsid,
   l.object({
     subject: l.string({ format: "did" }),

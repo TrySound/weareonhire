@@ -32,7 +32,6 @@ function createDB() {
   });
 }
 
-
 export async function getJetstreamCursor(
   db: Kysely<DatabaseSchema>,
 ): Promise<number | undefined> {
