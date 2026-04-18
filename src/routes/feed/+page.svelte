@@ -1,51 +1,48 @@
 <script lang="ts">
+  import { formatDate } from "$lib/date";
   import Topbar from "$lib/topbar.svelte";
 
   let { data } = $props();
-
-  function formatDate(dateString: string | undefined): string {
-    if (!dateString) {
-      return "";
-    }
-    const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    });
-  }
 </script>
 
 <div class="container">
-  <Topbar handle={data.handle} role={data.role} />
+  <Topbar handle={data.handle} />
 
-  <div class="recommendations-list">
+  <main class="recommendations-list">
     {#each data.recommendations as item}
-      <article>
+      <article class="row link-area">
         <div>
-          <a
-            href="/profile/{item.subjectHandle}#recommendation-{item.uri}"
-            class="link"
-          >
-            {item.subjectHandle}
-          </a>
-          <span class="subtle">was recommended by</span>
-          <a href="/profile/{item.authorHandle}" class="link">
-            {item.authorHandle}
-          </a>
+          <time class="subtle" datetime={item.createdAt}>
+            {formatDate(item.createdAt)}
+          </time>
         </div>
-        <div class="subtle">
-          {formatDate(item.createdAt)}
+        <div class="margin-trim-block">
+          <p>
+            <a href="/profile/{item.authorHandle}" class="link">
+              {item.authorHandle}
+            </a>
+            <span class="subtle">recommended</span>
+            <a href="/profile/{item.subjectHandle}" class="link">
+              {item.subjectHandle}
+            </a>
+          </p>
+          <p>
+            {item.reason}
+          </p>
         </div>
+        <a
+          class="link-target"
+          href="/profile/{item.subjectHandle}#recommendation-{item.uri}"
+          aria-label="Full post"
+        ></a>
       </article>
     {/each}
-  </div>
+  </main>
 </div>
 
 <style>
   .recommendations-list {
     display: grid;
-    gap: var(--space-4);
-    margin: var(--space-6) 0;
+    margin: var(--space-12) 0;
   }
 </style>

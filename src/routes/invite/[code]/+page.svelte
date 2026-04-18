@@ -36,7 +36,7 @@
 </script>
 
 <div class="container">
-  <Topbar handle={data.handle} role={data.role} inviteCode={data.inviteCode} />
+  <Topbar handle={data.handle} inviteCode={data.inviteCode} />
 
   <div class="recommendation-section">
     <h2 class="heading-2">Invitation for {data.invitation.name}</h2>

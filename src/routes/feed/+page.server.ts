@@ -2,6 +2,13 @@ import type { DidString } from "@atproto/lex";
 import { getDB } from "$lib/db";
 import { resolveHandleFromDid } from "$lib/auth";
 
+const truncate = (text: string, limit: number) => {
+  if (text.length <= limit) {
+    return text;
+  }
+  return `${text.slice(0, limit)}...`;
+};
+
 export const load = async ({ locals }) => {
   const db = await getDB();
 
@@ -10,6 +17,7 @@ export const load = async ({ locals }) => {
     .selectFrom("recommendation_index")
     .selectAll()
     .orderBy("created_at", "desc")
+    .limit(50)
     .execute();
 
   // Resolve handles for all DIDs
@@ -24,6 +32,7 @@ export const load = async ({ locals }) => {
         authorHandle: authorHandle,
         subjectHandle: subjectHandle,
         createdAt: item.created_at,
+        reason: truncate(item.reason, 200),
       };
     }),
   );

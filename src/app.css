@@ -62,7 +62,7 @@
 
   --color-bg: oklch(17.1% 0 0);
   --color-bg-elevated: oklch(20% 0 0);
-  --color-bg-hover: #2a2a2a;
+  --color-bg-hover: oklch(25% 0 0);
 
   --color-border: #2a2a2a;
   --color-border-input: #444444;
@@ -100,15 +100,17 @@ body {
   gap: var(--space-1);
   color: inherit;
   /* can be used for buttons too */
-  text-decoration: underline;
+  text-decoration-line: underline;
   text-underline-offset: 4px;
-  transition: color var(--transition-fast);
+  transition: all var(--transition-fast);
   /* reset button styles */
   background: transparent;
   border: 0;
   padding: 0;
   &:hover {
     color: var(--color-text);
+    text-decoration-color: var(--color-accent);
+    text-underline-offset: 6px;
   }
 }
 
@@ -119,10 +121,10 @@ body {
   align-items: center;
   justify-content: center;
   background-color: transparent;
-  border: 0;
+  border: 1px solid transparent;
   border-radius: 50%;
   color: var(--color-text-secondary);
-  transition: background-color var(--transition-fast);
+  transition: all var(--transition-fast);
   &:hover {
     background: var(--color-bg-hover);
   }
@@ -228,7 +230,7 @@ body {
 
 .quote {
   padding: var(--space-4) var(--space-6);
-  border-left: 4px solid var(--color-primary);
+  border-left: 1px solid var(--color-primary);
   color: var(--color-text);
   white-space: pre-line;
   font-size: var(--font-size-lg);
@@ -296,6 +298,25 @@ body {
   padding: 0 var(--space-4) var(--space-12);
 }
 
+.row {
+  display: grid;
+  grid-template-columns: 160px 1fr;
+  column-gap: var(--space-8);
+  row-gap: var(--space-4);
+
+  & > *:first-child {
+    text-align: right;
+  }
+
+  @media (max-width: 640px) {
+    grid-template-columns: 1fr;
+
+    & > *:first-child {
+      text-align: left;
+    }
+  }
+}
+
 .form-label {
   display: block;
   font-size: var(--font-size-sm);
@@ -317,6 +338,10 @@ body {
   transition: border-color var(--transition-base);
   &:hover {
     border-color: var(--color-primary);
+  }
+  &:focus {
+    border-color: var(--color-text);
+    outline: none;
   }
 }
 
@@ -347,18 +372,18 @@ body {
 
 .form-group {
   display: grid;
-  gap: var(--space-1);
+  gap: var(--space-2);
 }
 
 .form-stack {
   display: grid;
-  gap: var(--space-2);
+  gap: var(--space-3);
 }
 
 .form-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: var(--space-2);
+  gap: var(--space-3);
 }
 
 /* Layout Utilities */
@@ -472,4 +497,51 @@ body {
   justify-content: center;
   gap: var(--space-4);
   min-height: 200px;
+}
+
+/* utilities */
+
+/* trims paragraph margins,
+ * in the future can be replaced with margin-trim: block
+ **/
+.margin-trim-block {
+  & > *:first-child {
+    margin-top: 0;
+  }
+  & > *:last-child {
+    margin-bottom: 0;
+  }
+}
+
+/* makes whole area clickable
+ * while links inside elevated over link target
+ * to avoid nesting focused elements
+ *
+ * active proposal to support it without hacks
+ * https://open-ui.org/components/link-area-delegation-explainer/
+ **/
+.link-area {
+  position: relative;
+  padding: var(--space-6) var(--space-4);
+  transition: background-color var(--transition-fast);
+
+  &:where(a) {
+    text-decoration: none;
+    color: inherit;
+  }
+
+  &:has(a:hover),
+  &:where(a):hover {
+    background-color: var(--color-bg-hover);
+  }
+
+  a:not(.link-target) {
+    position: relative;
+    z-index: 1;
+  }
+}
+
+.link-target {
+  position: absolute;
+  inset: 0;
 }

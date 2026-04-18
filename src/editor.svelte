@@ -8,10 +8,12 @@
     resume,
     onSave,
     readonly = false,
+    fullResume = false,
   }: {
     resume: Resume;
     onSave?: (resume: Resume) => void;
     readonly?: boolean;
+    fullResume?: boolean;
   } = $props();
 
   // Local state for editing - only populated while editing
@@ -234,7 +236,7 @@
   {#if isEditing("contact") && editingResume}
     <!-- Editor -->
 
-    <div class="cv-row">
+    <div class="row">
       <div><!-- skip column --></div>
       <div class="cv-row-heading">
         <h2 class="heading-2">Contacts and Summary</h2>
@@ -382,7 +384,7 @@
   {:else}
     <!-- Preview -->
 
-    <div class="cv-row">
+    <div class="row">
       <div><!-- skip column --></div>
       <div class="cv-row-heading">
         <div>
@@ -403,7 +405,7 @@
         {/if}
       </div>
     </div>
-    <div class="cv-row">
+    <div class="row">
       <div class="cv-row-side subtle">
         {#if displayResume.basics?.location?.address}
           <div>
@@ -451,10 +453,10 @@
   {/if}
 </section>
 
-<details class="experience-container">
+<details class="experience-container" open={fullResume}>
   <!-- Work Experience -->
-  <section class="cv-section">
-    <div class="cv-row">
+  <section class="cv-section" hidden={readonly && work.length === 0}>
+    <div class="row">
       <div><!-- skip column --></div>
       <heading class="cv-row-heading">
         <h2 class="heading-2 subtle">Work Experience</h2>
@@ -476,7 +478,7 @@
       {#if isEditing("experience", index) && editingResume}
         <!-- Editor -->
 
-        <div class="cv-row">
+        <div class="row">
           <div><!-- skip column --></div>
           <div class="cv-row-heading">
             <h3 class="heading-3 subtle">Edit Experience</h3>
@@ -617,7 +619,7 @@
       {:else}
         <!-- Preview -->
 
-        <div class="cv-row">
+        <div class="row">
           <div class="cv-row-side subtle">
             {#if job.startDate || job.endDate}
               <div>
@@ -676,8 +678,8 @@
   </section>
 
   <!-- Education -->
-  <section class="cv-section">
-    <div class="cv-row">
+  <section class="cv-section" hidden={readonly && education.length === 0}>
+    <div class="row">
       <div><!-- skip column --></div>
       <heading class="cv-row-heading">
         <h2 class="heading-2 subtle">Education</h2>
@@ -699,7 +701,7 @@
       {#if isEditing("education", index) && editingResume}
         <!-- Editor -->
 
-        <div class="cv-row">
+        <div class="row">
           <div><!-- skip column --></div>
           <heading class="cv-row-heading">
             <h3 class="heading-3 subtle">Edit Education</h3>
@@ -799,7 +801,7 @@
       {:else}
         <!-- Preview -->
 
-        <div class="cv-row">
+        <div class="row">
           <div class="cv-row-side subtle">
             {#if edu.startDate || edu.endDate}
               <div>
@@ -854,8 +856,8 @@
   </section>
 
   <!-- Projects -->
-  <section class="cv-section">
-    <div class="cv-row">
+  <section class="cv-section" hidden={readonly && projects.length === 0}>
+    <div class="row">
       <div><!-- skip column --></div>
       <header class="cv-row-heading">
         <h2 class="heading-2 subtle">Projects</h2>
@@ -877,7 +879,7 @@
       {#if isEditing("projects", index) && editingResume}
         <!-- Editor -->
 
-        <div class="cv-row">
+        <div class="row">
           <div><!-- skip column --></div>
           <div class="cv-row-heading">
             <h3 class="heading-3">Edit Project</h3>
@@ -957,7 +959,7 @@
       {:else}
         <!-- Preview -->
 
-        <div class="cv-row">
+        <div class="row">
           <div class="cv-row-side subtle">
             {#if project.startDate || project.endDate}
               <div>
@@ -1009,7 +1011,7 @@
 
   <!-- Skills -->
   <section class="cv-section">
-    <div class="cv-row">
+    <div class="row">
       <div><!-- skip column --></div>
       <header class="cv-row-heading">
         <h2 class="heading-2 subtle">Technical Skills</h2>
@@ -1040,7 +1042,7 @@
     </div>
 
     {#if isEditing("skills") && editingResume}
-      <div class="cv-row">
+      <div class="row">
         <div><!-- skip column --></div>
         <div class="cv-row-main">
           <MultiSelectCombobox
@@ -1061,14 +1063,14 @@
     {:else if (displayResume.skills?.length ?? 0) > 0}
       <div>
         {#each Object.entries(skillsByCategory()) as [category, skills]}
-          <div class="cv-row">
+          <div class="row">
             <div class="cv-row-side subtle">{category}</div>
             <div class="cv-row-main">{skills.join(", ")}</div>
           </div>
         {/each}
       </div>
     {:else}
-      <div class="cv-row">
+      <div class="row">
         <span><!-- skip columns --></span>
         <span class="cv-row-main">
           <p class="subtle">No skills added yet. Click Edit to add skills.</p>
@@ -1079,7 +1081,7 @@
 
   <!-- Workplace Preferences -->
   <section class="cv-section">
-    <div class="cv-row">
+    <div class="row">
       <div><!-- skip column --></div>
       <header class="cv-row-heading">
         <h2 class="heading-2 subtle">Workplace Preferences</h2>
@@ -1110,7 +1112,7 @@
     </div>
 
     {#if isEditing("workplace") && editingResume}
-      <div class="cv-row">
+      <div class="row">
         <div><!-- skip column --></div>
         <div class="cv-row-main">
           <MultiSelectCombobox
@@ -1129,14 +1131,14 @@
         </div>
       </div>
     {:else if (displayResume.extension?.preferredWorkplaces?.length ?? 0) > 0}
-      <div class="cv-row">
+      <div class="row">
         <span><!-- skip column --></span>
         <span class="cv-row-main">
           {displayResume.extension?.preferredWorkplaces?.join(", ")}
         </span>
       </div>
     {:else}
-      <div class="cv-row">
+      <div class="row">
         <span><!-- skip column --></span>
         <span class="cv-row-main">
           <p class="subtle">No workplace preferences set. Click Edit to add.</p>
@@ -1147,7 +1149,7 @@
 
   <!-- Languages -->
   <section class="cv-section">
-    <div class="cv-row">
+    <div class="row">
       <div><!-- skip column --></div>
       <header class="cv-row-heading">
         <h2 class="heading-2 subtle">Languages</h2>
@@ -1178,7 +1180,7 @@
     </div>
 
     {#if isEditing("languages") && editingResume}
-      <div class="cv-row">
+      <div class="row">
         <div><!-- skip column --></div>
         <div class="cv-row-main">
           <MultiSelectCombobox
@@ -1202,7 +1204,7 @@
         </div>
       </div>
     {:else if (displayResume.languages?.length ?? 0) > 0}
-      <div class="cv-row">
+      <div class="row">
         <span><!-- skip column --></span>
         <span class="cv-row-main">
           {displayResume.languages
@@ -1212,7 +1214,7 @@
         </span>
       </div>
     {:else}
-      <div class="cv-row">
+      <div class="row">
         <span><!-- skip column --></span>
         <span class="cv-row-main">
           <p class="subtle">No languages added yet. Click Edit to add.</p>
@@ -1233,16 +1235,10 @@
     text-transform: uppercase;
   }
 
-  .cv-section {
+  .cv-section:not([hidden]) {
     display: grid;
     gap: var(--space-6);
     margin-bottom: var(--space-12);
-  }
-
-  .cv-row {
-    display: grid;
-    grid-template-columns: 180px 1fr;
-    column-gap: var(--space-8);
   }
 
   .cv-row-heading {
@@ -1259,14 +1255,18 @@
     display: grid;
     grid-auto-rows: min-content;
     justify-items: end;
-    /* align when text gets wrapped */
-    text-align: right;
   }
 
   .cv-row-main {
     p {
       margin-top: 0;
       white-space: pre-line;
+    }
+    & > *:first-child {
+      margin-top: 0;
+    }
+    & > *:last-child {
+      margin-bottom: 0;
     }
   }
 
@@ -1318,11 +1318,6 @@
   }
 
   @media (max-width: 640px) {
-    .cv-row {
-      grid-template-columns: 1fr;
-      row-gap: var(--space-4);
-    }
-
     .cv-row-side {
       justify-items: start;
     }
