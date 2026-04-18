@@ -10,6 +10,7 @@
     createRecommendation as createRecommendationRaw,
   } from "$lib/recommendation.remote";
   import { getMemberProfile, updateMemberProfile } from "$lib/profile.remote";
+  import { formatDate } from "$lib/date";
 
   let { data } = $props();
 
@@ -25,7 +26,8 @@
 
   // Load recommendations via remote query
   const recommendations = $derived(
-    getProfileRecommendations({ handle: data.profile.handle }),
+    // await triggers reactivity loss warning but does not blink on the page
+    await getProfileRecommendations({ handle: data.profile.handle }),
   );
 
   // Track which recommendation is currently targeted via URL hash
@@ -47,7 +49,7 @@
 </script>
 
 <div class="container">
-  <Topbar handle={data.handle} role={data.role} />
+  <Topbar handle={data.handle} />
 
   <div class="actions">
     {#if isOwnProfile}
@@ -107,66 +109,78 @@
     class="recommendations-section"
     aria-label="Recommendations from other members"
   >
-    <h2 class="heading-2 subtle">Recommendations</h2>
+    <div class="row">
+      <div><!-- skip column --></div>
+      <h2 class="heading-2 subtle">Recommendations</h2>
+    </div>
 
     <!-- Write Recommendation Form -->
-    {#if !isOwnProfile && !recommendations.current?.isRecommendedByMe && data.handle}
-      <form {...createRecommendation} class="form-stack">
-        <input
-          {...createRecommendation.fields.handle.as(
-            "hidden",
-            data.profile.handle,
-          )}
-        />
-        <div class="form-group">
-          <label for="recommendation-input" class="form-label">
-            Write a recommendation
-            <span class="character-count">
-              {createRecommendation.fields.reason.value()?.length ?? 0} / 200 characters
-            </span>
-          </label>
-          <textarea
-            id="recommendation-input"
-            rows="6"
-            class="form-input"
-            placeholder="Write your recommendation here..."
-            minlength="200"
-            {...createRecommendation.fields.reason.as("text")}
-          ></textarea>
-        </div>
-        <div>
-          <button
-            class="button"
-            data-state={createRecommendation.pending ? "loading" : "idle"}
-          >
-            Post
-          </button>
-        </div>
-      </form>
+    {#if !isOwnProfile && !recommendations.isRecommendedByMe && data.handle}
+      <div class="row">
+        <div><!-- skip column --></div>
+        <form {...createRecommendation} class="form-stack">
+          <input
+            {...createRecommendation.fields.handle.as(
+              "hidden",
+              data.profile.handle,
+            )}
+          />
+          <div class="form-group">
+            <label for="recommendation-input" class="form-label">
+              Write a recommendation
+              <span class="character-count">
+                {createRecommendation.fields.reason.value()?.length ?? 0} / 200 characters
+              </span>
+            </label>
+            <textarea
+              id="recommendation-input"
+              rows="6"
+              class="form-input"
+              placeholder="Write your recommendation here..."
+              minlength="200"
+              {...createRecommendation.fields.reason.as("text")}
+            ></textarea>
+          </div>
+          <div>
+            <button
+              class="button"
+              data-state={createRecommendation.pending ? "loading" : "idle"}
+            >
+              Post
+            </button>
+          </div>
+        </form>
+      </div>
     {/if}
 
     <div class="recommendations-list">
-      {#each recommendations.current?.recommendations as item}
+      {#each recommendations.recommendations as item}
         <article
           id="recommendation-{item.id}"
-          class="recommendation-item"
-          class:highlight={targetedId === `recommendation-${item.id}`}
+          class="row recommendation"
+          class:active={targetedId === `recommendation-${item.id}`}
         >
-          <div class="subtle">
-            Recommended by
-            <a href="/profile/{item.authorHandle}" class="link">
-              {item.authorHandle}
-            </a>
-            <time datetime={item.createdAt}>
-              {new Date(item.createdAt ?? 0).toLocaleDateString()}
+          <div>
+            <time class="subtle" datetime={item.createdAt}>
+              {formatDate(item.createdAt)}
             </time>
           </div>
-          <div class="quote">
-            <p>{item.reason}</p>
+          <div class="margin-trim-block">
+            <p>
+              <a href="/profile/{item.authorHandle}" class="link">
+                {item.authorHandle}
+              </a>
+            </p>
+            <p>
+              {item.reason}
+            </p>
           </div>
         </article>
       {:else}
-        <p class="subtle">The member has not been recommended yet</p>
+        <div class="row">
+          <div><!-- skip column --></div>
+          <p class="subtle">The user has not been recommended yet</p>
+        </div>
       {/each}
     </div>
   </section>
@@ -208,16 +222,11 @@
     gap: var(--space-6);
   }
 
-  .recommendation-item {
-    display: grid;
-    gap: var(--space-4);
-  }
-
-  .recommendation-item.highlight {
-    background-color: var(--color-bg-hover);
-    padding: var(--space-4);
-    margin: calc(-1 * var(--space-4));
-    border-radius: var(--radius-md);
-    transition: background-color 0.3s ease;
+  .recommendation {
+    padding: var(--space-6) var(--space-4);
+    margin: 0 calc(var(--space-4) * -1);
+    &.active {
+      background-color: var(--color-bg-hover);
+    }
   }
 </style>

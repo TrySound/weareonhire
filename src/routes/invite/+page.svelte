@@ -12,7 +12,7 @@
 </script>
 
 <div class="container">
-  <Topbar handle={data.handle} role={data.role} />
+  <Topbar handle={data.handle} />
 
   <h1 class="heading-2">Invitations</h1>
   <p class="subtle">

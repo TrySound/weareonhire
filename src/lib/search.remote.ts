@@ -13,7 +13,7 @@ export const searchProfiles = query(
 
     const response = await publicAgent.app.bsky.actor.searchActorsTypeahead({
       q: q.trim(),
-      limit: 10,
+      limit: 8,
     });
 
     const results = response.data.actors.map((actor) => {

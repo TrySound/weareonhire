@@ -1,4 +1,3 @@
-import { redirect } from "@sveltejs/kit";
 import type { HandleString } from "@atproto/lex";
 import { getDB } from "$lib/db";
 
