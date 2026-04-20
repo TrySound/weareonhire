@@ -5,19 +5,20 @@ import type {
   Education,
   WorkplaceType,
   EmploymentType,
-  Profile,
 } from "./jsonresume";
 import type { Kysely } from "kysely";
 import type { DatabaseSchema } from "./db";
+import { normalizeUrl } from "./link";
+import type { DidString } from "@atproto/lex";
 
-export async function loadResume(handle: string): Promise<Resume | undefined> {
+export async function loadResume(did: DidString): Promise<Resume | undefined> {
   const db = await getDB();
 
   // Get target member
   const targetMember = await db
     .selectFrom("members")
     .selectAll()
-    .where("handle", "=", handle)
+    .where("did", "=", did)
     .executeTakeFirst();
 
   if (!targetMember) {
@@ -162,12 +163,12 @@ export async function loadResume(handle: string): Promise<Resume | undefined> {
     projects:
       projects.length > 0
         ? projects.map((p) => ({
-            name: p.name,
-            description: p.description ?? undefined,
-            url: p.url ?? undefined,
-            startDate: p.started_at ?? undefined,
-            endDate: p.ended_at ?? undefined,
-          }))
+          name: p.name,
+          description: p.description ?? undefined,
+          url: p.url ?? undefined,
+          startDate: p.started_at ?? undefined,
+          endDate: p.ended_at ?? undefined,
+        }))
         : undefined,
     skills:
       skills.length > 0 ? skills.map((s) => ({ name: s.skill })) : undefined,
@@ -183,13 +184,6 @@ export async function loadResume(handle: string): Promise<Resume | undefined> {
 
   return resume;
 }
-
-const normalizeUrl = (url: string) => {
-  if (url.startsWith("https://")) {
-    return url;
-  }
-  return `https://${url}`;
-};
 
 async function updateResumeData(
   db: Kysely<DatabaseSchema>,

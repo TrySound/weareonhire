@@ -1,8 +1,11 @@
 <script lang="ts">
+  import countries from "i18n-iso-countries";
+  import countriesEnLocale from "i18n-iso-countries/langs/en.json";
   import type { Resume } from "$lib/jsonresume";
   import { SKILLS_TAXONOMY } from "$lib/cv-parser";
   import MultiSelectCombobox from "./multi-select-combobox.svelte";
   import DatePicker from "$lib/date-picker.svelte";
+  import { getLinkDisplayName, getLinkIcon } from "$lib/link";
 
   let {
     resume,
@@ -15,6 +18,14 @@
     readonly?: boolean;
     fullResume?: boolean;
   } = $props();
+
+  countries.registerLocale(countriesEnLocale);
+
+  const countriesList = Object.entries(
+    countries.getNames("en", { select: "alias" }),
+  )
+    .map(([code, name]) => ({ code, name }))
+    .sort((a, b) => a.name.localeCompare(b.name));
 
   // Local state for editing - only populated while editing
   let editingResume = $state<Required<Resume> | null>(null);
@@ -111,9 +122,11 @@
     return {
       $schema: resume.$schema ?? "",
       basics: resume.basics ?? {},
-      work: resume.work ?? [],
+      // sort the same way as displayed data
+      work: sortByDate(resume.work ?? []),
+      education: sortByDate(resume.education ?? []),
+      projects: sortByDate(resume.projects ?? []),
       volunteer: resume.volunteer ?? [],
-      education: resume.education ?? [],
       awards: resume.awards ?? [],
       certificates: resume.certificates ?? [],
       publications: resume.publications ?? [],
@@ -121,7 +134,6 @@
       languages: resume.languages ?? [],
       interests: resume.interests ?? [],
       references: resume.references ?? [],
-      projects: resume.projects ?? [],
       meta: resume.meta ?? {},
       extension: resume.extension ?? {},
     };
@@ -202,33 +214,6 @@
     editingResume.projects.splice(index, 1);
     stopEditing();
   }
-
-  function getNetworkDisplayName(url: string): string {
-    const lowerUrl = url.toLowerCase();
-    if (lowerUrl.includes("github.com")) return "GitHub";
-    if (lowerUrl.includes("linkedin.com")) return "LinkedIn";
-    if (lowerUrl.includes("twitter.com") || lowerUrl.includes("x.com"))
-      return "Twitter";
-    if (lowerUrl.includes("facebook.com")) return "Facebook";
-    if (lowerUrl.includes("instagram.com")) return "Instagram";
-    if (lowerUrl.includes("t.me") || lowerUrl.includes("telegram.me"))
-      return "Telegram";
-
-    try {
-      const hostname = new URL(url.startsWith("http") ? url : `https://${url}`)
-        .hostname;
-      return hostname.replace(/^www\./, "");
-    } catch {
-      return url;
-    }
-  }
-
-  function getNetworkIcon(url: string): string {
-    const lowerUrl = url.toLowerCase();
-    if (lowerUrl.includes("github.com")) return "github";
-    if (lowerUrl.includes("linkedin.com")) return "linkedin";
-    return "website";
-  }
 </script>
 
 <!-- Contacts and summary -->
@@ -265,33 +250,26 @@
             />
           </div>
           <div class="form-group">
-            <label for="contact-website" class="form-label">Website</label>
-            <input
-              type="text"
-              id="contact-website"
-              bind:value={editingResume.basics.url}
-              placeholder="https://johndoe.com"
-              class="form-input"
-            />
-          </div>
-          <div class="form-group">
             <label for="contact-location" class="form-label">Location</label>
-            <input
-              type="text"
+            <select
               id="contact-location"
-              placeholder="San Francisco, CA"
               class="form-input"
               bind:value={
-                () => editingResume?.basics.location?.address ?? "",
+                () => editingResume?.basics.location?.countryCode ?? "",
                 (newValue) => {
                   if (editingResume) {
                     editingResume.basics.location = newValue
-                      ? { address: newValue }
+                      ? { countryCode: newValue }
                       : undefined;
                   }
                 }
               }
-            />
+            >
+              <option value="">Worldwide</option>
+              {#each countriesList as country}
+                <option value={country.code}>{country.name}</option>
+              {/each}
+            </select>
           </div>
           <div class="form-group">
             <label for="contact-email" class="form-label">Email</label>
@@ -304,73 +282,40 @@
             />
           </div>
           <div class="form-group">
-            <label for="contact-headline" class="form-label">Headline</label>
+            <label for="contact-title" class="form-label">Title</label>
             <input
               type="text"
-              id="contact-headline"
+              id="contact-title"
               bind:value={editingResume.basics.label}
               placeholder="Senior Software Engineer at TechCorp"
               class="form-input"
             />
           </div>
-          <div class="form-group">
-            <label for="contact-industry" class="form-label">Industry</label>
-            <input
-              type="text"
-              id="contact-industry"
-              bind:value={editingResume.extension.industry}
-              placeholder="Software Development"
-              class="form-input"
-            />
-          </div>
+
           <div class="form-group full-row">
-            <!-- svelte-ignore a11y_label_has_associated_control -->
-            <label class="form-label">Profile URLs</label>
-            {#each editingResume.basics.profiles ?? [] as profile, index}
-              <div class="input-with-action">
-                <input
-                  bind:value={profile.url}
-                  placeholder="https://linkedin.com/in/johndoe"
-                  class="form-input"
-                />
-                <button
-                  class="icon-button"
-                  aria-label="Remove profile URL"
-                  onclick={() => {
-                    if (editingResume) {
-                      const profiles = editingResume.basics.profiles ?? [];
-                      profiles.splice(index, 1);
-                    }
-                  }}
-                >
-                  <svg width="16" height="16">
-                    <use href="#icon-minus-circle" />
-                  </svg>
-                </button>
-              </div>
-            {/each}
-            <div class="input-with-action">
-              <div><!-- skip column --></div>
-              <button
-                class="icon-button"
-                aria-label="Add profile URL"
-                onclick={() => {
+            <label for="profile-contacts" class="form-label">Contacts</label>
+            <MultiSelectCombobox
+              id="profile-contacts"
+              options={[]}
+              placeholder="Add URL (e.g., https://github.com/username)"
+              bind:selected={
+                () =>
+                  (editingResume?.basics.profiles ?? []).map(
+                    (item) => item.url,
+                  ),
+                (newProfiles) => {
                   if (editingResume) {
-                    const profiles = editingResume.basics.profiles ?? [];
-                    profiles.push({ url: "" });
-                    editingResume.basics.profiles = profiles;
+                    editingResume.basics.profiles = newProfiles.map((url) => ({
+                      url,
+                    }));
                   }
-                }}
-              >
-                <svg width="16" height="16">
-                  <use href="#icon-plus" />
-                </svg>
-              </button>
-            </div>
+                }
+              }
+            />
           </div>
         </div>
         <div class="form-group">
-          <label for="contact-summary" class="form-label">Bio / Summary</label>
+          <label for="contact-summary" class="form-label">Short Summary</label>
           <textarea
             id="contact-summary"
             bind:value={editingResume.basics.summary}
@@ -413,28 +358,27 @@
             <svg width="14" height="14"><use href="#icon-location" /></svg>
           </div>
         {/if}
+        {#if displayResume.basics?.location?.countryCode}
+          {countries.getName(displayResume.basics.location.countryCode, "en", {
+            select: "alias",
+          })}
+        {:else}
+          Worldwide
+        {/if}
         {#if displayResume.basics?.email}
           <a href="mailto:{displayResume.basics.email}" class="link">
             Email
             <svg width="14" height="14"><use href="#icon-email" /></svg>
           </a>
         {/if}
-        {#if displayResume.basics?.profiles}
-          {#each displayResume.basics.profiles as profile}
-            <a href={profile.url} target="_blank" class="link">
-              {getNetworkDisplayName(profile.url)}
-              <svg width="14" height="14">
-                <use href="#icon-{getNetworkIcon(profile.url)}" />
-              </svg>
-            </a>
-          {/each}
-        {/if}
-        {#if displayResume.basics?.url}
-          <a href={displayResume.basics.url} target="_blank" class="link">
-            {getNetworkDisplayName(displayResume.basics.url)}
-            <svg width="14" height="14"><use href="#icon-website" /></svg>
+        {#each displayResume.basics?.profiles as profile}
+          <a href={profile.url} target="_blank" class="link">
+            {getLinkDisplayName(profile.url)}
+            <svg width="14" height="14">
+              <use href="#icon-{getLinkIcon(profile.url)}" />
+            </svg>
           </a>
-        {/if}
+        {/each}
       </div>
       <div class="cv-row-main">
         {#if displayResume.basics?.label}
@@ -1268,12 +1212,6 @@
     & > *:last-child {
       margin-bottom: 0;
     }
-  }
-
-  .input-with-action {
-    display: grid;
-    grid-template-columns: 1fr max-content;
-    gap: var(--space-2);
   }
 
   .full-row {

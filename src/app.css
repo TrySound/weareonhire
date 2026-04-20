@@ -76,7 +76,7 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   font-family: var(--font-family);
-  line-height: var(--line-height-normal);
+  line-height: var(--line-height-relaxed);
   font-weight: var(--font-weight-normal);
   font-size: var(--font-size-sm);
   color: var(--color-text-secondary);
@@ -544,4 +544,14 @@ body {
 .link-target {
   position: absolute;
   inset: 0;
+}
+
+.white-space-preserve-line {
+  white-space: pre-line;
+}
+
+.space-between {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
