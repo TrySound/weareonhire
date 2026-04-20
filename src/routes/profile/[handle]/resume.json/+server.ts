@@ -2,21 +2,18 @@ import { json, error } from "@sveltejs/kit";
 import { loadResume } from "$lib/resume.server";
 import { loadSifaResume } from "$lib/sifa.server";
 import type { RequestHandler } from "./$types";
+import { handleResolver } from "$lib/auth";
 
-export const GET: RequestHandler = async ({ params, locals }) => {
+export const GET: RequestHandler = async ({ params }) => {
   const handle = params.handle;
   if (!handle) {
     error(400, "Missing handle parameter");
   }
-  let resume;
-  // Logged in users: try local database first
-  if (locals.did) {
-    resume = await loadResume(handle);
+  const did = await handleResolver.resolve(handle);
+  if (!did) {
+    error(404);
   }
-  // Non-logged in users: fetch from sifa.id
-  if (!resume) {
-    resume = await loadSifaResume(handle);
-  }
+  const resume = (await loadResume(did)) ?? (await loadSifaResume(did, false));
   if (!resume) {
     error(404, "Profile not found");
   }

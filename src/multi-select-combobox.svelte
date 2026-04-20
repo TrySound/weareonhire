@@ -277,8 +277,7 @@
     align-items: center;
     gap: var(--space-1);
     padding: var(--space-1) var(--space-3);
-    background: var(--color-primary);
-    color: white;
+    border: 1px solid var(--color-border-input);
     border-radius: 20px;
     font-size: var(--font-size-sm);
     font-weight: var(--font-weight-medium);

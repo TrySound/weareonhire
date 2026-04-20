@@ -1,13 +1,14 @@
 import {
   Client,
   type DatetimeString,
+  type DidString,
   type RecordKeyString,
 } from "@atproto/lex";
 import { Agent } from "@atproto/api";
 import { extractPdsUrl } from "@atproto/oauth-client-node";
+import * as weareonhire from "$lib/lexicons/com/weareonhire";
 import * as sifa from "$lib/lexicons/id/sifa";
-import * as bsky from "$lib/lexicons/app/bsky";
-import { handleResolver, didResolver, getOAuthClient } from "./auth";
+import { didResolver, getOAuthClient } from "./auth";
 import type {
   Resume,
   Work,
@@ -15,6 +16,8 @@ import type {
   WorkplaceType,
   EmploymentType,
 } from "./jsonresume";
+import { getDB } from "./db";
+import { normalizeUrl } from "./link";
 
 // Map sifa employment type to jsonresume employment type
 function getEmploymentType(
@@ -48,36 +51,6 @@ function getWorkplaceType(
   }
 }
 
-// Infer network from URL (fallback for platformOther)
-function inferNetwork(url: string): string | undefined {
-  url = url.toLowerCase();
-  if (url.includes("github.com")) {
-    return "GitHub";
-  }
-  if (url.includes("linkedin.com")) {
-    return "LinkedIn";
-  }
-  if (url.includes("twitter.com") || url.includes("x.com")) {
-    return "Twitter";
-  }
-  if (url.includes("facebook.com")) {
-    return "Facebook";
-  }
-  if (url.includes("instagram.com")) {
-    return "Instagram";
-  }
-  if (url.includes("t.me") || url.includes("telegram.me")) {
-    return "Telegram";
-  }
-  if (url.includes("youtube.com") || url.includes("youtu.be")) {
-    return "YouTube";
-  }
-  if (url.includes("mastodon")) {
-    return "Mastodon";
-  }
-  return undefined;
-}
-
 // Format datetime to ISO8601 date (YYYY-MM-DD)
 function formatDate(dateString: string | undefined): string | undefined {
   if (!dateString) {
@@ -91,12 +64,22 @@ function formatDate(dateString: string | undefined): string | undefined {
 }
 
 export async function loadSifaResume(
-  handle: string,
+  did: DidString,
+  isOwnProfile: boolean,
 ): Promise<Resume | undefined> {
-  // Resolve handle to DID
-  const did = await handleResolver.resolve(handle);
-  if (!did) {
-    return;
+  const db = await getDB();
+  const profileIndex = await db
+    .selectFrom("profile_index")
+    .select(["name", "title", "country_code"])
+    .where("did", "=", did)
+    .executeTakeFirst();
+  let profilePrivate;
+  if (isOwnProfile) {
+    profilePrivate = await db
+      .selectFrom("profile_private")
+      .select(["email"])
+      .where("did", "=", did)
+      .executeTakeFirst();
   }
 
   // Create type-safe client pointing to the user's PDS
@@ -123,7 +106,6 @@ export async function loadSifaResume(
     projectsRecords,
     languagesRecords,
     externalAccountsRecords,
-    bskyProfileResponse,
   ] = await Promise.all([
     // Profile is a singleton record at rkey "self"
     client
@@ -175,16 +157,9 @@ export async function loadSifaResume(
       })
       .then(getRecords)
       .catch((error) => console.error(error)),
-    client
-      .get(bsky.actor.profile.main, {
-        rkey: "self",
-        repo: did,
-      })
-      .catch((error) => console.error(error)),
   ]);
 
   // Extract data with full type safety from generated lexicons
-  const bskyProfile = bskyProfileResponse?.value;
   const profile = profileResponse?.value;
 
   // Build profiles array from external accounts
@@ -204,7 +179,6 @@ export async function loadSifaResume(
   });
   const resumeProfiles = sortedAccounts.map((account) => {
     return {
-      network: inferNetwork(account.url),
       url: account.url,
     };
   });
@@ -297,11 +271,13 @@ export async function loadSifaResume(
     $schema:
       "https://raw.githubusercontent.com/jsonresume/resume-schema/v1.0.0/schema.json",
     basics: {
-      name: bskyProfile?.displayName,
-      label: profile?.headline,
+      name: profileIndex?.name ?? undefined,
+      label: profileIndex?.title ?? undefined,
+      location: profileIndex?.country_code
+        ? { countryCode: profileIndex.country_code }
+        : undefined,
+      email: profilePrivate?.email ?? undefined,
       summary: profile?.about,
-      url: bskyProfile?.website,
-      location,
       profiles: resumeProfiles.length > 0 ? resumeProfiles : undefined,
     },
     work: work.length > 0 ? work : undefined,
@@ -369,37 +345,8 @@ function parseLocation(
 const getRkey = (uri: string) =>
   (uri.split("/").pop() ?? "") as RecordKeyString;
 
-export async function updateSifaResume(
-  did: string,
-  resume: Resume,
-): Promise<void> {
-  // Restore OAuth session from database
-  const oauthClient = await getOAuthClient();
-  const session = await oauthClient.restore(did);
-
-  // Create typed client with authenticated session
-  const client = new Client(new Agent(session));
-
+const updateWork = async (client: Client, resume: Resume) => {
   const now = new Date().toISOString() as DatetimeString;
-
-  await client.put(bsky.actor.profile.main, {
-    displayName: resume.basics?.name,
-  });
-
-  // Update profile
-  await client.put(sifa.profile.self.main, {
-    createdAt: now,
-    headline: resume.basics?.label,
-    about: resume.basics?.summary,
-    industry: resume.extension?.industry,
-    location: parseLocation(resume.basics?.location?.address),
-    preferredWorkplace:
-      resume.extension?.preferredWorkplaces
-        ?.map(getSifaWorkplaceType)
-        .filter((w) => w !== undefined) ?? [],
-  });
-
-  // Recreate positions
   const existingPositions = await client.list(sifa.profile.position.main);
   for (const record of existingPositions.records) {
     await client.delete(sifa.profile.position, {
@@ -419,8 +366,10 @@ export async function updateSifaResume(
       workplaceType: getSifaWorkplaceType(work.extension?.workplaceType),
     });
   }
+};
 
-  // Recreate education
+const updateEducation = async (client: Client, resume: Resume) => {
+  const now = new Date().toISOString() as DatetimeString;
   const existingEducation = await client.list(sifa.profile.education.main);
   for (const record of existingEducation.records) {
     await client.delete(sifa.profile.education, {
@@ -438,8 +387,10 @@ export async function updateSifaResume(
       description: edu.extension?.description,
     });
   }
+};
 
-  // Recreate projects
+const updateProjects = async (client: Client, resume: Resume) => {
+  const now = new Date().toISOString() as DatetimeString;
   const existingProjects = await client.list(sifa.profile.project.main);
   for (const record of existingProjects.records) {
     await client.delete(sifa.profile.project, {
@@ -451,13 +402,17 @@ export async function updateSifaResume(
       createdAt: now,
       name: project.name ?? "",
       description: project.description,
-      url: project.url as `${string}:${string}` | undefined,
+      url: project.url
+        ? (normalizeUrl(project.url) as `${string}:${string}`)
+        : undefined,
       startedAt: project.startDate ?? now,
       endedAt: project.endDate,
     });
   }
+};
 
-  // Recreate skills
+const updateSkills = async (client: Client, resume: Resume) => {
+  const now = new Date().toISOString() as DatetimeString;
   const existingSkills = await client.list(sifa.profile.skill.main);
   for (const record of existingSkills.records) {
     await client.delete(sifa.profile.skill, {
@@ -470,8 +425,10 @@ export async function updateSifaResume(
       name: skill.name ?? "",
     });
   }
+};
 
-  // Recreate languages
+const updateLanguages = async (client: Client, resume: Resume) => {
+  const now = new Date().toISOString() as DatetimeString;
   const existingLanguages = await client.list(sifa.profile.language.main);
   for (const record of existingLanguages.records) {
     await client.delete(sifa.profile.language, {
@@ -484,8 +441,10 @@ export async function updateSifaResume(
       name: language.language ?? "",
     });
   }
+};
 
-  // Recreate external accounts
+const updateProfiles = async (client: Client, resume: Resume) => {
+  const now = new Date().toISOString() as DatetimeString;
   const existingAccounts = await client.list(sifa.profile.externalAccount.main);
   for (const record of existingAccounts.records) {
     await client.delete(sifa.profile.externalAccount, {
@@ -495,8 +454,94 @@ export async function updateSifaResume(
   for (const profile of resume.basics?.profiles ?? []) {
     await client.create(sifa.profile.externalAccount.main, {
       createdAt: now,
-      url: profile.url as `${string}:${string}`,
+      url: normalizeUrl(profile.url) as `${string}:${string}`,
       platform: "id.sifa.defs#platformOther",
     });
   }
+};
+
+export async function updateSifaResume(
+  did: string,
+  resume: Resume,
+): Promise<void> {
+  const now = new Date().toISOString() as DatetimeString;
+
+  const db = await getDB();
+
+  const profileIndex = await db.transaction().execute(async (trx) => {
+    const profileIndex = await trx
+      .insertInto("profile_index")
+      .values({
+        did,
+        created_at: now,
+        name: resume.basics?.name,
+        title: resume.basics?.label,
+        country_code: resume.basics?.location?.countryCode,
+      })
+      .onConflict((oc) =>
+        oc.column("did").doUpdateSet({
+          name: resume.basics?.name,
+          title: resume.basics?.label,
+          country_code: resume.basics?.location?.countryCode,
+        }),
+      )
+      .returningAll()
+      .executeTakeFirst();
+
+    await trx
+      .insertInto("profile_private")
+      .values({
+        did,
+        status: "open_to_connect",
+        created_at: now,
+        email: resume.basics?.email,
+      })
+      .onConflict((oc) =>
+        oc.column("did").doUpdateSet({
+          email: resume.basics?.email,
+        }),
+      )
+      .execute();
+    return profileIndex;
+  });
+
+  // Create typed client with authenticated session
+  const oauthClient = await getOAuthClient();
+  const session = await oauthClient.restore(did);
+  const client = new Client(new Agent(session));
+
+  const weareonhireProfile = client.put(weareonhire.profile.main, {
+    name: profileIndex?.name ?? undefined,
+    title: profileIndex?.title ?? undefined,
+    introduction: profileIndex?.introduction ?? undefined,
+    countryCode: profileIndex?.country_code ?? undefined,
+    createdAt: now,
+  });
+
+  // Update profile
+  const sifaProfile = client.put(sifa.profile.self.main, {
+    createdAt: now,
+    headline: resume.basics?.label,
+    about: resume.basics?.summary,
+    industry: resume.extension?.industry,
+    location: resume.basics?.location?.countryCode
+      ? { countryCode: resume.basics.location.countryCode }
+      : undefined,
+    preferredWorkplace:
+      resume.extension?.preferredWorkplaces
+        ?.map(getSifaWorkplaceType)
+        .filter((w) => w !== undefined) ?? [],
+  });
+
+  // update records concurrently to speed up update
+  await Promise.all([
+    weareonhireProfile,
+    sifaProfile,
+    updateWork(client, resume),
+    updateEducation(client, resume),
+    updateProjects(client, resume),
+    updateSkills(client, resume),
+    updateLanguages(client, resume),
+    updateProfiles(client, resume),
+  ]);
 }
