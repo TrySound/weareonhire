@@ -1,112 +1,295 @@
 <script lang="ts">
+  import countries from "i18n-iso-countries";
+  import countriesEnLocale from "i18n-iso-countries/langs/en.json";
   import { page } from "$app/state";
-  import type { Resume } from "$lib/jsonresume";
   import Topbar from "$lib/topbar.svelte";
-  import UploadResumeDialog from "$lib/upload-resume-dialog.svelte";
-  import Editor from "../../../editor.svelte";
-  import Print from "../../../print.svelte";
+  import {
+    getProfile,
+    getProfileContacts,
+    updateProfile,
+  } from "$lib/profile.remote";
   import {
     getProfileRecommendations,
     createRecommendation as createRecommendationRaw,
   } from "$lib/recommendation.remote";
-  import { getMemberProfile, updateMemberProfile } from "$lib/profile.remote";
   import { formatDate } from "$lib/date";
+  import type { DatabaseSchema } from "$lib/db";
+  import MultiSelectCombobox from "../../../multi-select-combobox.svelte";
+  import { getLinkDisplayName, getLinkIcon } from "$lib/link";
 
   let { data } = $props();
 
-  const mode = $derived(
-    page.url.searchParams.get("mode") === "cv" ? "cv" : "recommendation",
-  );
+  countries.registerLocale(countriesEnLocale);
+
+  const countriesList = Object.entries(
+    countries.getNames("en", { select: "alias" }),
+  )
+    .map(([code, name]) => ({ code, name }))
+    .sort((a, b) => a.name.localeCompare(b.name));
+
   const isOwnProfile = $derived(data.handle === data.profile.handle);
+  const isReadOnly = $derived(!isOwnProfile);
 
   // reset the form instantly hidden after submission
   const createRecommendation = $derived(
     createRecommendationRaw.for(data.profile.handle),
   );
 
-  // Load resume via remote query
-  const profile = $derived(getMemberProfile({ handle: data.profile.handle }));
+  // await triggers reactivity loss warning but does not blink on the page
+  const profile = $derived(await getProfile({ handle: data.profile.handle }));
 
-  // Load recommendations via remote query
   const recommendations = $derived(
     // await triggers reactivity loss warning but does not blink on the page
     await getProfileRecommendations({ handle: data.profile.handle }),
   );
 
+  const contacts = $derived(
+    getProfileContacts({ handle: data.profile.handle }),
+  );
+
   // Track which recommendation is currently targeted via URL hash
   const targetedId = $derived(page.url.hash.slice(1));
 
-  let saveMessage = $state("");
+  // Local state for contacts to bind with MultiSelectCombobox
+  let editingContacts = $state<string[]>([]);
 
-  async function handleSave(resume: Resume) {
-    saveMessage = "";
-    // optimistically update resume before mutation
-    profile.set(resume);
-    try {
-      await updateMemberProfile(resume);
-      // Query will be refreshed automatically by the command
-    } catch (e: any) {
-      saveMessage = e.message || "Failed to save profile";
+  let isEditing = $state(false);
+
+  const startEditing = () => {
+    isEditing = true;
+    editingContacts = [...(contacts.current?.contacts ?? [])];
+  };
+
+  type ProfileStatus = DatabaseSchema["profile_private"]["status"];
+
+  const getStatusLabel = (status: ProfileStatus | undefined) => {
+    switch (status) {
+      case "open_to_work":
+        return "Open to work";
+      case "hidden":
+        return "Hidden";
+      default:
+        status satisfies "open_to_connect" | undefined;
+        return "Open to connect";
     }
-  }
+  };
 </script>
 
 <div class="container">
   <Topbar handle={data.handle} />
 
-  <div class="actions">
-    {#if isOwnProfile}
-      <button
-        type="button"
-        class="icon-button"
-        aria-label="Upload resume"
-        commandfor="upload-resume-dialog"
-        command="show-modal"
+  <!-- editor -->
+  <section
+    class="profile-container"
+    aria-label="Edit profile"
+    hidden={!isEditing}
+  >
+    <div class="row">
+      <div><!-- skip column --></div>
+
+      <form
+        class="form-stack"
+        {...updateProfile.enhance(async ({ submit }) => {
+          await submit();
+          isEditing = false;
+          // avoid resetting the form to not erase textarea initial value
+        })}
       >
-        <svg width="20" height="20">
-          <use href="#icon-upload" />
-        </svg>
-      </button>
-    {/if}
-    <button
-      type="button"
-      class="icon-button"
-      aria-label="Print resume"
-      onclick={() => window.print()}
-    >
-      <svg width="20" height="20">
-        <use href="#icon-print" />
-      </svg>
-    </button>
-  </div>
+        <div class="form-group">
+          <label for="profile-name" class="form-label">Name</label>
+          <input
+            id="profile-name"
+            class="form-input"
+            placeholder="Your full name"
+            {...updateProfile.fields.name.as("text", profile.name ?? "")}
+          />
+        </div>
 
-  <div style="height: var(--space-4)"></div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="profile-title" class="form-label">Title</label>
+            <input
+              id="profile-title"
+              type="text"
+              class="form-input"
+              placeholder="e.g., Senior Full-Stack Engineer"
+              {...updateProfile.fields.title.as("text", profile.title ?? "")}
+            />
+          </div>
 
-  {#if saveMessage}
-    <div
-      class="save-message alert"
-      class:alert-success={!saveMessage.includes("Failed")}
-      class:alert-error={saveMessage.includes("Failed")}
-    >
-      {saveMessage}
+          <div class="form-group">
+            <label for="profile-status" class="form-label">Status</label>
+            <select
+              id="profile-status"
+              class="form-input"
+              {...updateProfile.fields.status.as(
+                "select",
+                profile.status ?? "hidden",
+              )}
+            >
+              <option class="menuitem" value="open_to_work">Open to Work</option
+              >
+              <option class="menuitem" value="open_to_connect"
+                >Open to Connect</option
+              >
+              <option class="menuitem" value="hidden">Hidden</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="profile-email" class="form-label">Email</label>
+            <input
+              id="profile-email"
+              class="form-input"
+              placeholder="your@email.com"
+              {...updateProfile.fields.email.as("email", profile.email ?? "")}
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="profile-location" class="form-label">Location</label>
+            <select
+              id="profile-location"
+              class="form-input"
+              {...updateProfile.fields.countryCode.as(
+                "select",
+                profile.countryCode ?? "",
+              )}
+            >
+              <option class="menuitem" value="">Worldwide</option>
+              {#each countriesList as country}
+                <option class="menuitem" value={country.code}
+                  >{country.name}</option
+                >
+              {/each}
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="profile-contacts" class="form-label">Contacts</label>
+          <MultiSelectCombobox
+            id="profile-contacts"
+            options={[]}
+            placeholder="Add URL (e.g., https://github.com/username)"
+            bind:selected={editingContacts}
+          />
+          <!-- Hidden inputs to submit contacts array -->
+          {#each editingContacts as contact, i}
+            <input type="hidden" name="contacts[{i}]" value={contact} />
+          {/each}
+        </div>
+
+        <div class="form-group">
+          <label for="profile-introduction" class="form-label">
+            Introduction
+          </label>
+          <textarea
+            id="profile-introduction"
+            class="form-input"
+            placeholder="Tell us your story..."
+            {...updateProfile.fields.introduction.as(
+              "text",
+              profile.introduction ?? "",
+            )}
+          ></textarea>
+        </div>
+
+        <div class="form-actions">
+          <button
+            type="submit"
+            class="button"
+            data-state={updateProfile.pending ? "loading" : "idle"}
+          >
+            Save Profile
+          </button>
+          <button
+            type="button"
+            class="button"
+            onclick={() => (isEditing = false)}
+          >
+            Cancel
+          </button>
+        </div>
+      </form>
     </div>
-  {/if}
+  </section>
 
-  <div class="editor-container">
-    {#if profile.current}
-      <Editor
-        resume={profile.current}
-        onSave={handleSave}
-        readonly={!isOwnProfile}
-        fullResume={mode === "cv"}
-      />
-    {:else}
-      <div class="spinner-container">
-        <div class="spinner"></div>
-        <span class="subtle">Loading profile...</span>
+  <!-- preview -->
+  <section class="profile-container" aria-label="Profile" hidden={isEditing}>
+    <div class="row profile-name-row">
+      <div><!-- skip column --></div>
+      <div class="margin-trim-block">
+        <div class="space-between">
+          <h2 class="heading-1">{profile.name ?? data.profile.handle}</h2>
+          {#if !isReadOnly}
+            <button
+              class="icon-button"
+              aria-label="Edit profile"
+              onclick={startEditing}
+            >
+              <svg width="16" height="16">
+                <use href="#icon-pencil" />
+              </svg>
+            </button>
+          {/if}
+        </div>
+        <p class="subtle">{profile.title}</p>
+        <p class="subtle">
+          {#if profile.status}
+            <span class="chip">
+              {getStatusLabel(profile.status)}
+              <svg width="14" height="14"><use href="#icon-check" /></svg>
+            </span>
+          {/if}
+          <span class="chip">
+            {#if profile.countryCode}
+              {countries.getName(profile.countryCode, "en", {
+                select: "alias",
+              })}
+            {:else}
+              Worldwide
+            {/if}
+            <svg width="14" height="14"><use href="#icon-location" /></svg>
+          </span>
+        </p>
       </div>
-    {/if}
-  </div>
+    </div>
+
+    <div class="row">
+      <div class="subtle">
+        <a href="/resume/{data.profile.handle}" class="link contact-item">
+          View Resume
+          <svg width="14" height="14"><use href="#icon-print" /></svg>
+        </a>
+        {#if profile.email}
+          <a href="mailto:{profile.email}" class="link contact-item">
+            Email
+            <svg width="14" height="14"><use href="#icon-email" /></svg>
+          </a>
+        {/if}
+        {#each contacts.current?.contacts as contact}
+          <a href={contact} target="_blank" class="link contact-item">
+            {getLinkDisplayName(contact)}
+            <svg width="14" height="14">
+              <use href="#icon-{getLinkIcon(contact)}" />
+            </svg>
+          </a>
+        {/each}
+      </div>
+      <div class="margin-trim-block">
+        <p
+          class="white-space-preserve-line"
+          class:subtle={!profile.introduction}
+        >
+          {profile.introduction ??
+            `${data.profile.handle} hasn't shared his story yet`}
+        </p>
+      </div>
+    </div>
+  </section>
 
   <!-- Recommendations Section -->
   <section
@@ -183,18 +366,14 @@
       {:else}
         <div class="row">
           <div><!-- skip column --></div>
-          <p class="subtle">The user has not been recommended yet</p>
+          <div class="margin-trim-block">
+            <p class="subtle">The user has not been recommended yet</p>
+          </div>
         </div>
       {/each}
     </div>
   </section>
 </div>
-
-<UploadResumeDialog onUpload={handleSave} />
-
-{#if profile.current}
-  <Print resume={profile.current} />
-{/if}
 
 <style>
   .container {
@@ -203,8 +382,23 @@
     }
   }
 
-  .editor-container {
-    margin-bottom: var(--space-8);
+  .profile-container {
+    margin-bottom: var(--space-12);
+  }
+
+  .profile-name-row {
+    margin-bottom: var(--space-4);
+  }
+
+  .contact-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+    justify-content: end;
+    @media (max-width: 640px) {
+      flex-direction: row-reverse;
+      justify-content: start;
+    }
   }
 
   .save-message {
@@ -227,5 +421,23 @@
     &.active {
       background-color: var(--color-bg-hover);
     }
+  }
+
+  .form-actions {
+    display: flex;
+    gap: var(--space-2);
+    justify-content: flex-start;
+  }
+
+  .readonly-contacts {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  .form-value {
+    padding: var(--space-2) 0;
+    margin: 0;
+    color: var(--color-text);
   }
 </style>

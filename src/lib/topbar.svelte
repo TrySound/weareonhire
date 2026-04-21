@@ -55,6 +55,9 @@
           >
             @{handle}
           </a>
+          <a href="/resume/{handle}" role="menuitem" class="menuitem">
+            Resume
+          </a>
           <form method="POST" action="/auth/logout">
             <button role="menuitem" class="menuitem">Disconnect</button>
           </form>
@@ -198,7 +201,7 @@
     align-items: center;
     padding: var(--space-2) 0;
     min-height: 60px;
-    margin-bottom: var(--space-4);
+    margin-bottom: var(--space-12);
     border-bottom: 1px solid var(--color-border);
   }
 

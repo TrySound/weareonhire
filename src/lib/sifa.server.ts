@@ -545,3 +545,59 @@ export async function updateSifaResume(
     updateProfiles(client, resume),
   ]);
 }
+
+// Load profile contacts from SIFA external accounts
+export async function loadProfileContacts(did: DidString) {
+  // Create type-safe client pointing to the user's PDS
+  const didDoc = await didResolver.resolve(did);
+  const pdsEndpoint = extractPdsUrl(didDoc);
+  const client = new Client(pdsEndpoint);
+  // Fetch external accounts
+  const externalAccountsResponse = await client
+    .list(sifa.profile.externalAccount.main, {
+      repo: did,
+      limit: 100,
+    })
+    .catch((error) => {
+      console.error("Error loading external accounts:", error);
+    });
+  // Extract URLs from external accounts
+  const externalAccounts = externalAccountsResponse?.records?.map(
+    (record) => sifa.profile.externalAccount.main.$cast(record.value).url,
+  );
+  return externalAccounts ?? [];
+}
+
+// Update profile contacts in SIFA external accounts
+export async function updateProfileContacts(
+  did: string,
+  urls: string[],
+): Promise<void> {
+  // Restore OAuth session
+  const oauthClient = await getOAuthClient();
+  const session = await oauthClient.restore(did);
+
+  // Create typed client with authenticated session
+  const client = new Client(new Agent(session));
+
+  const now = new Date().toISOString() as DatetimeString;
+
+  // Delete existing external accounts
+  const existingAccounts = await client.list(sifa.profile.externalAccount.main);
+  for (const record of existingAccounts.records) {
+    await client.delete(sifa.profile.externalAccount, {
+      rkey: getRkey(record.uri),
+    });
+  }
+
+  // Create new external accounts from URLs
+  for (const url of urls) {
+    if (url.trim()) {
+      await client.create(sifa.profile.externalAccount.main, {
+        createdAt: now,
+        url: normalizeUrl(url) as `${string}:${string}`,
+        platform: "id.sifa.defs#platformOther",
+      });
+    }
+  }
+}

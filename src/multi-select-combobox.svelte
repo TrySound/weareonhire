@@ -148,7 +148,7 @@
   <!-- Selected option chips -->
   <div class="selected-chips">
     {#each selected as option}
-      <span class="chip chip--removable" role="listitem">
+      <span class="chip" role="listitem">
         {option}
         <button
           type="button"
@@ -272,21 +272,6 @@
     color: var(--color-text-muted);
   }
 
-  .chip {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--space-1);
-    padding: var(--space-1) var(--space-3);
-    border: 1px solid var(--color-border-input);
-    border-radius: 20px;
-    font-size: var(--font-size-sm);
-    font-weight: var(--font-weight-medium);
-  }
-
-  .chip--removable {
-    cursor: default;
-  }
-
   .chip-remove {
     display: inline-flex;
     align-items: center;
@@ -307,10 +292,5 @@
 
   .chip-remove:hover {
     background: rgba(255, 255, 255, 0.2);
-  }
-
-  .chip--secondary {
-    background: var(--color-bg-hover);
-    color: var(--color-text-secondary);
   }
 </style>
