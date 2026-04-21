@@ -12,6 +12,8 @@ export const load = async ({ locals }) => {
       SELECT author_did AS did FROM recommendation_index
       UNION
       SELECT subject_did AS did FROM recommendation_index
+      UNION
+      SELECT did FROM profile_index
     )
   `.execute(db);
 

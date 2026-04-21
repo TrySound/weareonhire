@@ -1,11 +1,6 @@
 import type { HandleString } from "@atproto/lex";
-import { redirect } from "@sveltejs/kit";
 
-export const load = async ({ params, locals, url }) => {
-  if (url.searchParams.get("mode") === "cv") {
-    redirect(302, `/resume/${params.handle}`);
-  }
-
+export const load = async ({ params, locals }) => {
   const profileHandle = params.handle as HandleString;
 
   return {

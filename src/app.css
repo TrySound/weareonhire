@@ -264,11 +264,28 @@ body {
 
   &:hover,
   &:focus-visible,
+  &:checked,
   &[aria-selected="true"] {
     background-color: var(--color-bg-hover);
     color: var(--color-text);
     outline: none;
   }
+}
+
+.menuitem:where(option)::checkmark {
+  display: none;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid var(--color-border-input);
+  border-radius: 20px;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  cursor: default;
 }
 
 #app {
@@ -343,15 +360,15 @@ body {
     border-color: var(--color-text);
     outline: none;
   }
+
+  &::placeholder {
+    color: var(--color-text-placeholder);
+  }
 }
 
 .form-input-lg {
   padding: var(--space-3) var(--space-4);
   font-size: var(--font-size-lg);
-}
-
-.form-input::placeholder {
-  color: var(--color-text-placeholder);
 }
 
 .form-input:where(textarea) {
@@ -367,6 +384,31 @@ body {
   @supports (field-sizing: content) {
     field-sizing: content;
     resize: none;
+  }
+}
+
+.form-input:where(select) {
+  appearance: base-select;
+
+  &::picker-icon {
+    color: var(--text-secondary);
+    transition: 0.2s rotate;
+  }
+
+  &:open::picker-icon {
+    rotate: 180deg;
+  }
+
+  &::picker(select) {
+    appearance: base-select;
+    box-sizing: border-box;
+    margin: var(--space-2) 0;
+    /* same as .menu */
+    padding: var(--space-2) 0;
+    background: var(--color-bg-elevated);
+    border: 1px solid var(--color-border-input);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-md);
   }
 }
 
