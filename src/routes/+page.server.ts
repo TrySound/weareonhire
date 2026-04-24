@@ -66,12 +66,6 @@ export const load = async ({ locals }) => {
     handle: locals.handle,
     role: locals.role,
     populationCount,
-    lastRecommendations:
-      Array.from(Array(6)).map(() => ({
-        reason:
-          "recommedation text recommedation text recommedation text recommedation text recommedation text recommedation text recommedation text recommedation text recommedation text",
-        authorHandle: "handle2",
-        subjectHandle: "handl2",
-      })) ?? recommendationsWithHandles,
+    lastRecommendations: recommendationsWithHandles,
   };
 };
