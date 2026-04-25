@@ -1,6 +1,16 @@
-:root {
+html {
   color-scheme: light dark;
+}
 
+html[data-theme="light"] {
+  color-scheme: light;
+}
+
+html[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+:root {
   /* Typography */
   --font-family: ui-sans-serif, system-ui, sans-serif;
   --font-mono: ui-monospace, monospace;

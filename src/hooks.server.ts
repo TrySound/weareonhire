@@ -36,8 +36,8 @@ export const handle = async ({ event, resolve }) => {
     return resolve(event, {
       transformPageChunk({ html }) {
         return html.replace(
-          "color-scheme: light dark",
-          `color-scheme: ${theme}`,
+          `data-theme="system"`,
+          `data-theme="${theme}"`,
         );
       },
     });

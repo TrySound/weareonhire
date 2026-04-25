@@ -24,7 +24,7 @@ export function getTheme(): Theme {
 
 export function toggleTheme(currentTheme: Theme): Theme {
   const newTheme = currentTheme === "light" ? "dark" : "light";
-  document.documentElement.style.colorScheme = newTheme;
+  document.documentElement.setAttribute("data-theme", newTheme);
   const systemTheme = getSystemTheme();
   // If the new theme matches system preference, remove the cookie
   if (newTheme === systemTheme) {
