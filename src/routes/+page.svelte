@@ -60,13 +60,22 @@
     <h1 class="hero-title">weareonhire!</h1>
     <p class="hero-tagline">Your professional story, backed by your peers</p>
     <div class="hero-actions">
-      <button
-        class="button button-primary button-lg"
-        commandfor="topbar-login-dialog"
-        command="show-modal"
-      >
-        Connect to Atmosphere
-      </button>
+      {#if data.handle}
+        <a
+          class="button button-primary button-lg"
+          href="/profile/{data.handle}"
+        >
+          My Profile
+        </a>
+      {:else}
+        <button
+          class="button button-primary button-lg"
+          commandfor="topbar-login-dialog"
+          command="show-modal"
+        >
+          Connect to Atmosphere
+        </button>
+      {/if}
     </div>
   </section>
 
