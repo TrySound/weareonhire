@@ -203,9 +203,9 @@
             >
               <option class="menuitem" value="">Worldwide</option>
               {#each countriesList as country}
-                <option class="menuitem" value={country.code}
-                  >{country.name}</option
-                >
+                <option class="menuitem" value={country.code}>
+                  {country.name}
+                </option>
               {/each}
             </select>
           </div>
@@ -452,11 +452,6 @@
     }
   }
 
-  .save-message {
-    text-align: center;
-    margin-bottom: var(--space-4);
-  }
-
   .recommendations-section {
     display: grid;
     gap: var(--space-8);
@@ -472,23 +467,5 @@
     &.active {
       background-color: var(--color-bg-hover);
     }
-  }
-
-  .form-actions {
-    display: flex;
-    gap: var(--space-2);
-    justify-content: flex-start;
-  }
-
-  .readonly-contacts {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-2);
-  }
-
-  .form-value {
-    padding: var(--space-2) 0;
-    margin: 0;
-    color: var(--color-text);
   }
 </style>

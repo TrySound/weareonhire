@@ -12,9 +12,9 @@
   };
 
   function groupSkillsByCategory(skills: { name?: string }[]): {
-    [category: string]: string[];
+    [category: string]: Set<string>;
   } {
-    const grouped: { [category: string]: string[] } = {};
+    const grouped: { [category: string]: Set<string> } = {};
 
     // Create reverse lookup map: skill -> category
     const skillToCategory: Record<string, string> = {};
@@ -29,9 +29,9 @@
       if (!skillName) continue;
       const category = skillToCategory[skillName.toLowerCase()] ?? "other";
       if (!grouped[category]) {
-        grouped[category] = [];
+        grouped[category] = new Set();
       }
-      grouped[category].push(skillName);
+      grouped[category].add(skillName);
     }
 
     return grouped;
@@ -158,7 +158,7 @@
       {#each Object.entries(groupSkillsByCategory(resume.skills)) as [category, skills]}
         <div>
           <span class="label">{category}:</span>
-          <span class="caption">{skills.join(", ")}</span>
+          <span class="caption">{Array.from(skills).join(", ")}</span>
         </div>
       {/each}
     </section>

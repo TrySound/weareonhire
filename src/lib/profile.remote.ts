@@ -1,13 +1,20 @@
 import * as v from "valibot";
 import { error } from "@sveltejs/kit";
 import { query, command, form, getRequestEvent } from "$app/server";
+import type { DidString } from "@atproto/lex";
 import { ResumeSchema } from "./jsonresume";
 import { getDB } from "./db";
-import { loadResume, updateResume } from "./resume.server";
+import {
+  loadResume,
+  loadResumeBasicsData,
+  updateResume,
+  updateResumeBasicsData,
+} from "./resume.server";
 import { loadSifaResume, updateSifaResume } from "./sifa.server";
 import { handleResolver } from "./auth";
 import { loadProfile, updateProfileData } from "./profile.server";
 import { loadProfileContacts, updateProfileContacts } from "./sifa.server";
+import { normalizeUrl } from "./link";
 
 export const getProfile = query(
   v.object({ handle: v.string() }),
@@ -18,8 +25,22 @@ export const getProfile = query(
     if (!did) {
       error(404, `Cannot resolve did from ${handle}`);
     }
-    const profile =  await loadProfile(did, isOwnProfile);
+    const profile = await loadProfile(did, isOwnProfile);
     return profile;
+  },
+);
+
+export const getResumeBasics = query(
+  v.object({ handle: v.string() }),
+  async ({ handle }) => {
+    const event = getRequestEvent();
+    const isOwnProfile = event.locals.handle === handle;
+    const did = await handleResolver.resolve(handle);
+    if (!did) {
+      error(404, `Cannot resolve did from ${handle}`);
+    }
+    const basics = await loadResumeBasicsData(did, isOwnProfile);
+    return basics;
   },
 );
 
@@ -53,8 +74,6 @@ const ProfileSchema = v.object({
   contacts: v.optional(v.array(v.string())),
 });
 
-export type Profile = v.InferOutput<typeof ProfileSchema>;
-
 export const updateProfile = form(
   ProfileSchema,
   async ({
@@ -67,7 +86,7 @@ export const updateProfile = form(
     contacts,
   }) => {
     const event = getRequestEvent();
-    const did = event.locals.did;
+    const did = event.locals.did as undefined | DidString;
     const handle = event.locals.handle;
 
     if (!did || !handle) {
@@ -87,9 +106,62 @@ export const updateProfile = form(
     // Update contacts in SIFA external accounts
     await updateProfileContacts(did, contacts ?? []);
 
-    // Refresh the profile query to reflect changes
-    getProfile({ handle }).refresh();
-    getProfileContacts({ handle }).refresh();
+    getProfile({ handle }).set({
+      name,
+      title,
+      introduction,
+      countryCode,
+      email,
+      status,
+    });
+    getProfileContacts({ handle }).set({
+      contacts: (contacts ?? []).map(normalizeUrl),
+    });
+  },
+);
+
+const ResumeBasicsSchema = v.object({
+  name: v.optional(v.string()),
+  title: v.optional(v.string()),
+  email: v.optional(v.string()),
+  countryCode: v.optional(v.string()),
+  summary: v.optional(v.string()),
+  contacts: v.optional(v.array(v.string())),
+});
+
+export const updateResumeBasics = form(
+  ResumeBasicsSchema,
+  async ({ name, title, email, countryCode, summary, contacts }) => {
+    const event = getRequestEvent();
+    const did = event.locals.did as DidString;
+    const handle = event.locals.handle;
+
+    if (!did || !handle) {
+      error(401, "Unauthorized");
+    }
+
+    // Update resume basics data (preserves weareonhire introduction)
+    await updateResumeBasicsData(did as DidString, {
+      name,
+      title,
+      email,
+      countryCode,
+      summary,
+    });
+
+    // Update profiles/contacts in SIFA external accounts
+    await updateProfileContacts(did, contacts ?? []);
+
+    getResumeBasics({ handle }).set({
+      name,
+      title,
+      email,
+      countryCode,
+      summary,
+    });
+    getProfileContacts({ handle }).set({
+      contacts: (contacts ?? []).map(normalizeUrl),
+    });
   },
 );
 
@@ -124,11 +196,11 @@ export const updateMemberProfile = command(ResumeSchema, async (resume) => {
     .where("did", "=", did)
     .executeTakeFirst();
 
-  // update legacy members
+  // update legacy members (only work, education, projects, skills, languages)
   if (member) {
     await updateResume(did, resume);
   }
-  // update atproto + private data
+  // update atproto + private data (only work, education, projects, skills, languages)
   await updateSifaResume(did, resume);
 
   // Refresh the profile query to reflect changes

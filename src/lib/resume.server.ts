@@ -1,3 +1,10 @@
+import type { Kysely } from "kysely";
+import { Agent } from "@atproto/api";
+import { Client, type DatetimeString, type DidString } from "@atproto/lex";
+import { extractPdsUrl } from "@atproto/oauth-client-node";
+import * as weareonhire from "$lib/lexicons/com/weareonhire";
+import * as sifa from "$lib/lexicons/id/sifa";
+import { didResolver, getOAuthClient } from "./auth";
 import { getDB } from "./db";
 import type {
   Resume,
@@ -6,10 +13,7 @@ import type {
   WorkplaceType,
   EmploymentType,
 } from "./jsonresume";
-import type { Kysely } from "kysely";
 import type { DatabaseSchema } from "./db";
-import { normalizeUrl } from "./link";
-import type { DidString } from "@atproto/lex";
 
 export async function loadResume(did: DidString): Promise<Resume | undefined> {
   const db = await getDB();
@@ -190,17 +194,11 @@ async function updateResumeData(
   did: string,
   resume: Resume,
 ) {
-  // Update member profile
+  // Update member profile (only extension/industry, basics are handled by updateResumeBasicsData)
   await db
     .updateTable("members")
     .set({
-      name: resume.basics?.name || null,
-      email: resume.basics?.email || null,
-      location: resume.basics?.location?.address || null,
-      headline: resume.basics?.label || null,
-      summary: resume.basics?.summary || null,
       industry: resume.extension?.industry || null,
-      website: resume.basics?.url || null,
       updated_at: new Date().toISOString(),
     })
     .where("did", "=", did)
@@ -216,7 +214,6 @@ async function updateResumeData(
     .deleteFrom("member_preferred_workplaces")
     .where("did", "=", did)
     .execute();
-  await db.deleteFrom("member_profiles").where("did", "=", did).execute();
 
   // Insert positions
   if (resume.work && resume.work.length > 0) {
@@ -316,19 +313,6 @@ async function updateResumeData(
       )
       .execute();
   }
-
-  // Insert profiles
-  if (resume.basics?.profiles && resume.basics.profiles.length > 0) {
-    await db
-      .insertInto("member_profiles")
-      .values(
-        resume.basics.profiles.map((profile) => ({
-          did,
-          url: normalizeUrl(profile.url),
-        })),
-      )
-      .execute();
-  }
 }
 
 export async function updateResume(did: string, resume: Resume): Promise<void> {
@@ -336,5 +320,163 @@ export async function updateResume(did: string, resume: Resume): Promise<void> {
 
   await db.transaction().execute(async (trx) => {
     await updateResumeData(trx, did, resume);
+  });
+}
+
+const getPdsClient = async (did: DidString) => {
+  // Create type-safe client pointing to the user's PDS
+  const didDoc = await didResolver.resolve(did);
+  const pdsEndpoint = extractPdsUrl(didDoc);
+  return new Client(pdsEndpoint);
+};
+
+type ResumeBasicsData = {
+  name?: string;
+  title?: string;
+  email?: string;
+  countryCode?: string;
+  summary?: string;
+};
+
+export async function loadResumeBasicsData(
+  did: DidString,
+  isOwnProfile: boolean,
+) {
+  const db = await getDB();
+
+  // Load public profile data from profile_index
+  const profileIndex = await db
+    .selectFrom("profile_index")
+    .select(["name", "title", "introduction", "country_code"])
+    .where("did", "=", did)
+    .executeTakeFirst();
+
+  const result: ResumeBasicsData = {
+    name: profileIndex?.name ?? undefined,
+    title: profileIndex?.title ?? undefined,
+    countryCode: profileIndex?.country_code ?? undefined,
+  };
+  try {
+    const client = await getPdsClient(did);
+    const existingProfile = await client.get(sifa.profile.self, {
+      rkey: "self",
+      repo: did,
+    });
+    result.summary = existingProfile.value.about;
+  } catch {
+    // Profile doesn't exist yet
+  }
+
+  if (isOwnProfile) {
+    const profilePrivate = await db
+      .selectFrom("profile_private")
+      .select(["email", "status"])
+      .where("did", "=", did)
+      .executeTakeFirst();
+    result.email = profilePrivate?.email ?? undefined;
+  }
+
+  return result;
+}
+
+export async function updateResumeBasicsData(
+  did: DidString,
+  data: ResumeBasicsData,
+) {
+  const db = await getDB();
+
+  await db.transaction().execute(async (trx) => {
+    // Update profile_index table (preserves introduction)
+    await trx
+      .insertInto("profile_index")
+      .values({
+        did,
+        name: data.name ?? null,
+        title: data.title ?? null,
+        introduction: null,
+        country_code: data.countryCode ?? null,
+        created_at: new Date().toISOString(),
+      })
+      .onConflict((oc) =>
+        oc.column("did").doUpdateSet({
+          name: data.name ?? null,
+          title: data.title ?? null,
+          country_code: data.countryCode ?? null,
+        }),
+      )
+      .execute();
+
+    // Update profile_private table
+    await trx
+      .insertInto("profile_private")
+      .values({
+        did,
+        email: data.email ?? null,
+        status: "open_to_connect",
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      })
+      .onConflict((oc) =>
+        oc.column("did").doUpdateSet({
+          email: data.email ?? null,
+          updated_at: new Date().toISOString(),
+        }),
+      )
+      .execute();
+
+    // Update legacy members table (only if member exists)
+    const existingMember = await trx
+      .selectFrom("members")
+      .select("did")
+      .where("did", "=", did)
+      .executeTakeFirst();
+
+    if (existingMember) {
+      await trx
+        .updateTable("members")
+        .set({
+          name: data.name ?? null,
+          email: data.email ?? null,
+          location: data.countryCode ?? null,
+          headline: data.title ?? null,
+          summary: data.summary ?? null,
+          updated_at: new Date().toISOString(),
+        })
+        .where("did", "=", did)
+        .execute();
+    }
+  });
+
+  // Create typed client with authenticated session
+  const oauthClient = await getOAuthClient();
+  const session = await oauthClient.restore(did);
+  const client = new Client(new Agent(session));
+
+  // Get current weareonhire profile to preserve introduction
+  let currentIntroduction: string | undefined;
+  try {
+    const existingProfile = await client.get(weareonhire.profile.main, {
+      rkey: "self",
+      repo: did,
+    });
+    currentIntroduction = existingProfile.value.introduction;
+  } catch {
+    // Profile doesn't exist yet
+  }
+
+  // Update com.weareonhire.profile record (preserves introduction)
+  const now = new Date().toISOString() as DatetimeString;
+  await client.put(weareonhire.profile.main, {
+    createdAt: now,
+    name: data.name,
+    title: data.title,
+    introduction: currentIntroduction,
+    countryCode: data.countryCode,
+  });
+  await client.put(sifa.profile.self.main, {
+    createdAt: now,
+    headline: data.title,
+    about: data.summary,
+    location: data.countryCode ? { countryCode: data.countryCode } : undefined,
   });
 }
