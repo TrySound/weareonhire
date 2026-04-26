@@ -1,11 +1,8 @@
 <script lang="ts">
-  import countries from "i18n-iso-countries";
-  import countriesEnLocale from "i18n-iso-countries/langs/en.json";
   import type { Resume } from "$lib/jsonresume";
   import { SKILLS_TAXONOMY } from "$lib/cv-parser";
   import MultiSelectCombobox from "./multi-select-combobox.svelte";
   import DatePicker from "$lib/date-picker.svelte";
-  import { getLinkDisplayName, getLinkIcon } from "$lib/link";
 
   let {
     resume,
@@ -16,14 +13,6 @@
     onSave?: (resume: Resume) => void;
     readonly?: boolean;
   } = $props();
-
-  countries.registerLocale(countriesEnLocale);
-
-  const countriesList = Object.entries(
-    countries.getNames("en", { select: "alias" }),
-  )
-    .map(([code, name]) => ({ code, name }))
-    .sort((a, b) => a.name.localeCompare(b.name));
 
   // Local state for editing - only populated while editing
   let editingResume = $state<Required<Resume> | null>(null);
@@ -228,190 +217,6 @@
     });
   }
 </script>
-
-<!-- Contacts and summary -->
-<section class="cv-section" aria-label="Contacts and summary">
-  {#if isEditing("contact") && editingResume}
-    <!-- Editor -->
-
-    <div class="row">
-      <div><!-- skip column --></div>
-      <div class="cv-row-heading">
-        <h2 class="heading-2">Contacts and Summary</h2>
-        <button
-          class="icon-button"
-          aria-label="Save contacts and summary"
-          onclick={() => stopEditing()}
-        >
-          <svg width="20" height="20">
-            <use href="#icon-check" />
-          </svg>
-        </button>
-      </div>
-      <div><!-- skip column --></div>
-
-      <div class="form-stack">
-        <div class="form-grid">
-          <div class="form-group">
-            <label for="contact-name" class="form-label">Name</label>
-            <input
-              type="text"
-              id="contact-name"
-              bind:value={editingResume.basics.name}
-              placeholder="John Doe"
-              class="form-input"
-            />
-          </div>
-          <div class="form-group">
-            <label for="contact-location" class="form-label">Location</label>
-            <select
-              id="contact-location"
-              class="form-input"
-              bind:value={
-                () => editingResume?.basics.location?.countryCode ?? "",
-                (newValue) => {
-                  if (editingResume) {
-                    editingResume.basics.location = newValue
-                      ? { countryCode: newValue }
-                      : undefined;
-                  }
-                }
-              }
-            >
-              <option value="">Worldwide</option>
-              {#each countriesList as country}
-                <option value={country.code}>{country.name}</option>
-              {/each}
-            </select>
-          </div>
-          <div class="form-group">
-            <label for="contact-email" class="form-label">Email</label>
-            <input
-              type="email"
-              id="contact-email"
-              bind:value={editingResume.basics.email}
-              placeholder="john@example.com"
-              class="form-input"
-            />
-          </div>
-          <div class="form-group">
-            <label for="contact-title" class="form-label">Title</label>
-            <input
-              type="text"
-              id="contact-title"
-              bind:value={editingResume.basics.label}
-              placeholder="Senior Software Engineer at TechCorp"
-              class="form-input"
-            />
-          </div>
-
-          <div class="form-group full-row">
-            <label for="profile-contacts" class="form-label">Contacts</label>
-            <MultiSelectCombobox
-              id="profile-contacts"
-              options={[]}
-              placeholder="Add URL (e.g., https://github.com/username)"
-              bind:selected={
-                () =>
-                  (editingResume?.basics.profiles ?? []).map(
-                    (item) => item.url,
-                  ),
-                (newProfiles) => {
-                  if (editingResume) {
-                    editingResume.basics.profiles = newProfiles.map((url) => ({
-                      url,
-                    }));
-                  }
-                }
-              }
-            />
-          </div>
-        </div>
-        <div class="form-group">
-          <label for="contact-summary" class="form-label">Short Summary</label>
-          <textarea
-            id="contact-summary"
-            bind:value={editingResume.basics.summary}
-            rows="4"
-            placeholder="Brief professional summary..."
-            class="form-input"
-          ></textarea>
-        </div>
-      </div>
-    </div>
-  {:else}
-    <!-- Preview -->
-
-    <div class="row">
-      <div><!-- skip column --></div>
-      <div class="margin-trim-block">
-        <div class="space-between">
-          <h2 class="heading-1">
-            {displayResume.basics?.name || "Your Name"}
-          </h2>
-          {#if !readonly}
-            <button
-              class="icon-button"
-              aria-label="Edit contacts and summary"
-              onclick={() => startEditing("contact")}
-            >
-              <svg width="16" height="16">
-                <use href="#icon-pencil" />
-              </svg>
-            </button>
-          {/if}
-        </div>
-        {#if displayResume.basics?.label}
-          <p class="subtle">{displayResume.basics.label}</p>
-        {/if}
-        <p class="subtle">
-          <span class="chip">
-            {#if displayResume.basics?.location?.countryCode}
-              {countries.getName(
-                displayResume.basics.location.countryCode,
-                "en",
-                {
-                  select: "alias",
-                },
-              )}
-            {:else}
-              Worldwide
-            {/if}
-            <svg width="14" height="14"><use href="#icon-location" /></svg>
-          </span>
-        </p>
-      </div>
-    </div>
-    <div class="row">
-      <div class="cv-row-side subtle">
-        {#if displayResume.basics?.email}
-          <a href="mailto:{displayResume.basics.email}" class="link">
-            Email
-            <svg width="14" height="14"><use href="#icon-email" /></svg>
-          </a>
-        {/if}
-        {#each displayResume.basics?.profiles as profile}
-          <a href={profile.url} target="_blank" class="link">
-            {getLinkDisplayName(profile.url)}
-            <svg width="14" height="14">
-              <use href="#icon-{getLinkIcon(profile.url)}" />
-            </svg>
-          </a>
-        {/each}
-      </div>
-      <div class="cv-row-main">
-        {#if displayResume.basics?.summary}
-          <p>{displayResume.basics.summary}</p>
-        {:else}
-          <p class="subtle">
-            Add a professional summary to describe your background and
-            expertise.
-          </p>
-        {/if}
-      </div>
-    </div>
-  {/if}
-</section>
 
 <!-- Work Experience -->
 <section class="cv-section" hidden={readonly && work.length === 0}>
@@ -1218,10 +1023,6 @@
     & > *:last-child {
       margin-bottom: 0;
     }
-  }
-
-  .full-row {
-    grid-column: 1 / -1;
   }
 
   @media (max-width: 640px) {

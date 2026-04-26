@@ -1,16 +1,17 @@
 import { Client, type DatetimeString, type DidString } from "@atproto/lex";
 import { Agent } from "@atproto/api";
 import * as weareonhire from "$lib/lexicons/com/weareonhire";
+import * as sifa from "$lib/lexicons/id/sifa";
 import { getOAuthClient } from "./auth";
 import { getDB } from "./db";
 
 export interface ProfileData {
-  name: string | null;
-  title: string | null;
-  introduction: string | null;
-  countryCode: string | null;
-  email?: string | null;
-  status?: "open_to_work" | "open_to_connect" | "hidden" | null;
+  name: string | undefined;
+  title: string | undefined;
+  introduction: string | undefined;
+  countryCode: string | undefined;
+  email?: string | undefined;
+  status?: "open_to_work" | "open_to_connect" | "hidden" | undefined;
 }
 
 export async function loadProfile(
@@ -27,10 +28,10 @@ export async function loadProfile(
     .executeTakeFirst();
 
   const result: ProfileData = {
-    name: profileIndex?.name ?? null,
-    title: profileIndex?.title ?? null,
-    introduction: profileIndex?.introduction ?? null,
-    countryCode: profileIndex?.country_code ?? null,
+    name: profileIndex?.name ?? undefined,
+    title: profileIndex?.title ?? undefined,
+    introduction: profileIndex?.introduction ?? undefined,
+    countryCode: profileIndex?.country_code ?? undefined,
   };
 
   if (isOwnProfile) {
@@ -39,15 +40,15 @@ export async function loadProfile(
       .select(["email", "status"])
       .where("did", "=", did)
       .executeTakeFirst();
-    result.email = profilePrivate?.email ?? null;
-    result.status = profilePrivate?.status ?? null;
+    result.email = profilePrivate?.email ?? undefined;
+    result.status = profilePrivate?.status ?? undefined;
   }
 
   return result;
 }
 
 export async function updateProfileData(
-  did: string,
+  did: DidString,
   data: {
     name?: string;
     title?: string;
@@ -106,6 +107,18 @@ export async function updateProfileData(
   const session = await oauthClient.restore(did);
   const client = new Client(new Agent(session));
 
+  // Get current sifa profile to preserve summary
+  let currentSummary: string | undefined;
+  try {
+    const existingProfile = await client.get(sifa.profile.self.main, {
+      rkey: "self",
+      repo: did,
+    });
+    currentSummary = existingProfile.value.about;
+  } catch {
+    // Profile doesn't exist yet
+  }
+
   // Update com.weareonhire.profile record
   const now = new Date().toISOString() as DatetimeString;
   await client.put(weareonhire.profile.main, {
@@ -114,5 +127,11 @@ export async function updateProfileData(
     title: data.title,
     introduction: data.introduction,
     countryCode: data.countryCode,
+  });
+  await client.put(sifa.profile.self.main, {
+    createdAt: now,
+    headline: data.title,
+    about: currentSummary,
+    location: data.countryCode ? { countryCode: data.countryCode } : undefined,
   });
 }

@@ -6,7 +6,6 @@ import {
 } from "@atproto/lex";
 import { Agent } from "@atproto/api";
 import { extractPdsUrl } from "@atproto/oauth-client-node";
-import * as weareonhire from "$lib/lexicons/com/weareonhire";
 import * as sifa from "$lib/lexicons/id/sifa";
 import { didResolver, getOAuthClient } from "./auth";
 import type {
@@ -413,14 +412,14 @@ const updateProjects = async (client: Client, resume: Resume) => {
 
 const updateSkills = async (client: Client, resume: Resume) => {
   const now = new Date().toISOString() as DatetimeString;
-  const existingSkills = await client.list(sifa.profile.skill.main);
+  const existingSkills = await client.list(sifa.profile.skill);
   for (const record of existingSkills.records) {
     await client.delete(sifa.profile.skill, {
       rkey: getRkey(record.uri),
     });
   }
   for (const skill of resume.skills ?? []) {
-    await client.create(sifa.profile.skill.main, {
+    await client.create(sifa.profile.skill, {
       createdAt: now,
       name: skill.name ?? "",
     });
@@ -443,106 +442,23 @@ const updateLanguages = async (client: Client, resume: Resume) => {
   }
 };
 
-const updateProfiles = async (client: Client, resume: Resume) => {
-  const now = new Date().toISOString() as DatetimeString;
-  const existingAccounts = await client.list(sifa.profile.externalAccount.main);
-  for (const record of existingAccounts.records) {
-    await client.delete(sifa.profile.externalAccount, {
-      rkey: getRkey(record.uri),
-    });
-  }
-  for (const profile of resume.basics?.profiles ?? []) {
-    await client.create(sifa.profile.externalAccount.main, {
-      createdAt: now,
-      url: normalizeUrl(profile.url) as `${string}:${string}`,
-      platform: "id.sifa.defs#platformOther",
-    });
-  }
-};
-
 export async function updateSifaResume(
   did: string,
   resume: Resume,
 ): Promise<void> {
-  const now = new Date().toISOString() as DatetimeString;
-
-  const db = await getDB();
-
-  const profileIndex = await db.transaction().execute(async (trx) => {
-    const profileIndex = await trx
-      .insertInto("profile_index")
-      .values({
-        did,
-        created_at: now,
-        name: resume.basics?.name,
-        title: resume.basics?.label,
-        country_code: resume.basics?.location?.countryCode,
-      })
-      .onConflict((oc) =>
-        oc.column("did").doUpdateSet({
-          name: resume.basics?.name,
-          title: resume.basics?.label,
-          country_code: resume.basics?.location?.countryCode,
-        }),
-      )
-      .returningAll()
-      .executeTakeFirst();
-
-    await trx
-      .insertInto("profile_private")
-      .values({
-        did,
-        status: "open_to_connect",
-        created_at: now,
-        email: resume.basics?.email,
-      })
-      .onConflict((oc) =>
-        oc.column("did").doUpdateSet({
-          email: resume.basics?.email,
-        }),
-      )
-      .execute();
-    return profileIndex;
-  });
-
   // Create typed client with authenticated session
   const oauthClient = await getOAuthClient();
   const session = await oauthClient.restore(did);
   const client = new Client(new Agent(session));
 
-  const weareonhireProfile = client.put(weareonhire.profile.main, {
-    name: profileIndex?.name ?? undefined,
-    title: profileIndex?.title ?? undefined,
-    introduction: profileIndex?.introduction ?? undefined,
-    countryCode: profileIndex?.country_code ?? undefined,
-    createdAt: now,
-  });
-
-  // Update profile
-  const sifaProfile = client.put(sifa.profile.self.main, {
-    createdAt: now,
-    headline: resume.basics?.label,
-    about: resume.basics?.summary,
-    industry: resume.extension?.industry,
-    location: resume.basics?.location?.countryCode
-      ? { countryCode: resume.basics.location.countryCode }
-      : undefined,
-    preferredWorkplace:
-      resume.extension?.preferredWorkplaces
-        ?.map(getSifaWorkplaceType)
-        .filter((w) => w !== undefined) ?? [],
-  });
-
   // update records concurrently to speed up update
+  // Note: basics (name, email, summary, profiles) are handled by updateResumeBasics
   await Promise.all([
-    weareonhireProfile,
-    sifaProfile,
     updateWork(client, resume),
     updateEducation(client, resume),
     updateProjects(client, resume),
     updateSkills(client, resume),
     updateLanguages(client, resume),
-    updateProfiles(client, resume),
   ]);
 }
 
@@ -563,7 +479,8 @@ export async function loadProfileContacts(did: DidString) {
     });
   // Extract URLs from external accounts
   const externalAccounts = externalAccountsResponse?.records?.map(
-    (record) => sifa.profile.externalAccount.main.$cast(record.value).url,
+    (record) =>
+      sifa.profile.externalAccount.main.$cast(record.value).url as string,
   );
   return externalAccounts ?? [];
 }
